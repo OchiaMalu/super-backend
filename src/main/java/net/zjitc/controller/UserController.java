@@ -33,7 +33,7 @@ import static net.zjitc.constant.UserConstant.USER_LOGIN_STATE;
  */
 @RestController
 @RequestMapping("/user")
-@CrossOrigin(origins = {"http://localhost:3000"})
+@CrossOrigin(origins = {"http://localhost:5173"})
 @Slf4j
 public class UserController {
     @Resource
@@ -94,19 +94,17 @@ public class UserController {
         return ResultUtils.success(safetyUser);
     }
 
-//    @GetMapping("/search")
-//    public BaseResponse<List<User>> searchUsers(String username, HttpServletRequest request) {
-//        if (!userService.isAdmin(request)) {
-//            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-//        }
-//        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-//        if (StringUtils.isNotBlank(username)) {
-//            queryWrapper.like("username", username);
-//        }
-//        List<User> userList = userService.list(queryWrapper);
-//        List<User> list = userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
-//        return ResultUtils.success(list);
-//    }
+    @PostMapping("/delete")
+    public BaseResponse<Boolean> deleteUser(@RequestBody long id, HttpServletRequest request) {
+        if (!userService.isAdmin(request)) {
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+        if (id <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        boolean b = userService.removeById(id);
+        return ResultUtils.success(b);
+    }
 
     @GetMapping("/search/tags")
     public BaseResponse<List<User>> searchUsersByTags(@RequestParam(required = false) List<String> tagNameList) {
@@ -115,6 +113,20 @@ public class UserController {
         }
         List<User> userList = userService.searchUsersByTags(tagNameList);
         return ResultUtils.success(userList);
+    }
+
+    @GetMapping("/search")
+    public BaseResponse<List<User>> searchUsers(String username, HttpServletRequest request) {
+        if (!userService.isAdmin(request)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        if (StringUtils.isNotBlank(username)) {
+            queryWrapper.like("username", username);
+        }
+        List<User> userList = userService.list(queryWrapper);
+        List<User> list = userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
+        return ResultUtils.success(list);
     }
 
     // todo 推荐多个，未实现
@@ -150,18 +162,6 @@ public class UserController {
 //        User loginUser = userService.getLoginUser(request);
 //        int result = userService.updateUser(user, loginUser);
 //        return ResultUtils.success(result);
-//    }
-
-//    @PostMapping("/delete")
-//    public BaseResponse<Boolean> deleteUser(@RequestBody long id, HttpServletRequest request) {
-//        if (!userService.isAdmin(request)) {
-//            throw new BusinessException(ErrorCode.NO_AUTH);
-//        }
-//        if (id <= 0) {
-//            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-//        }
-//        boolean b = userService.removeById(id);
-//        return ResultUtils.success(b);
 //    }
 
 }

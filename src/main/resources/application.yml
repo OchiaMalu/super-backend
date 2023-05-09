@@ -1,5 +1,7 @@
 server:
   port: 8080
+  servlet:
+    context-path: /api
 spring:
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
@@ -18,3 +20,16 @@ mybatis-plus:
       logic-delete-value: 1
       logic-not-delete-value: 0
       logic-delete-field: isDelete
+knife4j:
+  enable: true
+  openapi:
+    title: super接口文档
+    email: linzhehao1108@126.com
+    version: v1.0
+    terms-of-service-url: https://stackoverflow.com/
+    group:
+      test1:
+        group-name: test
+        api-rule: package
+        api-rule-resources:
+          - net.zjitc

@@ -89,7 +89,7 @@ public class UserServiceTest {
 
     @Test
     public void testSearchUsersByTags() {
-        List<String> tagNameList = Arrays.asList("java");
+        List<String> tagNameList = Arrays.asList("男");
         List<User> userList = userService.searchUsersByTags(tagNameList);
         Assert.assertNotNull(userList);
     }
