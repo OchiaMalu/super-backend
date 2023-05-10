@@ -2,6 +2,9 @@ server:
   port: 8080
   servlet:
     context-path: /api
+    session:
+      cookie:
+        domain: localhost
 spring:
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
@@ -11,6 +14,8 @@ spring:
   redis:
     host: 47.115.230.95
     port: 6379
+  session:
+    store-type: redis
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: on

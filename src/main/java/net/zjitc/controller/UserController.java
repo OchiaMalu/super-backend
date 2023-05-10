@@ -1,7 +1,6 @@
 package net.zjitc.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 import net.zjitc.common.BaseResponse;
 import net.zjitc.common.ErrorCode;
@@ -13,7 +12,6 @@ import net.zjitc.model.request.UserRegisterRequest;
 import net.zjitc.service.UserService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +19,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static net.zjitc.constant.UserConstant.USER_LOGIN_STATE;
@@ -127,6 +124,19 @@ public class UserController {
         List<User> userList = userService.list(queryWrapper);
         List<User> list = userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
         return ResultUtils.success(list);
+    }
+
+    @PutMapping("/update")
+    public BaseResponse update(@RequestBody User user, HttpServletRequest request) {
+        if (user == null || request == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        boolean success = userService.updateUser(user, request);
+        if (success){
+            return ResultUtils.success(1);
+        }else {
+            return ResultUtils.error(ErrorCode.SYSTEM_ERROR);
+        }
     }
 
     // todo 推荐多个，未实现

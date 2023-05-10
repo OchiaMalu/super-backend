@@ -1,6 +1,7 @@
 package net.zjitc.service.impl;
 
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.Gson;
@@ -12,6 +13,7 @@ import net.zjitc.mapper.UserMapper;
 import net.zjitc.model.domain.User;
 import net.zjitc.service.UserService;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
@@ -22,10 +24,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static net.zjitc.constant.UserConstant.ADMIN_ROLE;
 import static net.zjitc.constant.UserConstant.USER_LOGIN_STATE;
 
 /**
@@ -172,27 +176,50 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (CollectionUtils.isEmpty(tagNameList)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
+        LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        for (String tagName : tagNameList) {
+            userLambdaQueryWrapper = userLambdaQueryWrapper.or().like(Strings.isNotEmpty(tagName), User::getTags, tagName);
+        }
+        return list(userLambdaQueryWrapper);
+    }
+
+    @Override
+    public boolean isAdmin(HttpServletRequest request) {
+        User user = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        return user.getRole() == ADMIN_ROLE;
+    }
+
+    @Override
+    public boolean updateUser(User user, HttpServletRequest request) {
+        if (user == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        if (loginUser==null){
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        if (!(isAdmin(request) || loginUser.getId().equals(user.getId()))){
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+        return updateById(user);
+    }
+
+    private List<User> searchByMemory(List<String> tagNameList) {
         List<User> userList = userMapper.selectList(null);
         Gson gson = new Gson();
         return userList.stream().filter(user -> {
             String tags = user.getTags();
-            Set<String> tempTagNameSet = gson.fromJson(tags,new TypeToken<Set<String>>(){}.getType());
+            Set<String> tempTagNameSet = gson.fromJson(tags, new TypeToken<Set<String>>() {
+            }.getType());
             tempTagNameSet = Optional.ofNullable(tempTagNameSet).orElse(new HashSet<>());
             for (String tagName : tagNameList) {
-                if (!tempTagNameSet.contains(tagName)){
+                if (!tempTagNameSet.contains(tagName)) {
                     return false;
                 }
             }
             return true;
         }).map(this::getSafetyUser).collect(Collectors.toList());
     }
-
-    @Override
-    public boolean isAdmin(HttpServletRequest request) {
-        User user = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
-        return user.getRole() == 1;
-    }
-
 }
 
 
