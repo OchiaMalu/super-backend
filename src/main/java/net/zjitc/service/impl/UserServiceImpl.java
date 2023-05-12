@@ -1,11 +1,14 @@
 package net.zjitc.service.impl;
 
 
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import io.github.classgraph.json.JSONUtils;
 import lombok.extern.slf4j.Slf4j;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.exception.BusinessException;
@@ -14,9 +17,11 @@ import net.zjitc.model.domain.User;
 import net.zjitc.service.UserService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
+import springfox.documentation.spring.web.json.Json;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -24,11 +29,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static net.zjitc.common.RedisConstants.RECOMMEND_KEY;
+import static net.zjitc.common.SystemConstants.PAGE_SIZE;
 import static net.zjitc.constant.UserConstant.ADMIN_ROLE;
 import static net.zjitc.constant.UserConstant.USER_LOGIN_STATE;
 
@@ -47,6 +53,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * 盐值，混淆密码
      */
     private static final String SALT = "ochiamalu";
+
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword) {
@@ -195,13 +204,26 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
-        if (loginUser==null){
+        if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
-        if (!(isAdmin(request) || loginUser.getId().equals(user.getId()))){
+        if (!(isAdmin(request) || loginUser.getId().equals(user.getId()))) {
             throw new BusinessException(ErrorCode.NO_AUTH);
         }
         return updateById(user);
+    }
+
+    @Override
+    public Page<User> recommendUser(long currentPage) {
+        Page<User> page=new Page<>();
+        String pageStr = stringRedisTemplate.opsForValue().get(RECOMMEND_KEY);
+        if (Strings.isEmpty(pageStr)){
+            page = this.page(new Page<>(currentPage, PAGE_SIZE));
+            stringRedisTemplate.opsForValue().set(RECOMMEND_KEY,JSONUtil.toJsonStr(page));
+            return page;
+        }
+        page = JSONUtil.toBean(pageStr, Page.class);
+        return page;
     }
 
     private List<User> searchByMemory(List<String> tagNameList) {

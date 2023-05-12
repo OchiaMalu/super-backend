@@ -1,6 +1,7 @@
 package net.zjitc.service;
 
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import net.zjitc.model.domain.User;
 
@@ -26,4 +27,6 @@ public interface UserService extends IService<User> {
     boolean isAdmin(HttpServletRequest request);
 
     boolean updateUser(User user, HttpServletRequest request);
+
+    Page<User> recommendUser(long currentPage);
 }

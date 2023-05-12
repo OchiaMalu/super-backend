@@ -1,6 +1,7 @@
 package net.zjitc.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 import net.zjitc.common.BaseResponse;
 import net.zjitc.common.ErrorCode;
@@ -132,46 +133,17 @@ public class UserController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         boolean success = userService.updateUser(user, request);
-        if (success){
+        if (success) {
             return ResultUtils.success(1);
-        }else {
+        } else {
             return ResultUtils.error(ErrorCode.SYSTEM_ERROR);
         }
     }
 
-    // todo 推荐多个，未实现
-//    @GetMapping("/recommend")
-//    public BaseResponse<Page<User>> recommendUsers(long pageSize, long pageNum, HttpServletRequest request) {
-//        User loginUser = userService.getLoginUser(request);
-//        String redisKey = String.format("yupao:user:recommend:%s", loginUser.getId());
-//        ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
-//        // 如果有缓存，直接读缓存
-//        Page<User> userPage = (Page<User>) valueOperations.get(redisKey);
-//        if (userPage != null) {
-//            return ResultUtils.success(userPage);
-//        }
-//        // 无缓存，查数据库
-//        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-//        userPage = userService.page(new Page<>(pageNum, pageSize), queryWrapper);
-//        // 写缓存
-//        try {
-//            valueOperations.set(redisKey, userPage, 30000, TimeUnit.MILLISECONDS);
-//        } catch (Exception e) {
-//            log.error("redis set key error", e);
-//        }
-//        return ResultUtils.success(userPage);
-//    }
-
-
-//    @PostMapping("/update")
-//    public BaseResponse<Integer> updateUser(@RequestBody User user, HttpServletRequest request) {
-//        // 校验参数是否为空
-//        if (user == null) {
-//            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-//        }
-//        User loginUser = userService.getLoginUser(request);
-//        int result = userService.updateUser(user, loginUser);
-//        return ResultUtils.success(result);
-//    }
+    @GetMapping("/recommend")
+    public BaseResponse recommendUser(long currentPage) {
+        Page<User> userPage = userService.recommendUser(currentPage);
+        return ResultUtils.success(userPage);
+    }
 
 }
