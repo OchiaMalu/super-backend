@@ -8,9 +8,7 @@ import net.zjitc.exception.BusinessException;
 import net.zjitc.model.domain.Team;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.dto.TeamQuery;
-import net.zjitc.model.request.TeamAddRequest;
-import net.zjitc.model.request.TeamJoinRequest;
-import net.zjitc.model.request.TeamUpdateRequest;
+import net.zjitc.model.request.*;
 import net.zjitc.model.vo.TeamUserVO;
 import net.zjitc.service.TeamService;
 import net.zjitc.service.UserService;
@@ -95,5 +93,28 @@ public class TeamController {
         boolean result = teamService.joinTeam(teamJoinRequest, loginUser);
         return ResultUtils.success(result);
     }
+    @PostMapping("/quit")
+    public BaseResponse<Boolean> quitTeam(@RequestBody TeamQuitRequest teamQuitRequest, HttpServletRequest request) {
+        if (teamQuitRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        boolean result = teamService.quitTeam(teamQuitRequest, loginUser);
+        return ResultUtils.success(result);
+    }
+    @PostMapping("/delete")
+    public BaseResponse<Boolean> deleteTeam(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
+        if (deleteRequest == null || deleteRequest.getId() <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        long id = deleteRequest.getId();
+        User loginUser = userService.getLoginUser(request);
+        boolean result = teamService.deleteTeam(id, loginUser);
+        if (!result) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "删除失败");
+        }
+        return ResultUtils.success(true);
+    }
+
 
 }

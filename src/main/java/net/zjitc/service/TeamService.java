@@ -6,6 +6,7 @@ import net.zjitc.model.domain.Team;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.dto.TeamQuery;
 import net.zjitc.model.request.TeamJoinRequest;
+import net.zjitc.model.request.TeamQuitRequest;
 import net.zjitc.model.request.TeamUpdateRequest;
 import net.zjitc.model.vo.TeamUserVO;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,4 +28,9 @@ public interface TeamService extends IService<Team> {
     boolean updateTeam(TeamUpdateRequest teamUpdateRequest, User loginUser);
 
     boolean joinTeam(TeamJoinRequest teamJoinRequest, User loginUser);
+
+    @Transactional(rollbackFor = Exception.class)
+    boolean quitTeam(TeamQuitRequest teamQuitRequest, User loginUser);
+
+    boolean deleteTeam(long id, User loginUser);
 }
