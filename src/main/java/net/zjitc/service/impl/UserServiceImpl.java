@@ -8,7 +8,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import io.github.classgraph.json.JSONUtils;
 import lombok.extern.slf4j.Slf4j;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.exception.BusinessException;
@@ -21,7 +20,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
-import springfox.documentation.spring.web.json.Json;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -226,6 +224,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return page;
     }
 
+    @Override
+    public User getLoginUser(HttpServletRequest request){
+        if (request == null) {
+            return null;
+        }
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        if (userObj == null) {
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+        return (User) userObj;
+    }
+
+    @Deprecated
     private List<User> searchByMemory(List<String> tagNameList) {
         List<User> userList = userMapper.selectList(null);
         Gson gson = new Gson();

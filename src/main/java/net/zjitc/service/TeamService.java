@@ -3,6 +3,8 @@ package net.zjitc.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import net.zjitc.model.domain.Team;
+import net.zjitc.model.domain.User;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
 * @author OchiaMalu
@@ -11,4 +13,6 @@ import net.zjitc.model.domain.Team;
 */
 public interface TeamService extends IService<Team> {
 
+    @Transactional(rollbackFor = Exception.class)
+    long addTeam(Team team, User loginUser);
 }
