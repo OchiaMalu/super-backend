@@ -94,7 +94,8 @@ public class UserController {
 
     @PostMapping("/delete")
     public BaseResponse<Boolean> deleteUser(@RequestBody long id, HttpServletRequest request) {
-        if (!userService.isAdmin(request)) {
+        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        if (!userService.isAdmin(loginUser)) {
             throw new BusinessException(ErrorCode.NO_AUTH);
         }
         if (id <= 0) {
@@ -115,7 +116,8 @@ public class UserController {
 
     @GetMapping("/search")
     public BaseResponse<List<User>> searchUsers(String username, HttpServletRequest request) {
-        if (!userService.isAdmin(request)) {
+        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        if (!userService.isAdmin(loginUser)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();

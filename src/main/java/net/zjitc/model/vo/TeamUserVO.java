@@ -1,14 +1,12 @@
-package net.zjitc.model.request;
+package net.zjitc.model.vo;
 
 import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
-
 @Data
-public class TeamUpdateRequest implements Serializable {
-
-    private static final long serialVersionUID = -8958909531937031372L;
+public class TeamUserVO implements Serializable {
+    private static final long serialVersionUID = 6986365414601034543L;
     /**
      * id
      */
@@ -45,8 +43,28 @@ public class TeamUpdateRequest implements Serializable {
     private Integer status;
 
     /**
-     * 密码
+     * 创建时间
      */
-    private String password;
+    private Date createTime;
+
+    /**
+     * 更新时间
+     */
+    private Date updateTime;
+
+    /**
+     * 创建人用户信息
+     */
+    private UserVO createUser;
+
+    /**
+     * 已加入的用户数
+     */
+    private Integer hasJoinNum;
+
+    /**
+     * 是否已加入队伍
+     */
+    private boolean hasJoin = false;
 
 }

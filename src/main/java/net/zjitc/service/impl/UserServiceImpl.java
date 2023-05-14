@@ -10,6 +10,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
 import net.zjitc.common.ErrorCode;
+import net.zjitc.constant.UserConstant;
 import net.zjitc.exception.BusinessException;
 import net.zjitc.mapper.UserMapper;
 import net.zjitc.model.domain.User;
@@ -33,7 +34,6 @@ import java.util.stream.Collectors;
 
 import static net.zjitc.common.RedisConstants.RECOMMEND_KEY;
 import static net.zjitc.common.SystemConstants.PAGE_SIZE;
-import static net.zjitc.constant.UserConstant.ADMIN_ROLE;
 import static net.zjitc.constant.UserConstant.USER_LOGIN_STATE;
 
 /**
@@ -190,11 +190,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return list(userLambdaQueryWrapper);
     }
 
+    /**
+     * 是否为管理员
+     *
+     * @param loginUser
+     * @return
+     */
     @Override
-    public boolean isAdmin(HttpServletRequest request) {
-        User user = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
-        return user.getRole() == ADMIN_ROLE;
+    public boolean isAdmin(User loginUser) {
+        return loginUser != null && loginUser.getRole() == UserConstant.ADMIN_ROLE;
     }
+
 
     @Override
     public boolean updateUser(User user, HttpServletRequest request) {
@@ -205,7 +211,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
-        if (!(isAdmin(request) || loginUser.getId().equals(user.getId()))) {
+        if (!(isAdmin(loginUser) || loginUser.getId().equals(user.getId()))) {
             throw new BusinessException(ErrorCode.NO_AUTH);
         }
         return updateById(user);
@@ -213,11 +219,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public Page<User> recommendUser(long currentPage) {
-        Page<User> page=new Page<>();
+        Page<User> page = new Page<>();
         String pageStr = stringRedisTemplate.opsForValue().get(RECOMMEND_KEY);
-        if (Strings.isEmpty(pageStr)){
+        if (Strings.isEmpty(pageStr)) {
             page = this.page(new Page<>(currentPage, PAGE_SIZE));
-            stringRedisTemplate.opsForValue().set(RECOMMEND_KEY,JSONUtil.toJsonStr(page));
+            stringRedisTemplate.opsForValue().set(RECOMMEND_KEY, JSONUtil.toJsonStr(page));
             return page;
         }
         page = JSONUtil.toBean(pageStr, Page.class);
@@ -225,7 +231,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public User getLoginUser(HttpServletRequest request){
+    public User getLoginUser(HttpServletRequest request) {
         if (request == null) {
             return null;
         }

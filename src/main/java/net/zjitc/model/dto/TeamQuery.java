@@ -1,18 +1,26 @@
-package net.zjitc.model.request;
+package net.zjitc.model.dto;
 
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.Date;
-
+import java.util.List;
 @Data
-public class TeamUpdateRequest implements Serializable {
-
-    private static final long serialVersionUID = -8958909531937031372L;
+public class TeamQuery implements Serializable {
+    private static final long serialVersionUID = 9111600376030432964L;
     /**
      * id
      */
     private Long id;
+
+    /**
+     * id 列表
+     */
+    private List<Long> idList;
+
+    /**
+     * 搜索关键词（同时对队伍名称和描述搜索）
+     */
+    private String searchText;
 
     /**
      * 队伍名称
@@ -30,11 +38,6 @@ public class TeamUpdateRequest implements Serializable {
     private Integer maxNum;
 
     /**
-     * 过期时间
-     */
-    private Date expireTime;
-
-    /**
      * 用户id
      */
     private Long userId;
@@ -43,10 +46,5 @@ public class TeamUpdateRequest implements Serializable {
      * 0 - 公开，1 - 私有，2 - 加密
      */
     private Integer status;
-
-    /**
-     * 密码
-     */
-    private String password;
 
 }

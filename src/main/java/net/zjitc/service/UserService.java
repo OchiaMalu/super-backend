@@ -9,10 +9,10 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**
-* @author OchiaMalu
-* @description 针对表【user】的数据库操作Service
-* @createDate 2023-05-07 19:56:01
-*/
+ * @author OchiaMalu
+ * @description 针对表【user】的数据库操作Service
+ * @createDate 2023-05-07 19:56:01
+ */
 public interface UserService extends IService<User> {
     long userRegister(String userAccount, String userPassword, String checkPassword);
 
@@ -24,7 +24,7 @@ public interface UserService extends IService<User> {
 
     List<User> searchUsersByTags(List<String> tagNameList);
 
-    boolean isAdmin(HttpServletRequest request);
+    boolean isAdmin(User loginUser);
 
     boolean updateUser(User user, HttpServletRequest request);
 
