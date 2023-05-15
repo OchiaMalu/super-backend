@@ -12,7 +12,7 @@ spring:
     username: root
     password: 123456
   redis:
-    host: 47.115.230.95
+    host: redis
     port: 6379
   session:
     store-type: redis
