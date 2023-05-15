@@ -1,6 +1,5 @@
 package net.zjitc.model.request;
 
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -12,7 +11,6 @@ public class TeamQuitRequest implements Serializable {
     /**
      * id
      */
-    @ApiModelProperty(value = "队伍id")
     private Long teamId;
 
 }
