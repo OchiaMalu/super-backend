@@ -25,6 +25,7 @@ mybatis-plus:
       logic-delete-value: 1
       logic-not-delete-value: 0
       logic-delete-field: isDelete
+      id-type: auto
 knife4j:
   enable: true
   openapi:
