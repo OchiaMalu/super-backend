@@ -1,6 +1,7 @@
 package net.zjitc.model.domain;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -16,7 +17,7 @@ public class Team implements Serializable {
     /**
      * id
      */
-    @TableId
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     /**

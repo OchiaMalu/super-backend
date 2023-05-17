@@ -26,10 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author OchiaMalu
@@ -55,6 +52,12 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(team.getExpireTime());
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        team.setExpireTime(calendar.getTime());
         final long userId = loginUser.getId();
         // 3. 校验信息
         // 7. 校验用户最多创建 5 个队伍
@@ -167,7 +170,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         }
         // 不展示已过期的队伍
         // expireTime is null or expireTime > now()
-        queryWrapper.and(qw -> qw.gt("expire_time", new Date()).or().isNull("expireTime"));
+        queryWrapper.and(qw -> qw.gt("expire_time", new Date()).or().isNull("expire_time"));
         List<Team> teamList = this.list(queryWrapper);
         if (CollectionUtils.isEmpty(teamList)) {
             return new ArrayList<>();
@@ -370,7 +373,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
      */
     private long countTeamUserByTeamId(long teamId) {
         QueryWrapper<UserTeam> userTeamQueryWrapper = new QueryWrapper<>();
-        userTeamQueryWrapper.eq("teamId", teamId);
+        userTeamQueryWrapper.eq("team_id", teamId);
         return userTeamService.count(userTeamQueryWrapper);
     }
 

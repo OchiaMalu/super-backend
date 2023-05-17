@@ -29,7 +29,7 @@ public class TeamController {
     @Resource
     private UserService userService;
 
-    @PostMapping
+    @PostMapping("/add")
     public BaseResponse addTeam(@RequestBody TeamAddRequest teamAddRequest, HttpServletRequest request) {
         if (teamAddRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -81,7 +81,11 @@ public class TeamController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
-        return ResultUtils.success(teamService.listTeams(teamQuery, userService.isAdmin(loginUser)));
+        List<TeamUserVO> userVOList = teamService.listTeams(teamQuery, userService.isAdmin(loginUser));
+        for (TeamUserVO teamUserVO : userVOList) {
+            System.out.println(teamUserVO);
+        }
+        return ResultUtils.success(userVOList);
     }
 
     @PostMapping("/join")
