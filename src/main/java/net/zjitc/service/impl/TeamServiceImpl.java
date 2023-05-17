@@ -10,9 +10,9 @@ import net.zjitc.mapper.TeamMapper;
 import net.zjitc.model.domain.Team;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.domain.UserTeam;
-import net.zjitc.model.dto.TeamQuery;
 import net.zjitc.model.enums.TeamStatusEnum;
 import net.zjitc.model.request.TeamJoinRequest;
+import net.zjitc.model.request.TeamQueryRequest;
 import net.zjitc.model.request.TeamQuitRequest;
 import net.zjitc.model.request.TeamUpdateRequest;
 import net.zjitc.model.vo.TeamUserVO;
@@ -123,7 +123,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
     }
 
     @Override
-    public List<TeamUserVO> listTeams(TeamQuery teamQuery, boolean isAdmin) {
+    public List<TeamUserVO> listTeams(TeamQueryRequest teamQuery, boolean isAdmin) {
         QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
         // 组合查询条件
         if (teamQuery != null) {

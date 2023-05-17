@@ -4,8 +4,8 @@ package net.zjitc.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import net.zjitc.model.domain.Team;
 import net.zjitc.model.domain.User;
-import net.zjitc.model.dto.TeamQuery;
 import net.zjitc.model.request.TeamJoinRequest;
+import net.zjitc.model.request.TeamQueryRequest;
 import net.zjitc.model.request.TeamQuitRequest;
 import net.zjitc.model.request.TeamUpdateRequest;
 import net.zjitc.model.vo.TeamUserVO;
@@ -23,7 +23,7 @@ public interface TeamService extends IService<Team> {
     @Transactional(rollbackFor = Exception.class)
     long addTeam(Team team, User loginUser);
 
-    List<TeamUserVO> listTeams(TeamQuery teamQuery, boolean isAdmin);
+    List<TeamUserVO> listTeams(TeamQueryRequest teamQuery, boolean isAdmin);
 
     boolean updateTeam(TeamUpdateRequest teamUpdateRequest, User loginUser);
 
