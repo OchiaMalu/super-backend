@@ -62,7 +62,7 @@ public class UserController {
     @PostMapping("/register")
     @ApiOperation(value = "用户注册")
     @ApiImplicitParams(
-            {@ApiImplicitParam(name = "userRegisterRequest",value = "用户注册请求参数")})
+            {@ApiImplicitParam(name = "userRegisterRequest", value = "用户注册请求参数")})
     public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
         if (userRegisterRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -87,8 +87,8 @@ public class UserController {
     @PostMapping("/login")
     @ApiOperation(value = "用户登录")
     @ApiImplicitParams(
-            {@ApiImplicitParam(name = "userLoginRequest",value = "用户登录请求参数"),
-                    @ApiImplicitParam(name = "request",value = "request请求")})
+            {@ApiImplicitParam(name = "userLoginRequest", value = "用户登录请求参数"),
+                    @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<User> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
         if (userLoginRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -111,7 +111,7 @@ public class UserController {
     @PostMapping("/logout")
     @ApiOperation(value = "用户登出")
     @ApiImplicitParams(
-            {@ApiImplicitParam(name = "request",value = "request请求")})
+            {@ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<Integer> userLogout(HttpServletRequest request) {
         if (request == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -129,7 +129,7 @@ public class UserController {
     @GetMapping("/current")
     @ApiOperation(value = "获取当前用户")
     @ApiImplicitParams(
-            {@ApiImplicitParam(name = "request",value = "request请求")})
+            {@ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<User> getCurrentUser(HttpServletRequest request) {
         Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
         User currentUser = (User) userObj;
@@ -153,8 +153,8 @@ public class UserController {
     @PostMapping("/delete")
     @ApiOperation(value = "删除用户")
     @ApiImplicitParams(
-            {@ApiImplicitParam(name = "id",value = "用户id"),
-                    @ApiImplicitParam(name = "request",value = "request请求")})
+            {@ApiImplicitParam(name = "id", value = "用户id"),
+                    @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<Boolean> deleteUser(@RequestBody long id, HttpServletRequest request) {
         User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
         if (!userService.isAdmin(loginUser)) {
@@ -176,7 +176,7 @@ public class UserController {
     @GetMapping("/search/tags")
     @ApiOperation(value = "通过标签搜索用户")
     @ApiImplicitParams(
-            {@ApiImplicitParam(name = "tagNameList",value = "标签列表")})
+            {@ApiImplicitParam(name = "tagNameList", value = "标签列表")})
     public BaseResponse<List<User>> searchUsersByTags(@RequestParam(required = false) List<String> tagNameList) {
         if (CollectionUtils.isEmpty(tagNameList)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -195,8 +195,8 @@ public class UserController {
     @GetMapping("/search")
     @ApiOperation(value = "通过用户名搜索用户")
     @ApiImplicitParams(
-            {@ApiImplicitParam(name = "username",value = "用户名"),
-                    @ApiImplicitParam(name = "request",value = "request请求")})
+            {@ApiImplicitParam(name = "username", value = "用户名"),
+                    @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<List<User>> searchUsersByUserName(String username, HttpServletRequest request) {
         User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
         if (!userService.isAdmin(loginUser)) {
@@ -221,8 +221,8 @@ public class UserController {
     @PutMapping("/update")
     @ApiOperation(value = "更新用户")
     @ApiImplicitParams(
-            {@ApiImplicitParam(name = "user",value = "用户更新请求参数"),
-                    @ApiImplicitParam(name = "request",value = "request请求")})
+            {@ApiImplicitParam(name = "user", value = "用户更新请求参数"),
+                    @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<Integer> updateUser(@RequestBody User user, HttpServletRequest request) {
         if (user == null || request == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -244,10 +244,32 @@ public class UserController {
     @GetMapping("/recommend")
     @ApiOperation(value = "用户推荐")
     @ApiImplicitParams(
-            {@ApiImplicitParam(name = "currentPage",value = "当前页")})
+            {@ApiImplicitParam(name = "currentPage", value = "当前页")})
     public BaseResponse<Page<User>> recommendUser(long currentPage) {
         Page<User> userPage = userService.recommendUser(currentPage);
         return ResultUtils.success(userPage);
     }
+
+
+    /**
+     * 获取最匹配的用户
+     *
+     * @param num
+     * @param request
+     * @return
+     */
+    @GetMapping("/match")
+    @ApiOperation(value = "获取最匹配的n个用户")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "num", value = "查询个数"),
+                    @ApiImplicitParam(name = "request", value = "request请求")})
+    public BaseResponse<List<User>> matchUsers(long num, HttpServletRequest request) {
+        if (num <= 0 || num > 20) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User user = userService.getLoginUser(request);
+        return ResultUtils.success(userService.matchUsers(num, user));
+    }
+
 
 }
