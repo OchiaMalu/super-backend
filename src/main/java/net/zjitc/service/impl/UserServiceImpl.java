@@ -236,7 +236,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
         if (userObj == null) {
-            throw new BusinessException(ErrorCode.NO_AUTH);
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
         return (User) userObj;
     }
@@ -258,7 +258,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             User user = userList.get(i);
             String userTags = user.getTags();
             // 无标签或者为当前用户自己
-            if (StringUtils.isBlank(userTags) || user.getId() == loginUser.getId()) {
+            if (StringUtils.isBlank(userTags) || Objects.equals(user.getId(), loginUser.getId())) {
                 continue;
             }
             List<String> userTagList = gson.fromJson(userTags, new TypeToken<List<String>>() {
@@ -272,23 +272,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .sorted((a, b) -> (int) (a.getValue() - b.getValue()))
                 .limit(num)
                 .collect(Collectors.toList());
-        // 原本顺序的 userId 列表
-        List<Long> userIdList = topUserPairList.stream().map(pair -> pair.getKey().getId()).collect(Collectors.toList());
-        QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
-        userQueryWrapper.in("id", userIdList);
-        // 1, 3, 2
-        // User1、User2、User3
-        // 1 => User1, 2 => User2, 3 => User3
-        Map<Long, List<User>> userIdUserListMap = this.list(userQueryWrapper)
-                .stream()
-                .map(user -> getSafetyUser(user))
-                .collect(Collectors.groupingBy(User::getId));
-        List<User> finalUserList = new ArrayList<>();
-        for (Long userId : userIdList) {
-            finalUserList.add(userIdUserListMap.get(userId).get(0));
-        }
-        return finalUserList;
 
+        List<Long> userIdList = topUserPairList.stream().map(pair -> pair.getKey().getId()).collect(Collectors.toList());
+        String idStr = StringUtils.join(userIdList, ",");
+        QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
+        userQueryWrapper.in("id", userIdList).last("ORDER BY FIELD(id,"+idStr+")");
+        return this.list(userQueryWrapper)
+                .stream()
+                .map(this::getSafetyUser)
+                .collect(Collectors.toList());
     }
 
     @Deprecated
