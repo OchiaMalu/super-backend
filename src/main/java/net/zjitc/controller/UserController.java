@@ -37,7 +37,6 @@ import static net.zjitc.constant.UserConstant.USER_LOGIN_STATE;
  */
 @RestController
 @RequestMapping("/user")
-@CrossOrigin(origins = {"http://localhost:5173"})
 @Slf4j
 @Api(tags = "用户管理模块")
 public class UserController {
