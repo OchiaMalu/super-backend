@@ -15,7 +15,7 @@ import net.zjitc.model.request.TeamJoinRequest;
 import net.zjitc.model.request.TeamQueryRequest;
 import net.zjitc.model.request.TeamQuitRequest;
 import net.zjitc.model.request.TeamUpdateRequest;
-import net.zjitc.model.vo.TeamUserVO;
+import net.zjitc.model.vo.TeamVO;
 import net.zjitc.model.vo.UserVO;
 import net.zjitc.service.TeamService;
 import net.zjitc.service.UserService;
@@ -123,7 +123,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
     }
 
     @Override
-    public List<TeamUserVO> listTeams(TeamQueryRequest teamQuery, boolean isAdmin) {
+    public List<TeamVO> listTeams(TeamQueryRequest teamQuery, boolean isAdmin) {
         QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
         // 组合查询条件
         if (teamQuery != null) {
@@ -175,7 +175,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         if (CollectionUtils.isEmpty(teamList)) {
             return new ArrayList<>();
         }
-        List<TeamUserVO> teamUserVOList = new ArrayList<>();
+        List<TeamVO> teamUserVOList = new ArrayList<>();
         // 关联查询创建人的用户信息
         for (Team team : teamList) {
             Long userId = team.getUserId();
@@ -183,7 +183,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
                 continue;
             }
             User user = userService.getById(userId);
-            TeamUserVO teamUserVO = new TeamUserVO();
+            TeamVO teamUserVO = new TeamVO();
             BeanUtils.copyProperties(team, teamUserVO);
             // 脱敏用户信息
             if (user != null) {

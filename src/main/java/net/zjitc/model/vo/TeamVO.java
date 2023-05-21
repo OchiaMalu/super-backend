@@ -6,7 +6,7 @@ import lombok.Data;
 import java.io.Serializable;
 import java.util.Date;
 @Data
-public class TeamUserVO implements Serializable {
+public class TeamVO implements Serializable {
     private static final long serialVersionUID = 6986365414601034543L;
     /**
      * id
@@ -72,7 +72,7 @@ public class TeamUserVO implements Serializable {
      * 已加入的用户数
      */
     @ApiModelProperty(value = "已加入的用户数")
-    private Integer hasJoinNum;
+    private Long hasJoinNum;
 
     /**
      * 是否已加入队伍

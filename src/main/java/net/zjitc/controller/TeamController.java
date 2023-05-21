@@ -1,6 +1,7 @@
 package net.zjitc.controller;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -15,7 +16,7 @@ import net.zjitc.model.domain.User;
 import net.zjitc.model.domain.UserTeam;
 import net.zjitc.model.request.TeamQueryRequest;
 import net.zjitc.model.request.*;
-import net.zjitc.model.vo.TeamUserVO;
+import net.zjitc.model.vo.TeamVO;
 import net.zjitc.service.TeamService;
 import net.zjitc.service.UserService;
 import net.zjitc.service.UserTeamService;
@@ -26,6 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static net.zjitc.constant.UserConstant.USER_LOGIN_STATE;
@@ -47,8 +49,8 @@ public class TeamController {
     @PostMapping("/add")
     @ApiOperation(value = "添加队伍")
     @ApiImplicitParams(
-            {@ApiImplicitParam(name = "teamAddRequest",value = "队伍添加请求参数"),
-                    @ApiImplicitParam(name = "request",value = "request请求")})
+            {@ApiImplicitParam(name = "teamAddRequest", value = "队伍添加请求参数"),
+                    @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<Long> addTeam(@RequestBody TeamAddRequest teamAddRequest, HttpServletRequest request) {
         if (teamAddRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -58,10 +60,11 @@ public class TeamController {
         BeanUtil.copyProperties(teamAddRequest, team);
         return ResultUtils.success(teamService.addTeam(team, loginUser));
     }
+
     @PostMapping("/update")
     @ApiOperation(value = "更新队伍")
-    @ApiImplicitParams({@ApiImplicitParam(name = "teamUpdateRequest",value = "队伍更新请求参数"),
-            @ApiImplicitParam(name = "request",value = "request请求")})
+    @ApiImplicitParams({@ApiImplicitParam(name = "teamUpdateRequest", value = "队伍更新请求参数"),
+            @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<Boolean> updateTeam(@RequestBody TeamUpdateRequest teamUpdateRequest, HttpServletRequest request) {
         if (teamUpdateRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -77,7 +80,7 @@ public class TeamController {
 
     @GetMapping("/{id}")
     @ApiOperation(value = "根据id查询队伍")
-    @ApiImplicitParams({@ApiImplicitParam(name = "id",value = "队伍id")})
+    @ApiImplicitParams({@ApiImplicitParam(name = "id", value = "队伍id")})
     public BaseResponse<Team> getTeamById(@PathVariable Long id) {
         if (id == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -87,20 +90,40 @@ public class TeamController {
 
     @GetMapping("/list")
     @ApiOperation(value = "获取队伍列表")
-    @ApiImplicitParams({@ApiImplicitParam(name = "teamQueryRequest",value = "队伍查询请求参数"),
-            @ApiImplicitParam(name = "request",value = "request请求")})
-    public BaseResponse<List<TeamUserVO>> listTeams(TeamQueryRequest teamQueryRequest, HttpServletRequest request) {
+    @ApiImplicitParams({@ApiImplicitParam(name = "teamQueryRequest", value = "队伍查询请求参数"),
+            @ApiImplicitParam(name = "request", value = "request请求")})
+    public BaseResponse<List<TeamVO>> listTeams(TeamQueryRequest teamQueryRequest, HttpServletRequest request) {
         if (teamQueryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
-        return ResultUtils.success(teamService.listTeams(teamQueryRequest, userService.isAdmin(loginUser)));
+        List<TeamVO> teamList = teamService.listTeams(teamQueryRequest, userService.isAdmin(loginUser));
+        teamList.forEach((team) -> {
+            LambdaQueryWrapper<UserTeam> userTeamLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            userTeamLambdaQueryWrapper.eq(UserTeam::getTeamId, team.getId());
+            long hasJoinNum = userTeamService.count(userTeamLambdaQueryWrapper);
+            team.setHasJoinNum(hasJoinNum);
+        });
+        try {
+            List<Long> teamIdList = teamList.stream().map(TeamVO::getId).collect(Collectors.toList());
+            //判断当前用户已加入的队伍
+            LambdaQueryWrapper<UserTeam> userTeamLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            userTeamLambdaQueryWrapper.eq(UserTeam::getUserId, loginUser.getId()).in(UserTeam::getTeamId, teamIdList);
+            //用户已加入的队伍
+            List<UserTeam> userTeamList = userTeamService.list(userTeamLambdaQueryWrapper);
+            Set<Long> joinedTeamIdList = userTeamList.stream().map(UserTeam::getTeamId).collect(Collectors.toSet());
+            teamList.forEach(team -> {
+                team.setHasJoin(joinedTeamIdList.contains(team.getId()));
+            });
+        } catch (Exception ignored) {
+        }
+        return ResultUtils.success(teamList);
     }
 
     @PostMapping("/join")
     @ApiOperation(value = "加入队伍")
-    @ApiImplicitParams({@ApiImplicitParam(name = "teamJoinRequest",value = "加入队伍请求参数"),
-            @ApiImplicitParam(name = "request",value = "request请求")})
+    @ApiImplicitParams({@ApiImplicitParam(name = "teamJoinRequest", value = "加入队伍请求参数"),
+            @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<Boolean> joinTeam(@RequestBody TeamJoinRequest teamJoinRequest, HttpServletRequest request) {
         if (teamJoinRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -109,10 +132,11 @@ public class TeamController {
         boolean result = teamService.joinTeam(teamJoinRequest, loginUser);
         return ResultUtils.success(result);
     }
+
     @PostMapping("/quit")
     @ApiOperation(value = "退出队伍")
-    @ApiImplicitParams({@ApiImplicitParam(name = "teamQuitRequest",value = "退出队伍请求参数"),
-            @ApiImplicitParam(name = "request",value = "request请求")})
+    @ApiImplicitParams({@ApiImplicitParam(name = "teamQuitRequest", value = "退出队伍请求参数"),
+            @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<Boolean> quitTeam(@RequestBody TeamQuitRequest teamQuitRequest, HttpServletRequest request) {
         if (teamQuitRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -121,10 +145,11 @@ public class TeamController {
         boolean result = teamService.quitTeam(teamQuitRequest, loginUser);
         return ResultUtils.success(result);
     }
+
     @PostMapping("/delete")
     @ApiOperation(value = "解散队伍")
-    @ApiImplicitParams({@ApiImplicitParam(name = "deleteRequest",value = "解散队伍请求参数"),
-            @ApiImplicitParam(name = "request",value = "request请求")})
+    @ApiImplicitParams({@ApiImplicitParam(name = "deleteRequest", value = "解散队伍请求参数"),
+            @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<Boolean> deleteTeam(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -140,23 +165,23 @@ public class TeamController {
 
     @GetMapping("/list/my/create")
     @ApiOperation(value = "获取我创建的队伍")
-    @ApiImplicitParams({@ApiImplicitParam(name = "teamQuery",value = "获取队伍请求参数"),
-            @ApiImplicitParam(name = "request",value = "request请求")})
-    public BaseResponse<List<TeamUserVO>> listMyCreateTeams(TeamQueryRequest teamQuery, HttpServletRequest request) {
+    @ApiImplicitParams({@ApiImplicitParam(name = "teamQuery", value = "获取队伍请求参数"),
+            @ApiImplicitParam(name = "request", value = "request请求")})
+    public BaseResponse<List<TeamVO>> listMyCreateTeams(TeamQueryRequest teamQuery, HttpServletRequest request) {
         if (teamQuery == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
         teamQuery.setUserId(loginUser.getId());
-        List<TeamUserVO> teamList = teamService.listTeams(teamQuery, true);
+        List<TeamVO> teamList = teamService.listTeams(teamQuery, true);
         return ResultUtils.success(teamList);
     }
 
     @GetMapping("/list/my/join")
     @ApiOperation(value = "获取我创建的队伍")
-    @ApiImplicitParams({@ApiImplicitParam(name = "teamQuery",value = "获取队伍请求参数"),
-            @ApiImplicitParam(name = "request",value = "request请求")})
-    public BaseResponse<List<TeamUserVO>> listMyJoinTeams(TeamQueryRequest teamQuery, HttpServletRequest request) {
+    @ApiImplicitParams({@ApiImplicitParam(name = "teamQuery", value = "获取队伍请求参数"),
+            @ApiImplicitParam(name = "request", value = "request请求")})
+    public BaseResponse<List<TeamVO>> listMyJoinTeams(TeamQueryRequest teamQuery, HttpServletRequest request) {
         if (teamQuery == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -168,7 +193,7 @@ public class TeamController {
                 .collect(Collectors.groupingBy(UserTeam::getTeamId));
         List<Long> idList = new ArrayList<>(listMap.keySet());
         teamQuery.setIdList(idList);
-        List<TeamUserVO> teamList = teamService.listTeams(teamQuery, true);
+        List<TeamVO> teamList = teamService.listTeams(teamQuery, true);
         return ResultUtils.success(teamList);
     }
 }

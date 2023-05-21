@@ -8,7 +8,7 @@ import net.zjitc.model.request.TeamJoinRequest;
 import net.zjitc.model.request.TeamQueryRequest;
 import net.zjitc.model.request.TeamQuitRequest;
 import net.zjitc.model.request.TeamUpdateRequest;
-import net.zjitc.model.vo.TeamUserVO;
+import net.zjitc.model.vo.TeamVO;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -23,7 +23,7 @@ public interface TeamService extends IService<Team> {
     @Transactional(rollbackFor = Exception.class)
     long addTeam(Team team, User loginUser);
 
-    List<TeamUserVO> listTeams(TeamQueryRequest teamQuery, boolean isAdmin);
+    List<TeamVO> listTeams(TeamQueryRequest teamQuery, boolean isAdmin);
 
     boolean updateTeam(TeamUpdateRequest teamUpdateRequest, User loginUser);
 
