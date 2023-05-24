@@ -104,20 +104,7 @@ public class TeamController {
             long hasJoinNum = userTeamService.count(userTeamLambdaQueryWrapper);
             team.setHasJoinNum(hasJoinNum);
         });
-        try {
-            List<Long> teamIdList = teamList.stream().map(TeamVO::getId).collect(Collectors.toList());
-            //判断当前用户已加入的队伍
-            LambdaQueryWrapper<UserTeam> userTeamLambdaQueryWrapper = new LambdaQueryWrapper<>();
-            userTeamLambdaQueryWrapper.eq(UserTeam::getUserId, loginUser.getId()).in(UserTeam::getTeamId, teamIdList);
-            //用户已加入的队伍
-            List<UserTeam> userTeamList = userTeamService.list(userTeamLambdaQueryWrapper);
-            Set<Long> joinedTeamIdList = userTeamList.stream().map(UserTeam::getTeamId).collect(Collectors.toSet());
-            teamList.forEach(team -> {
-                team.setHasJoin(joinedTeamIdList.contains(team.getId()));
-            });
-        } catch (Exception ignored) {
-        }
-        return ResultUtils.success(teamList);
+        return getUserJoinedList(loginUser, teamList);
     }
 
     @PostMapping("/join")
@@ -174,7 +161,7 @@ public class TeamController {
         User loginUser = userService.getLoginUser(request);
         teamQuery.setUserId(loginUser.getId());
         List<TeamVO> teamList = teamService.listTeams(teamQuery, true);
-        return ResultUtils.success(teamList);
+        return getUserJoinedList(loginUser, teamList);
     }
 
     @GetMapping("/list/my/join")
@@ -194,6 +181,23 @@ public class TeamController {
         List<Long> idList = new ArrayList<>(listMap.keySet());
         teamQuery.setIdList(idList);
         List<TeamVO> teamList = teamService.listTeams(teamQuery, true);
+        return getUserJoinedList(loginUser, teamList);
+    }
+
+    private BaseResponse<List<TeamVO>> getUserJoinedList(User loginUser, List<TeamVO> teamList) {
+        try {
+            List<Long> teamIdList = teamList.stream().map(TeamVO::getId).collect(Collectors.toList());
+            //判断当前用户已加入的队伍
+            LambdaQueryWrapper<UserTeam> userTeamLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            userTeamLambdaQueryWrapper.eq(UserTeam::getUserId, loginUser.getId()).in(UserTeam::getTeamId, teamIdList);
+            //用户已加入的队伍
+            List<UserTeam> userTeamList = userTeamService.list(userTeamLambdaQueryWrapper);
+            Set<Long> joinedTeamIdList = userTeamList.stream().map(UserTeam::getTeamId).collect(Collectors.toSet());
+            teamList.forEach(team -> {
+                team.setHasJoin(joinedTeamIdList.contains(team.getId()));
+            });
+        } catch (Exception ignored) {
+        }
         return ResultUtils.success(teamList);
     }
 }
