@@ -1,9 +1,6 @@
 package net.zjitc.model.domain;
 
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -23,7 +20,7 @@ public class User implements Serializable {
     /**
      * id
      */
-    @TableId
+    @TableId(type = IdType.AUTO)
     @ApiModelProperty(value = "id")
     private Long id;
 
