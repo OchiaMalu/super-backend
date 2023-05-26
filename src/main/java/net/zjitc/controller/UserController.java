@@ -15,8 +15,9 @@ import net.zjitc.model.domain.User;
 import net.zjitc.model.request.UserLoginRequest;
 import net.zjitc.model.request.UserRegisterRequest;
 import net.zjitc.service.UserService;
+import net.zjitc.utils.ValidateCodeUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,9 +25,12 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static net.zjitc.constant.UserConstant.USER_LOGIN_STATE;
+import static net.zjitc.constants.RedisConstants.REGISTER_CODE_KEY;
+import static net.zjitc.constants.RedisConstants.REGISTER_CODE_TTL;
+import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 
 
 /**
@@ -50,7 +54,19 @@ public class UserController {
      * 复述,模板
      */
     @Resource
-    private RedisTemplate<String, Object> redisTemplate;
+    private StringRedisTemplate stringRedisTemplate;
+
+    @GetMapping("/message")
+    public BaseResponse sendMessage(String phone) {
+        if (StringUtils.isBlank(phone)) {
+            return ResultUtils.error(ErrorCode.PARAMS_ERROR);
+        }
+        Integer code = ValidateCodeUtils.generateValidateCode(6);
+        String key = REGISTER_CODE_KEY + phone;
+        stringRedisTemplate.opsForValue().set(key, String.valueOf(code), REGISTER_CODE_TTL, TimeUnit.MINUTES);
+        System.out.println(code);
+        return ResultUtils.success("短信发送成功");
+    }
 
     /**
      * 用户注册
@@ -66,13 +82,15 @@ public class UserController {
         if (userRegisterRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        String userAccount = userRegisterRequest.getUserAccount();
-        String userPassword = userRegisterRequest.getUserPassword();
+        String phone = userRegisterRequest.getPhone();
+        String code = userRegisterRequest.getCode();
+        String account = userRegisterRequest.getUserAccount();
+        String password = userRegisterRequest.getUserPassword();
         String checkPassword = userRegisterRequest.getCheckPassword();
-        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)) {
-            return null;
+        if (StringUtils.isAnyBlank(phone, code, account, password, checkPassword)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        long result = userService.userRegister(userAccount, userPassword, checkPassword);
+        long result = userService.userRegister(phone, code, account, password, checkPassword);
         return ResultUtils.success(result);
     }
 

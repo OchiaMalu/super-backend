@@ -11,7 +11,7 @@ import com.google.gson.reflect.TypeToken;
 import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import net.zjitc.common.ErrorCode;
-import net.zjitc.constant.UserConstant;
+import net.zjitc.constants.UserConstants;
 import net.zjitc.exception.BusinessException;
 import net.zjitc.mapper.UserMapper;
 import net.zjitc.model.domain.User;
@@ -31,9 +31,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static net.zjitc.common.RedisConstants.RECOMMEND_KEY;
-import static net.zjitc.common.SystemConstants.PAGE_SIZE;
-import static net.zjitc.constant.UserConstant.USER_LOGIN_STATE;
+import static net.zjitc.constants.RedisConstants.RECOMMEND_KEY;
+import static net.zjitc.constants.RedisConstants.REGISTER_CODE_KEY;
+import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
+import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 
 /**
  * @author OchiaMalu
@@ -43,6 +44,19 @@ import static net.zjitc.constant.UserConstant.USER_LOGIN_STATE;
 @Service
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
+
+    private static final String[] avatarUrls = {
+            "http://rtrx7n2j6.hd-bkt.clouddn.com/12d4949b4009d089eaf071aef0f1f40.jpg",
+            "http://rtrx7n2j6.hd-bkt.clouddn.com/1bff61de34bdc7bf40c6278b2848fbcf.jpg",
+            "http://rtrx7n2j6.hd-bkt.clouddn.com/22fe8428428c93a565e181782e97654.jpg",
+            "http://rtrx7n2j6.hd-bkt.clouddn.com/75e31415779979ae40c4c0238aa4c34.jpg",
+            "http://rtrx7n2j6.hd-bkt.clouddn.com/905731909dfdafd0b53b3c4117438d3.jpg",
+            "http://rtrx7n2j6.hd-bkt.clouddn.com/a84b1306e46061c0d664e6067417e5b.jpg",
+            "http://rtrx7n2j6.hd-bkt.clouddn.com/b93d640cc856cb7035a851029aec190.jpg",
+            "http://rtrx7n2j6.hd-bkt.clouddn.com/c11ae3862b3ca45b0a6cdff1e1bf841.jpg",
+            "http://rtrx7n2j6.hd-bkt.clouddn.com/cccfb0995f5d103414bd8a8bd742c34.jpg",
+            "http://rtrx7n2j6.hd-bkt.clouddn.com/f870176b1a628623fa7fe9918b862d7.jpg"
+    };
     @Resource
     private UserMapper userMapper;
 
@@ -55,9 +69,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private StringRedisTemplate stringRedisTemplate;
 
     @Override
-    public long userRegister(String userAccount, String userPassword, String checkPassword) {
+    public long userRegister(String phone, String code, String userAccount, String userPassword, String checkPassword) {
         // 1. 校验
-        if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)) {
+        if (StringUtils.isAnyBlank(phone, code, userAccount, userPassword, checkPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
         }
         if (userAccount.length() < 4) {
@@ -65,6 +79,24 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         if (userPassword.length() < 8 || checkPassword.length() < 8) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户密码过短");
+        }
+        LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        userLambdaQueryWrapper.eq(User::getPhone, phone);
+        long phoneNum = this.count(userLambdaQueryWrapper);
+        if (phoneNum >= 1) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "该手机号已注册");
+        }
+        String key = REGISTER_CODE_KEY + phone;
+        Boolean hasKey = stringRedisTemplate.hasKey(key);
+        if (Boolean.FALSE.equals(hasKey)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "请先获取验证码");
+        }
+        String correctCode = stringRedisTemplate.opsForValue().get(key);
+        if (correctCode == null) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
+        }
+        if (!correctCode.equals(code)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "验证码错误");
         }
         // 账户不能包含特殊字符
         String validPattern = "[`~!@#$%^&*()+=|{}':;',\\\\[\\\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]";
@@ -87,11 +119,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
         // 3. 插入数据
         User user = new User();
+        Random random = new Random();
+        user.setAvatarUrl(avatarUrls[random.nextInt(avatarUrls.length)]);
+        user.setPhone(phone);
+        user.setUsername(userAccount);
         user.setUserAccount(userAccount);
         user.setPassword(encryptPassword);
         boolean saveResult = this.save(user);
         if (!saveResult) {
-            return -1;
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
         }
         return user.getId();
     }
@@ -197,7 +233,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     @Override
     public boolean isAdmin(User loginUser) {
-        return loginUser != null && loginUser.getRole() == UserConstant.ADMIN_ROLE;
+        return loginUser != null && loginUser.getRole() == UserConstants.ADMIN_ROLE;
     }
 
 
@@ -276,7 +312,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         List<Long> userIdList = topUserPairList.stream().map(pair -> pair.getKey().getId()).collect(Collectors.toList());
         String idStr = StringUtils.join(userIdList, ",");
         QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
-        userQueryWrapper.in("id", userIdList).last("ORDER BY FIELD(id,"+idStr+")");
+        userQueryWrapper.in("id", userIdList).last("ORDER BY FIELD(id," + idStr + ")");
         return this.list(userQueryWrapper)
                 .stream()
                 .map(this::getSafetyUser)

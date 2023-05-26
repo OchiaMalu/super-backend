@@ -14,7 +14,7 @@ import java.util.List;
  * @createDate 2023-05-07 19:56:01
  */
 public interface UserService extends IService<User> {
-    long userRegister(String userAccount, String userPassword, String checkPassword);
+    long userRegister(String phone, String code,String userAccount, String userPassword, String checkPassword);
 
     User userLogin(String userAccount, String userPassword, HttpServletRequest request);
 

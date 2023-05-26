@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static net.zjitc.constant.UserConstant.USER_LOGIN_STATE;
+import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 
 @RestController
 @RequestMapping("/team")

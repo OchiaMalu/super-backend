@@ -1,9 +1,9 @@
-package net.zjitc.constant;
+package net.zjitc.constants;
 /**
  * 用户常量
  */
 
-public interface UserConstant {
+public interface UserConstants {
     /**
      * 用户登录态键
      */
