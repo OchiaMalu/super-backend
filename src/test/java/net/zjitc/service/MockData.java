@@ -16,16 +16,16 @@ public class MockData {
 
 
     private static final String[] avatarUrls = {
-            "http://rtrx7n2j6.hd-bkt.clouddn.com/12d4949b4009d089eaf071aef0f1f40.jpg",
-            "http://rtrx7n2j6.hd-bkt.clouddn.com/1bff61de34bdc7bf40c6278b2848fbcf.jpg",
-            "http://rtrx7n2j6.hd-bkt.clouddn.com/22fe8428428c93a565e181782e97654.jpg",
-            "http://rtrx7n2j6.hd-bkt.clouddn.com/75e31415779979ae40c4c0238aa4c34.jpg",
-            "http://rtrx7n2j6.hd-bkt.clouddn.com/905731909dfdafd0b53b3c4117438d3.jpg",
-            "http://rtrx7n2j6.hd-bkt.clouddn.com/a84b1306e46061c0d664e6067417e5b.jpg",
-            "http://rtrx7n2j6.hd-bkt.clouddn.com/b93d640cc856cb7035a851029aec190.jpg",
-            "http://rtrx7n2j6.hd-bkt.clouddn.com/c11ae3862b3ca45b0a6cdff1e1bf841.jpg",
-            "http://rtrx7n2j6.hd-bkt.clouddn.com/cccfb0995f5d103414bd8a8bd742c34.jpg",
-            "http://rtrx7n2j6.hd-bkt.clouddn.com/f870176b1a628623fa7fe9918b862d7.jpg"};
+            "http://niu.ochiamalu.xyz/12d4949b4009d089eaf071aef0f1f40.jpg",
+            "http://niu.ochiamalu.xyz/1bff61de34bdc7bf40c6278b2848fbcf.jpg",
+            "http://niu.ochiamalu.xyz/22fe8428428c93a565e181782e97654.jpg",
+            "http://niu.ochiamalu.xyz/75e31415779979ae40c4c0238aa4c34.jpg",
+            "http://niu.ochiamalu.xyz/905731909dfdafd0b53b3c4117438d3.jpg",
+            "http://niu.ochiamalu.xyz/a84b1306e46061c0d664e6067417e5b.jpg",
+            "http://niu.ochiamalu.xyz/b93d640cc856cb7035a851029aec190.jpg",
+            "http://niu.ochiamalu.xyz/c11ae3862b3ca45b0a6cdff1e1bf841.jpg",
+            "http://niu.ochiamalu.xyz/cccfb0995f5d103414bd8a8bd742c34.jpg",
+            "http://niu.ochiamalu.xyz/f870176b1a628623fa7fe9918b862d7.jpg"};
     private static final String[] OTHER_TAGS = {"\"java\"", "\"python\"", "\"c\"", "\"c++\"", "\"c#\"", "\"html/css\"", "\"vue\"", "\"react\""};
     private static final String[] SCHOOL_YEARS = {"\"高一\"", "\"高二\"", "\"高三\"", "\"大一\"", "\"大二\"", "\"大三\"", "\"大四\"", "\"研究生\"", "\"已工作\""};
     private static final String[] FIRST_NAMES = {"Alice", "Bob", "Charlie", "David", "Emily", "Frank", "Grace", "Henry", "Isabella", "Jack", "Kate", "Liam", "Mia", "Nathan", "Olivia", "Peter", "Quinn", "Rachel", "Sarah", "Tyler", "Ursula", "Victoria", "William", "Xander", "Yvonne", "Zachary"};
