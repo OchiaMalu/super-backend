@@ -14,9 +14,11 @@ import net.zjitc.exception.BusinessException;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.request.UserLoginRequest;
 import net.zjitc.model.request.UserRegisterRequest;
+import net.zjitc.model.request.UserUpdateRequest;
 import net.zjitc.service.UserService;
 import net.zjitc.utils.ValidateCodeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
@@ -241,13 +243,15 @@ public class UserController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "user", value = "用户更新请求参数"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<Integer> updateUser(@RequestBody User user, HttpServletRequest request) {
-        if (user == null || request == null) {
+    public BaseResponse<String> updateUser(@RequestBody UserUpdateRequest updateRequest, HttpServletRequest request) {
+        if (updateRequest == null || request == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
+        User user = new User();
+        BeanUtils.copyProperties(updateRequest, user);
         boolean success = userService.updateUser(user, request);
         if (success) {
-            return ResultUtils.success(1);
+            return ResultUtils.success("用户更新成功");
         } else {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR);
         }

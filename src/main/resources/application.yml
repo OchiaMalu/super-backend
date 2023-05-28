@@ -12,7 +12,7 @@ spring:
     username: root
     password: 123456
   redis:
-    host: 47.115.230.95
+    host: localhost
     port: 6379
   session:
     store-type: redis
@@ -28,6 +28,7 @@ mybatis-plus:
       logic-delete-value: 1
       logic-not-delete-value: 0
       logic-delete-field: isDelete
+      id-type: auto
 knife4j:
   enable: true
   openapi:

@@ -246,6 +246,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
+        user.setId(loginUser.getId());
         if (!(isAdmin(loginUser) || loginUser.getId().equals(user.getId()))) {
             throw new BusinessException(ErrorCode.NO_AUTH);
         }
@@ -254,14 +255,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public Page<User> recommendUser(long currentPage) {
-        Page<User> page = new Page<>();
-        String pageStr = stringRedisTemplate.opsForValue().get(RECOMMEND_KEY);
-        if (Strings.isEmpty(pageStr)) {
-            page = this.page(new Page<>(currentPage, PAGE_SIZE));
-            stringRedisTemplate.opsForValue().set(RECOMMEND_KEY, JSONUtil.toJsonStr(page));
-            return page;
-        }
-        page = JSONUtil.toBean(pageStr, Page.class);
+        Page<User> page = this.page(new Page<>(currentPage, PAGE_SIZE));
         return page;
     }
 
