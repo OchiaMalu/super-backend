@@ -214,7 +214,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * @return
      */
     @Override
-    public List<User> searchUsersByTags(List<String> tagNameList) {
+    public Page<User> searchUsersByTags(List<String> tagNameList,long currentPage) {
         if (CollectionUtils.isEmpty(tagNameList)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -222,7 +222,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         for (String tagName : tagNameList) {
             userLambdaQueryWrapper = userLambdaQueryWrapper.or().like(Strings.isNotEmpty(tagName), User::getTags, tagName);
         }
-        return list(userLambdaQueryWrapper);
+        return page(new Page<>(currentPage,PAGE_SIZE),userLambdaQueryWrapper);
     }
 
     /**

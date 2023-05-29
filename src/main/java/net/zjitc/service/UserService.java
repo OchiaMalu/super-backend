@@ -22,7 +22,7 @@ public interface UserService extends IService<User> {
 
     int userLogout(HttpServletRequest request);
 
-    List<User> searchUsersByTags(List<String> tagNameList);
+    Page<User> searchUsersByTags(List<String> tagNameList,long currentPage);
 
     boolean isAdmin(User loginUser);
 

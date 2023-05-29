@@ -197,11 +197,11 @@ public class UserController {
     @ApiOperation(value = "通过标签搜索用户")
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "tagNameList", value = "标签列表")})
-    public BaseResponse<List<User>> searchUsersByTags(@RequestParam(required = false) List<String> tagNameList) {
+    public BaseResponse<Page<User>> searchUsersByTags(@RequestParam(required = false) List<String> tagNameList,long currentPage) {
         if (CollectionUtils.isEmpty(tagNameList)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        List<User> userList = userService.searchUsersByTags(tagNameList);
+        Page<User> userList = userService.searchUsersByTags(tagNameList,currentPage);
         return ResultUtils.success(userList);
     }
 
