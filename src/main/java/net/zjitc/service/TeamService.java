@@ -1,6 +1,7 @@
 package net.zjitc.service;
 
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import net.zjitc.model.domain.Team;
 import net.zjitc.model.domain.User;
@@ -23,7 +24,7 @@ public interface TeamService extends IService<Team> {
     @Transactional(rollbackFor = Exception.class)
     long addTeam(Team team, User loginUser);
 
-    List<TeamVO> listTeams(TeamQueryRequest teamQuery, boolean isAdmin);
+    Page<TeamVO> listTeams(long currentPage,TeamQueryRequest teamQuery, boolean isAdmin);
 
     boolean updateTeam(TeamUpdateRequest teamUpdateRequest, User loginUser);
 

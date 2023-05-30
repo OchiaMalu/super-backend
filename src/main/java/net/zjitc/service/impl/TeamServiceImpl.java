@@ -3,6 +3,7 @@ package net.zjitc.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.exception.BusinessException;
@@ -27,6 +28,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.*;
+
+import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
 
 /**
  * @author OchiaMalu
@@ -123,7 +126,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
     }
 
     @Override
-    public List<TeamVO> listTeams(TeamQueryRequest teamQuery, boolean isAdmin) {
+    public Page<TeamVO> listTeams(long currentPage,TeamQueryRequest teamQuery, boolean isAdmin) {
         QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
         // 组合查询条件
         if (teamQuery != null) {
@@ -171,13 +174,16 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         // 不展示已过期的队伍
         // expireTime is null or expireTime > now()
         queryWrapper.and(qw -> qw.gt("expire_time", new Date()).or().isNull("expire_time"));
-        List<Team> teamList = this.list(queryWrapper);
-        if (CollectionUtils.isEmpty(teamList)) {
-            return new ArrayList<>();
+        Page<Team> teamPage = this.page(new Page<>(currentPage, PAGE_SIZE),queryWrapper);
+        if (CollectionUtils.isEmpty(teamPage.getRecords())) {
+            return new Page<>();
         }
-        List<TeamVO> teamUserVOList = new ArrayList<>();
+        Page<TeamVO> teamVOPage = new Page<>();
         // 关联查询创建人的用户信息
-        for (Team team : teamList) {
+        BeanUtils.copyProperties(teamPage,teamVOPage,"records");
+        List<Team> teamPageRecords = teamPage.getRecords();
+        ArrayList<TeamVO> teamUserVOList = new ArrayList<>();
+        for (Team team : teamPageRecords) {
             Long userId = team.getUserId();
             if (userId == null) {
                 continue;
@@ -193,7 +199,8 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
             }
             teamUserVOList.add(teamUserVO);
         }
-        return teamUserVOList;
+        teamVOPage.setRecords(teamUserVOList);
+        return teamVOPage;
     }
 
     @Override
