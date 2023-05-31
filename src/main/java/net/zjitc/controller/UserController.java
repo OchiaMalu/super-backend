@@ -46,6 +46,7 @@ import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 @Slf4j
 @Api(tags = "用户管理模块")
 public class UserController {
+
     /**
      * 用户服务
      */
@@ -53,13 +54,23 @@ public class UserController {
     private UserService userService;
 
     /**
-     * 复述,模板
+     * 字符串复述,模板
      */
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
+    /**
+     * 发送消息
+     *
+     * @param phone 电话
+     * @return {@link BaseResponse}
+     */
     @GetMapping("/message")
+    @ApiOperation(value = "短信发送")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "phone", value = "手机号")})
     public BaseResponse sendMessage(String phone) {
+        //todo SMS服务
         if (StringUtils.isBlank(phone)) {
             return ResultUtils.error(ErrorCode.PARAMS_ERROR);
         }
@@ -191,17 +202,18 @@ public class UserController {
      * 搜索用户标签
      *
      * @param tagNameList 标记名称列表
-     * @return {@link BaseResponse}<{@link List}<{@link User}>>
+     * @param currentPage 当前页面
+     * @return {@link BaseResponse}<{@link Page}<{@link User}>>
      */
     @GetMapping("/search/tags")
     @ApiOperation(value = "通过标签搜索用户")
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "tagNameList", value = "标签列表")})
-    public BaseResponse<Page<User>> searchUsersByTags(@RequestParam(required = false) List<String> tagNameList,long currentPage) {
+    public BaseResponse<Page<User>> searchUsersByTags(@RequestParam(required = false) List<String> tagNameList, long currentPage) {
         if (CollectionUtils.isEmpty(tagNameList)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        Page<User> userList = userService.searchUsersByTags(tagNameList,currentPage);
+        Page<User> userList = userService.searchUsersByTags(tagNameList, currentPage);
         return ResultUtils.success(userList);
     }
 
@@ -234,9 +246,9 @@ public class UserController {
     /**
      * 更新用户
      *
-     * @param user    用户
-     * @param request 请求
-     * @return {@link BaseResponse}
+     * @param updateRequest 更新请求
+     * @param request       请求
+     * @return {@link BaseResponse}<{@link String}>
      */
     @PutMapping("/update")
     @ApiOperation(value = "更新用户")
@@ -257,41 +269,39 @@ public class UserController {
         }
     }
 
+
     /**
-     * 推荐用户
+     * 用户分页
      *
      * @param currentPage 当前页面
-     * @return {@link BaseResponse}
+     * @return {@link BaseResponse}<{@link Page}<{@link User}>>
      */
-    @GetMapping("/recommend")
-    @ApiOperation(value = "用户推荐")
+    @GetMapping("/page")
+    @ApiOperation(value = "用户分页")
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "currentPage", value = "当前页")})
-    public BaseResponse<Page<User>> recommendUser(long currentPage) {
+    public BaseResponse<Page<User>> userPagination(long currentPage) {
         Page<User> userPage = userService.recommendUser(currentPage);
         return ResultUtils.success(userPage);
     }
 
-
     /**
-     * 获取最匹配的用户
+     * 匹配用户
      *
-     * @param num
-     * @param request
-     * @return
+     * @param currentPage 当前页面
+     * @param request     请求
+     * @return {@link BaseResponse}<{@link List}<{@link User}>>
      */
     @GetMapping("/match")
-    @ApiOperation(value = "获取最匹配的n个用户")
+    @ApiOperation(value = "获取匹配用户")
     @ApiImplicitParams(
-            {@ApiImplicitParam(name = "num", value = "查询个数"),
+            {@ApiImplicitParam(name = "currentPage", value = "当前页"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<List<User>> matchUsers(long num, HttpServletRequest request) {
-        if (num <= 0 || num > 20) {
+    public BaseResponse<List<User>> matchUsers(long currentPage, HttpServletRequest request) {
+        if (currentPage <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User user = userService.getLoginUser(request);
-        return ResultUtils.success(userService.matchUsers(num, user));
+        return ResultUtils.success(userService.matchUser(currentPage, user));
     }
-
-
 }

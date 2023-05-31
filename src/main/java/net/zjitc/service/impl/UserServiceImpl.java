@@ -1,7 +1,6 @@
 package net.zjitc.service.impl;
 
 
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -31,7 +30,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static net.zjitc.constants.RedisConstants.RECOMMEND_KEY;
 import static net.zjitc.constants.RedisConstants.REGISTER_CODE_KEY;
 import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
 import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
@@ -214,7 +212,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * @return
      */
     @Override
-    public Page<User> searchUsersByTags(List<String> tagNameList,long currentPage) {
+    public Page<User> searchUsersByTags(List<String> tagNameList, long currentPage) {
         if (CollectionUtils.isEmpty(tagNameList)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -222,7 +220,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         for (String tagName : tagNameList) {
             userLambdaQueryWrapper = userLambdaQueryWrapper.or().like(Strings.isNotEmpty(tagName), User::getTags, tagName);
         }
-        return page(new Page<>(currentPage,PAGE_SIZE),userLambdaQueryWrapper);
+        return page(new Page<>(currentPage, PAGE_SIZE), userLambdaQueryWrapper);
     }
 
     /**
@@ -271,8 +269,49 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return (User) userObj;
     }
 
+//    @Override
+//    public List<User> matchUsers(long num, User loginUser) {
+//        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+//        queryWrapper.select("id", "tags");
+//        queryWrapper.isNotNull("tags");
+//        List<User> userList = this.list(queryWrapper);
+//        String tags = loginUser.getTags();
+//        Gson gson = new Gson();
+//        List<String> tagList = gson.fromJson(tags, new TypeToken<List<String>>() {
+//        }.getType());
+//        // 用户列表的下标 => 相似度
+//        List<Pair<User, Long>> list = new ArrayList<>();
+//        // 依次计算所有用户和当前用户的相似度
+//        for (int i = 0; i < userList.size(); i++) {
+//            User user = userList.get(i);
+//            String userTags = user.getTags();
+//            // 无标签或者为当前用户自己
+//            if (StringUtils.isBlank(userTags) || Objects.equals(user.getId(), loginUser.getId())) {
+//                continue;
+//            }
+//            List<String> userTagList = gson.fromJson(userTags, new TypeToken<List<String>>() {
+//            }.getType());
+//            // 计算分数
+//            long distance = AlgorithmUtil.minDistance(tagList, userTagList);
+//            list.add(new Pair<>(user, distance));
+//        }
+//        // 按编辑距离由小到大排序
+//        List<Pair<User, Long>> topUserPairList = list.stream()
+//                .sorted((a, b) -> (int) (a.getValue() - b.getValue()))
+//                .limit(num)
+//                .collect(Collectors.toList());
+//        List<Long> userIdList = topUserPairList.stream().map(pair -> pair.getKey().getId()).collect(Collectors.toList());
+//        String idStr = StringUtils.join(userIdList, ",");
+//        QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
+//        userQueryWrapper.in("id", userIdList).last("ORDER BY FIELD(id," + idStr + ")");
+//        return this.list(userQueryWrapper)
+//                .stream()
+//                .map(this::getSafetyUser)
+//                .collect(Collectors.toList());
+//    }
+
     @Override
-    public List<User> matchUsers(long num, User loginUser) {
+    public List<User> matchUser(long currentPage, User loginUser) {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.select("id", "tags");
         queryWrapper.isNotNull("tags");
@@ -300,10 +339,27 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 按编辑距离由小到大排序
         List<Pair<User, Long>> topUserPairList = list.stream()
                 .sorted((a, b) -> (int) (a.getValue() - b.getValue()))
-                .limit(num)
                 .collect(Collectors.toList());
-
-        List<Long> userIdList = topUserPairList.stream().map(pair -> pair.getKey().getId()).collect(Collectors.toList());
+        //截取currentPage所需的List
+        ArrayList<Pair<User, Long>> finalUserPairList = new ArrayList<>();
+        int begin = (int) ((currentPage - 1) * PAGE_SIZE);
+        int end = (int) (((currentPage - 1) * PAGE_SIZE) + PAGE_SIZE) - 1;
+        if (topUserPairList.size() < end) {
+            //剩余数量
+            int temp = (int) (topUserPairList.size() - begin);
+            if (temp <= 0) {
+                return new ArrayList<>();
+            }
+            for (int i = begin; i <= begin + temp - 1; i++) {
+                finalUserPairList.add(topUserPairList.get(i));
+            }
+        } else {
+            for (int i = begin; i <= end; i++) {
+                finalUserPairList.add(topUserPairList.get(i));
+            }
+        }
+        //获取排列后的UserId
+        List<Long> userIdList = finalUserPairList.stream().map(pair -> pair.getKey().getId()).collect(Collectors.toList());
         String idStr = StringUtils.join(userIdList, ",");
         QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
         userQueryWrapper.in("id", userIdList).last("ORDER BY FIELD(id," + idStr + ")");

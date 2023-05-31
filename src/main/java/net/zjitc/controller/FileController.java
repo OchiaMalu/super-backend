@@ -1,6 +1,10 @@
 package net.zjitc.controller;
 
 import cn.hutool.core.lang.UUID;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import net.zjitc.common.BaseResponse;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.common.ResultUtils;
@@ -8,6 +12,7 @@ import net.zjitc.exception.BusinessException;
 import net.zjitc.model.domain.User;
 import net.zjitc.service.UserService;
 import net.zjitc.utils.QiNiuUtils;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,6 +28,7 @@ import static net.zjitc.constants.SystemConstants.QiNiuUrl;
 @RestController
 @RequestMapping("/common")
 @CrossOrigin("http://localhost:5173")
+@Api(tags = "文件管理模块")
 public class FileController {
 
     //图片保存路径
@@ -33,12 +39,28 @@ public class FileController {
     private UserService userService;
 
     @PostMapping("/upload")
+    @ApiOperation(value = "文件上传")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "file", value = "文件"),
+                    @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<String> upload(MultipartFile file, HttpServletRequest request) {
+        if (file == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请上传文件");
+        }
         User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN, "请登录");
+        }
         //获取原文件名
         String originalFilename = file.getOriginalFilename();
+        if (Strings.isEmpty(originalFilename)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
         //获取后缀名
         String suffix = originalFilename.substring(originalFilename.lastIndexOf("."));
+        if (Strings.isEmpty(suffix)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
         //设置新文件名
         String filename = UUID.randomUUID().toString() + suffix;
         File dir = new File(System.getProperty("user.dir") + basePath);
@@ -56,20 +78,24 @@ public class FileController {
         byte[] imageStream = getImageStream(localFile);
         QiNiuUtils.upload(imageStream, filename);
         localFile.delete();
+        //上传七牛云
         String fileUrl = QiNiuUrl + filename;
         User user = new User();
         user.setId(loginUser.getId());
         user.setAvatarUrl(fileUrl);
         boolean success = userService.updateById(user);
-        if (!success){
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR,"头像上传失败");
+        if (!success) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "头像上传失败");
         }
         return ResultUtils.success(fileUrl);
     }
 
     @GetMapping("/download")
+    @ApiOperation(value = "文件下载")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "name", value = "文件名"),
+                    @ApiImplicitParam(name = "request", value = "request请求")})
     public void download(String name, HttpServletResponse response) {
-
         try {
             //获取指定文件
             File img = new File(System.getProperty("user.dir") + basePath + name);
