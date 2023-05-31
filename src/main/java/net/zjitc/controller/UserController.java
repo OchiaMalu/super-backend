@@ -281,7 +281,7 @@ public class UserController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "currentPage", value = "当前页")})
     public BaseResponse<Page<User>> userPagination(long currentPage) {
-        Page<User> userPage = userService.recommendUser(currentPage);
+        Page<User> userPage = userService.userPage(currentPage);
         return ResultUtils.success(userPage);
     }
 
@@ -297,11 +297,17 @@ public class UserController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "currentPage", value = "当前页"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<List<User>> matchUsers(long currentPage, HttpServletRequest request) {
+    public BaseResponse<Page<User>> matchUsers(long currentPage, HttpServletRequest request) {
         if (currentPage <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        User user = userService.getLoginUser(request);
-        return ResultUtils.success(userService.matchUser(currentPage, user));
+        Boolean isLogin = userService.isLogin(request);
+        if (isLogin){
+            User user = userService.getLoginUser(request);
+            return ResultUtils.success(userService.matchUser(currentPage, user));
+        }else {
+            //todo 未登录时随机查询
+            return ResultUtils.success(userService.userPage(currentPage));
+        }
     }
 }

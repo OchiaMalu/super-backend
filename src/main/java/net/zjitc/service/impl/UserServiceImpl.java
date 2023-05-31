@@ -252,7 +252,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public Page<User> recommendUser(long currentPage) {
+    public Page<User> userPage(long currentPage) {
         Page<User> page = this.page(new Page<>(currentPage, PAGE_SIZE));
         return page;
     }
@@ -267,6 +267,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
         return (User) userObj;
+    }
+
+    @Override
+    public Boolean isLogin(HttpServletRequest request){
+        if (request==null){
+            return false;
+        }
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        if (userObj == null) {
+            return false;
+        }
+        return true;
     }
 
 //    @Override
@@ -311,7 +323,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 //    }
 
     @Override
-    public List<User> matchUser(long currentPage, User loginUser) {
+    public Page<User> matchUser(long currentPage, User loginUser) {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.select("id", "tags");
         queryWrapper.isNotNull("tags");
@@ -348,7 +360,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             //剩余数量
             int temp = (int) (topUserPairList.size() - begin);
             if (temp <= 0) {
-                return new ArrayList<>();
+                return new Page<>();
             }
             for (int i = begin; i <= begin + temp - 1; i++) {
                 finalUserPairList.add(topUserPairList.get(i));
@@ -363,10 +375,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String idStr = StringUtils.join(userIdList, ",");
         QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
         userQueryWrapper.in("id", userIdList).last("ORDER BY FIELD(id," + idStr + ")");
-        return this.list(userQueryWrapper)
+        List<User> records = this.list(userQueryWrapper)
                 .stream()
                 .map(this::getSafetyUser)
                 .collect(Collectors.toList());
+        Page<User> userPage = new Page<>();
+        userPage.setRecords(records);
+        userPage.setCurrent(currentPage);
+        userPage.setSize(records.size());
+        userPage.setTotal(userList.size());
+        return userPage;
     }
 
     @Deprecated

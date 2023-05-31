@@ -28,11 +28,13 @@ public interface UserService extends IService<User> {
 
     boolean updateUser(User user, HttpServletRequest request);
 
-    Page<User> recommendUser(long currentPage);
+    Page<User> userPage(long currentPage);
 
     User getLoginUser(HttpServletRequest request);
 
 //    List<User> matchUsers(long num, User user);
 
-    List<User> matchUser(long currentPage, User loginUser);
+    Boolean isLogin(HttpServletRequest request);
+
+    Page<User> matchUser(long currentPage, User loginUser);
 }
