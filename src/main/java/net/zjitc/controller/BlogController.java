@@ -1,10 +1,12 @@
 package net.zjitc.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ser.Serializers;
 import net.zjitc.common.BaseResponse;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.common.ResultUtils;
 import net.zjitc.exception.BusinessException;
+import net.zjitc.model.domain.Blog;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.request.BlogAddRequest;
 import net.zjitc.service.BlogService;
@@ -17,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.List;
 
+import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
 import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 
 @RestController
@@ -24,6 +27,11 @@ import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 public class BlogController {
     @Resource
     private BlogService blogService;
+
+    @GetMapping("/list")
+    public BaseResponse<Page<Blog>> listBlogPage(long currentPage) {
+        return ResultUtils.success(blogService.page(new Page<>(currentPage, PAGE_SIZE)));
+    }
 
     @PostMapping("/add")
     public BaseResponse<String> addBlog(BlogAddRequest blogAddRequest, HttpServletRequest request) {
