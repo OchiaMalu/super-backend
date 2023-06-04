@@ -82,11 +82,15 @@ public class TeamController {
     @GetMapping("/{id}")
     @ApiOperation(value = "根据id查询队伍")
     @ApiImplicitParams({@ApiImplicitParam(name = "id", value = "队伍id")})
-    public BaseResponse<Team> getTeamById(@PathVariable Long id) {
+    public BaseResponse<TeamVO> getTeamById(@PathVariable Long id,HttpServletRequest request) {
         if (id == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        return ResultUtils.success(teamService.getById(id));
+        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        if (loginUser==null){
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        return ResultUtils.success(teamService.getTeam(id,loginUser.getId()));
     }
 
     @GetMapping("/list")

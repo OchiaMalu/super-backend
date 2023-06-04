@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
+
 @Data
 public class TeamVO implements Serializable {
     private static final long serialVersionUID = 6986365414601034543L;
@@ -68,6 +69,7 @@ public class TeamVO implements Serializable {
     @ApiModelProperty(value = "创建人")
     private UserVO createUser;
 
+    private String leaderName;
     /**
      * 已加入的用户数
      */

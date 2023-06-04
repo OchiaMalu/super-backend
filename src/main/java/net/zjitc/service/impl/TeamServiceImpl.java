@@ -1,6 +1,7 @@
 package net.zjitc.service.impl;
 
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -126,7 +127,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
     }
 
     @Override
-    public Page<TeamVO> listTeams(long currentPage,TeamQueryRequest teamQuery, boolean isAdmin) {
+    public Page<TeamVO> listTeams(long currentPage, TeamQueryRequest teamQuery, boolean isAdmin) {
         QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
         // 组合查询条件
         if (teamQuery != null) {
@@ -174,13 +175,13 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         // 不展示已过期的队伍
         // expireTime is null or expireTime > now()
         queryWrapper.and(qw -> qw.gt("expire_time", new Date()).or().isNull("expire_time"));
-        Page<Team> teamPage = this.page(new Page<>(currentPage, PAGE_SIZE),queryWrapper);
+        Page<Team> teamPage = this.page(new Page<>(currentPage, PAGE_SIZE), queryWrapper);
         if (CollectionUtils.isEmpty(teamPage.getRecords())) {
             return new Page<>();
         }
         Page<TeamVO> teamVOPage = new Page<>();
         // 关联查询创建人的用户信息
-        BeanUtils.copyProperties(teamPage,teamVOPage,"records");
+        BeanUtils.copyProperties(teamPage, teamVOPage, "records");
         List<Team> teamPageRecords = teamPage.getRecords();
         ArrayList<TeamVO> teamUserVOList = new ArrayList<>();
         for (Team team : teamPageRecords) {
@@ -352,6 +353,23 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         }
         // 删除队伍
         return this.removeById(teamId);
+    }
+
+    @Override
+    public TeamVO getTeam(Long teamId, Long userId) {
+        Team team = this.getById(teamId);
+        TeamVO teamVO = new TeamVO();
+        BeanUtils.copyProperties(team, teamVO);
+        LambdaQueryWrapper<UserTeam> userTeamLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        userTeamLambdaQueryWrapper.eq(UserTeam::getTeamId, teamId);
+        long count = userTeamService.count(userTeamLambdaQueryWrapper);
+        teamVO.setHasJoinNum(count);
+        userTeamLambdaQueryWrapper.eq(UserTeam::getUserId, userId);
+        long userJoin = userTeamService.count(userTeamLambdaQueryWrapper);
+        teamVO.setHasJoin(userJoin > 0);
+        User leader = userService.getById(team.getUserId());
+        teamVO.setLeaderName(leader.getUsername());
+        return teamVO;
     }
 
 
