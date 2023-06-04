@@ -3,7 +3,11 @@ package net.zjitc.service.impl;
 import java.util.ArrayList;
 import java.util.Date;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import net.zjitc.common.ErrorCode;
+import net.zjitc.exception.BusinessException;
 import net.zjitc.model.domain.Blog;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.request.BlogAddRequest;
@@ -13,6 +17,8 @@ import net.zjitc.utils.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
 
 /**
  * @author OchiaMalu
@@ -40,6 +46,16 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
         blog.setTitle(blogAddRequest.getTitle());
         blog.setContent(blogAddRequest.getContent());
         return this.save(blog);
+    }
+
+    @Override
+    public Page<Blog> listMyBlogs(long currentPage, Long id) {
+        if (currentPage<=0){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        LambdaQueryWrapper<Blog> blogLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        blogLambdaQueryWrapper.eq(Blog::getUserId,id);
+        return this.page(new Page<>(currentPage, PAGE_SIZE), blogLambdaQueryWrapper);
     }
 }
 

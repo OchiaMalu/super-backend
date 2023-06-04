@@ -1,5 +1,6 @@
 package net.zjitc.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import net.zjitc.model.domain.Blog;
 import com.baomidou.mybatisplus.extension.service.IService;
 import net.zjitc.model.domain.User;
@@ -13,4 +14,6 @@ import net.zjitc.model.request.BlogAddRequest;
 public interface BlogService extends IService<Blog> {
 
     Boolean addBlog(BlogAddRequest blogAddRequest, User loginUser);
+
+    Page<Blog> listMyBlogs(long currentPage, Long id);
 }
