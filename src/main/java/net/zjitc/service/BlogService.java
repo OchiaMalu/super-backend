@@ -5,6 +5,7 @@ import net.zjitc.model.domain.Blog;
 import com.baomidou.mybatisplus.extension.service.IService;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.request.BlogAddRequest;
+import net.zjitc.model.vo.BlogVO;
 
 /**
 * @author OchiaMalu
@@ -16,4 +17,10 @@ public interface BlogService extends IService<Blog> {
     Boolean addBlog(BlogAddRequest blogAddRequest, User loginUser);
 
     Page<Blog> listMyBlogs(long currentPage, Long id);
+
+    void likeBlog(long blogId, Long userId);
+
+    Page<BlogVO> pageBlog(long currentPage, Long id);
+
+    BlogVO getBlogById(long blogId, Long userId);
 }

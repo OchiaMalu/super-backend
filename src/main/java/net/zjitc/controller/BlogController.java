@@ -9,6 +9,7 @@ import net.zjitc.exception.BusinessException;
 import net.zjitc.model.domain.Blog;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.request.BlogAddRequest;
+import net.zjitc.model.vo.BlogVO;
 import net.zjitc.service.BlogService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -29,8 +30,9 @@ public class BlogController {
     private BlogService blogService;
 
     @GetMapping("/list")
-    public BaseResponse<Page<Blog>> listBlogPage(long currentPage) {
-        return ResultUtils.success(blogService.page(new Page<>(currentPage, PAGE_SIZE)));
+    public BaseResponse<Page<BlogVO>> listBlogPage(long currentPage,HttpServletRequest request) {
+        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        return ResultUtils.success(blogService.pageBlog(currentPage,loginUser.getId()));
     }
 
     @PostMapping("/add")
@@ -47,12 +49,31 @@ public class BlogController {
     }
 
     @GetMapping("/list/my/blog")
-    public BaseResponse<Page<Blog>> listMyBlogs(long currentPage,HttpServletRequest request){
+    public BaseResponse<Page<Blog>> listMyBlogs(long currentPage, HttpServletRequest request) {
         User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
         Page<Blog> blogPage = blogService.listMyBlogs(currentPage, loginUser.getId());
         return ResultUtils.success(blogPage);
+    }
+
+    @PutMapping("/like/{id}")
+    public BaseResponse<String> likeBlog(@PathVariable long id, HttpServletRequest request) {
+        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        blogService.likeBlog(id, loginUser.getId());
+        return ResultUtils.success("成功");
+    }
+
+    @GetMapping("/{id}")
+    public BaseResponse<BlogVO> getBlogById(@PathVariable long id,HttpServletRequest request) {
+        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        return ResultUtils.success(blogService.getBlogById(id,loginUser.getId()));
     }
 }
