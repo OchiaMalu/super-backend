@@ -30,9 +30,14 @@ public class BlogController {
     private BlogService blogService;
 
     @GetMapping("/list")
-    public BaseResponse<Page<BlogVO>> listBlogPage(long currentPage,HttpServletRequest request) {
+    public BaseResponse<Page<BlogVO>> listBlogPage(long currentPage, HttpServletRequest request) {
         User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
-        return ResultUtils.success(blogService.pageBlog(currentPage,loginUser.getId()));
+        if (loginUser == null) {
+            return ResultUtils.success(blogService.pageBlog(currentPage, null));
+
+        }else {
+            return ResultUtils.success(blogService.pageBlog(currentPage, loginUser.getId()));
+        }
     }
 
     @PostMapping("/add")
@@ -69,11 +74,11 @@ public class BlogController {
     }
 
     @GetMapping("/{id}")
-    public BaseResponse<BlogVO> getBlogById(@PathVariable long id,HttpServletRequest request) {
+    public BaseResponse<BlogVO> getBlogById(@PathVariable long id, HttpServletRequest request) {
         User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
-        return ResultUtils.success(blogService.getBlogById(id,loginUser.getId()));
+        return ResultUtils.success(blogService.getBlogById(id, loginUser.getId()));
     }
 }
