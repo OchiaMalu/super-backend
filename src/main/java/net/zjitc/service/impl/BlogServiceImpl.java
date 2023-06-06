@@ -18,6 +18,7 @@ import net.zjitc.model.vo.BlogVO;
 import net.zjitc.service.BlogLikeService;
 import net.zjitc.service.BlogService;
 import net.zjitc.mapper.BlogMapper;
+import net.zjitc.service.UserService;
 import net.zjitc.utils.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -39,6 +40,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
 
     @Resource
     private BlogLikeService blogLikeService;
+
+    @Resource
+    private UserService userService;
 
     @Override
     public Boolean addBlog(BlogAddRequest blogAddRequest, User loginUser) {
@@ -128,6 +132,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
         blogLikeLambdaQueryWrapper.eq(BlogLike::getBlogId, blogId);
         long isLike = blogLikeService.count(blogLikeLambdaQueryWrapper);
         blogVO.setIsLike(isLike > 0);
+        User author = userService.getById(blog.getUserId());
+        blogVO.setAuthor(author);
         return blogVO;
     }
 }
