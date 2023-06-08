@@ -103,15 +103,8 @@ public class TeamController {
         }
         User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
         Page<TeamVO> teamVOPage = teamService.listTeams(currentPage, teamQueryRequest, userService.isAdmin(loginUser));
-        List<TeamVO> teamList = teamVOPage.getRecords();
-        teamList.forEach((team) -> {
-            LambdaQueryWrapper<UserTeam> userTeamLambdaQueryWrapper = new LambdaQueryWrapper<>();
-            userTeamLambdaQueryWrapper.eq(UserTeam::getTeamId, team.getId());
-            long hasJoinNum = userTeamService.count(userTeamLambdaQueryWrapper);
-            team.setHasJoinNum(hasJoinNum);
-        });
-        teamVOPage.setRecords(teamList);
-        return getUserJoinedList(loginUser, teamVOPage);
+        Page<TeamVO> finalPage = getTeamHasJoinNum(teamVOPage);
+        return getUserJoinedList(loginUser, finalPage);
     }
 
     @PostMapping("/join")
@@ -168,11 +161,24 @@ public class TeamController {
         User loginUser = userService.getLoginUser(request);
         teamQuery.setUserId(loginUser.getId());
         Page<TeamVO> teamVOPage = teamService.listTeams(currentPage, teamQuery, true);
-        return getUserJoinedList(loginUser, teamVOPage);
+        Page<TeamVO> finalPage = getTeamHasJoinNum(teamVOPage);
+        return getUserJoinedList(loginUser, finalPage);
+    }
+
+    private Page<TeamVO> getTeamHasJoinNum(Page<TeamVO> teamVOPage) {
+        List<TeamVO> teamList = teamVOPage.getRecords();
+        teamList.forEach((team) -> {
+            LambdaQueryWrapper<UserTeam> userTeamLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            userTeamLambdaQueryWrapper.eq(UserTeam::getTeamId, team.getId());
+            long hasJoinNum = userTeamService.count(userTeamLambdaQueryWrapper);
+            team.setHasJoinNum(hasJoinNum);
+        });
+        teamVOPage.setRecords(teamList);
+        return teamVOPage;
     }
 
     @GetMapping("/list/my/join")
-    @ApiOperation(value = "获取我创建的队伍")
+    @ApiOperation(value = "获取我加入的队伍")
     @ApiImplicitParams({@ApiImplicitParam(name = "teamQuery", value = "获取队伍请求参数"),
             @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<Page<TeamVO>> listMyJoinTeams(long currentPage,TeamQueryRequest teamQuery, HttpServletRequest request) {
@@ -188,7 +194,8 @@ public class TeamController {
         List<Long> idList = new ArrayList<>(listMap.keySet());
         teamQuery.setIdList(idList);
         Page<TeamVO> teamVOPage = teamService.listTeams(currentPage, teamQuery, true);
-        return getUserJoinedList(loginUser, teamVOPage);
+        Page<TeamVO> finalPage = getTeamHasJoinNum(teamVOPage);
+        return getUserJoinedList(loginUser, finalPage);
     }
 
     private BaseResponse<Page<TeamVO>> getUserJoinedList(User loginUser, Page<TeamVO> teamPage) {
