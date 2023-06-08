@@ -16,5 +16,9 @@ public interface BlogCommentsService extends IService<BlogComments> {
 
     void addComment(AddCommentRequest addCommentRequest, Long userId);
 
-    List<BlogCommentsVO> listComments(long blogId);
+    List<BlogCommentsVO> listComments(long blogId,long userId);
+
+    BlogCommentsVO getComment(long commentId, Long userId);
+
+    void likeComment(long commentId, Long userId);
 }

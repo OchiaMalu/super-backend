@@ -8,4 +8,5 @@ import java.io.Serializable;
 public class BlogCommentsVO extends BlogComments implements Serializable {
     private static final long serialVersionUID = 5695588849785352130L;
     private UserVO commentUser;
+    private Boolean isLiked;
 }

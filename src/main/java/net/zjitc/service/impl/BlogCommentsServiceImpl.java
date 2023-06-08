@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import net.zjitc.model.domain.Blog;
 import net.zjitc.model.domain.BlogComments;
+import net.zjitc.model.domain.CommentLike;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.request.AddCommentRequest;
 import net.zjitc.model.vo.BlogCommentsVO;
@@ -15,9 +16,11 @@ import net.zjitc.model.vo.UserVO;
 import net.zjitc.service.BlogCommentsService;
 import net.zjitc.mapper.BlogCommentsMapper;
 import net.zjitc.service.BlogService;
+import net.zjitc.service.CommentLikeService;
 import net.zjitc.service.UserService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 
@@ -36,7 +39,11 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
     @Resource
     private BlogService blogService;
 
+    @Resource
+    private CommentLikeService commentLikeService;
+
     @Override
+    @Transactional
     public void addComment(AddCommentRequest addCommentRequest, Long userId) {
         BlogComments blogComments = new BlogComments();
         blogComments.setUserId(userId);
@@ -51,7 +58,7 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
     }
 
     @Override
-    public List<BlogCommentsVO> listComments(long blogId) {
+    public List<BlogCommentsVO> listComments(long blogId, long userId) {
         LambdaQueryWrapper<BlogComments> blogCommentsLambdaQueryWrapper = new LambdaQueryWrapper<>();
         blogCommentsLambdaQueryWrapper.eq(BlogComments::getBlogId, blogId);
         List<BlogComments> blogCommentsList = this.list(blogCommentsLambdaQueryWrapper);
@@ -62,8 +69,48 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
             UserVO userVO = new UserVO();
             BeanUtils.copyProperties(user, userVO);
             blogCommentsVO.setCommentUser(userVO);
+            LambdaQueryWrapper<CommentLike> commentLikeLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            commentLikeLambdaQueryWrapper.eq(CommentLike::getCommentId, comment.getId()).eq(CommentLike::getUserId, userId);
+            long count = commentLikeService.count(commentLikeLambdaQueryWrapper);
+            blogCommentsVO.setIsLiked(count > 0);
             return blogCommentsVO;
         }).collect(Collectors.toList());
+    }
+
+    @Override
+    public BlogCommentsVO getComment(long commentId, Long userId) {
+        BlogComments comments = this.getById(commentId);
+        BlogCommentsVO blogCommentsVO = new BlogCommentsVO();
+        BeanUtils.copyProperties(comments, blogCommentsVO);
+        LambdaQueryWrapper<CommentLike> commentLikeLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        commentLikeLambdaQueryWrapper.eq(CommentLike::getUserId, userId).eq(CommentLike::getCommentId, commentId);
+        long count = commentLikeService.count(commentLikeLambdaQueryWrapper);
+        blogCommentsVO.setIsLiked(count > 0);
+        return blogCommentsVO;
+    }
+
+    @Override
+    @Transactional
+    public void likeComment(long commentId, Long userId) {
+        LambdaQueryWrapper<CommentLike> commentLikeLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        commentLikeLambdaQueryWrapper.eq(CommentLike::getCommentId, commentId).eq(CommentLike::getUserId, userId);
+        long count = commentLikeService.count(commentLikeLambdaQueryWrapper);
+        if (count == 0) {
+            CommentLike commentLike = new CommentLike();
+            commentLike.setCommentId(commentId);
+            commentLike.setUserId(userId);
+            commentLikeService.save(commentLike);
+            BlogComments blogComments = this.getById(commentId);
+            this.update().eq("id", commentId)
+                    .set("liked_num", blogComments.getLikedNum() + 1)
+                    .update();
+        } else {
+            commentLikeService.remove(commentLikeLambdaQueryWrapper);
+            BlogComments blogComments = this.getById(commentId);
+            this.update().eq("id", commentId)
+                    .set("liked_num", blogComments.getLikedNum() - 1)
+                    .update();
+        }
     }
 }
 
