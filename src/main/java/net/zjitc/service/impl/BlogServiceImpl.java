@@ -1,15 +1,11 @@
 package net.zjitc.service.impl;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.exception.BusinessException;
+import net.zjitc.mapper.BlogMapper;
 import net.zjitc.model.domain.Blog;
 import net.zjitc.model.domain.BlogLike;
 import net.zjitc.model.domain.User;
@@ -17,7 +13,6 @@ import net.zjitc.model.request.BlogAddRequest;
 import net.zjitc.model.vo.BlogVO;
 import net.zjitc.service.BlogLikeService;
 import net.zjitc.service.BlogService;
-import net.zjitc.mapper.BlogMapper;
 import net.zjitc.service.UserService;
 import net.zjitc.utils.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -26,8 +21,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
+import static net.zjitc.constants.SystemConstants.QiNiuUrl;
 
 /**
  * @author OchiaMalu
@@ -64,13 +63,31 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
     }
 
     @Override
-    public Page<Blog> listMyBlogs(long currentPage, Long id) {
+    public Page<BlogVO> listMyBlogs(long currentPage, Long id) {
         if (currentPage <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         LambdaQueryWrapper<Blog> blogLambdaQueryWrapper = new LambdaQueryWrapper<>();
         blogLambdaQueryWrapper.eq(Blog::getUserId, id);
-        return this.page(new Page<>(currentPage, PAGE_SIZE), blogLambdaQueryWrapper);
+        Page<Blog> blogPage = this.page(new Page<>(currentPage, PAGE_SIZE), blogLambdaQueryWrapper);
+        Page<BlogVO> blogVOPage = new Page<>();
+        BeanUtils.copyProperties(blogPage, blogVOPage);
+        //todo 设置博文首页图片，返回图片完整url
+        List<BlogVO> blogVOList = blogPage.getRecords().stream().map((blog) -> {
+            BlogVO blogVO = new BlogVO();
+            BeanUtils.copyProperties(blog, blogVO);
+            return blogVO;
+        }).collect(Collectors.toList());
+        for (BlogVO blogVO : blogVOList) {
+            String images = blogVO.getImages();
+            if (images == null) {
+                continue;
+            }
+            String[] imgStrs = images.split(",");
+            blogVO.setCoverImage(QiNiuUrl + imgStrs[0]);
+        }
+        blogVOPage.setRecords(blogVOList);
+        return blogVOPage;
     }
 
     @Override
@@ -105,19 +122,19 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
         Page<BlogVO> blogVOPage = new Page<>();
         BeanUtils.copyProperties(blogPage, blogVOPage);
         //todo 设置博文首页图片，返回图片完整url
-        if (userId == null) {
-            return blogVOPage;
-        }
         List<BlogVO> blogVOList = blogPage.getRecords().stream().map((blog) -> {
             BlogVO blogVO = new BlogVO();
             BeanUtils.copyProperties(blog, blogVO);
-            LambdaQueryWrapper<BlogLike> blogLikeLambdaQueryWrapper = new LambdaQueryWrapper<>();
-            blogLikeLambdaQueryWrapper.eq(BlogLike::getBlogId, blog.getId());
-            blogLikeLambdaQueryWrapper.eq(BlogLike::getUserId, userId);
-            long isLike = blogLikeService.count(blogLikeLambdaQueryWrapper);
-            blogVO.setIsLike(isLike > 0);
             return blogVO;
         }).collect(Collectors.toList());
+        for (BlogVO blogVO : blogVOList) {
+            String images = blogVO.getImages();
+            if (images == null) {
+                continue;
+            }
+            String[] imgStrs = images.split(",");
+            blogVO.setCoverImage(QiNiuUrl + imgStrs[0]);
+        }
         blogVOPage.setRecords(blogVOList);
         return blogVOPage;
     }
@@ -134,6 +151,17 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
         blogVO.setIsLike(isLike > 0);
         User author = userService.getById(blog.getUserId());
         blogVO.setAuthor(author);
+        String images = blogVO.getImages();
+        if (images == null) {
+            return blogVO;
+        }
+        String[] imgStrs = images.split(",");
+        ArrayList<String> imgStrList = new ArrayList<>();
+        for (String imgStr : imgStrs) {
+            imgStrList.add(QiNiuUrl + imgStr);
+        }
+        String imgStr = StringUtils.join(imgStrList, ",");
+        blogVO.setImages(imgStr);
         return blogVO;
     }
 }
