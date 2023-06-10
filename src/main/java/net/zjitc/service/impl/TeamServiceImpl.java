@@ -56,12 +56,16 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(team.getExpireTime());
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        team.setExpireTime(calendar.getTime());
+        if (team.getExpireTime()!=null){
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(team.getExpireTime());
+            calendar.set(Calendar.HOUR_OF_DAY, 0);
+            calendar.set(Calendar.MINUTE, 0);
+            calendar.set(Calendar.SECOND, 0);
+            team.setExpireTime(calendar.getTime());
+        }else {
+            team.setExpireTime(null);
+        }
         final long userId = loginUser.getId();
         // 3. 校验信息
         // 7. 校验用户最多创建 5 个队伍
@@ -102,7 +106,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         }
         // 6. 超时时间 > 当前时间
         Date expireTime = team.getExpireTime();
-        if (new Date().after(expireTime)) {
+        if (expireTime!=null && new Date().after(expireTime)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "超时时间 > 当前时间");
         }
         // 8. 插入队伍信息到队伍表
@@ -341,7 +345,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         Team team = getTeamById(id);
         long teamId = team.getId();
         // 校验你是不是队伍的队长
-        if (team.getUserId() != loginUser.getId()) {
+        if (!team.getUserId().equals(loginUser.getId())) {
             throw new BusinessException(ErrorCode.NO_AUTH, "无访问权限");
         }
         // 移除所有加入队伍的关联信息
