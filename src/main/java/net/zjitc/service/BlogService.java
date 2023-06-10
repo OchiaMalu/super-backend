@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import net.zjitc.model.domain.Blog;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.request.BlogAddRequest;
+import net.zjitc.model.request.BlogUpdateRequest;
 import net.zjitc.model.vo.BlogVO;
 
 /**
@@ -23,4 +24,8 @@ public interface BlogService extends IService<Blog> {
     Page<BlogVO> pageBlog(long currentPage, Long id);
 
     BlogVO getBlogById(long blogId, Long userId);
+
+    void deleteBlog(Long blogId, Long userId, boolean isAdmin);
+
+    void updateBlog(BlogUpdateRequest blogUpdateRequest, Long userId);
 }

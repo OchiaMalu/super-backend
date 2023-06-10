@@ -10,6 +10,7 @@ import net.zjitc.model.domain.Blog;
 import net.zjitc.model.domain.BlogLike;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.request.BlogAddRequest;
+import net.zjitc.model.request.BlogUpdateRequest;
 import net.zjitc.model.vo.BlogVO;
 import net.zjitc.service.BlogLikeService;
 import net.zjitc.service.BlogService;
@@ -163,6 +164,59 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
         String imgStr = StringUtils.join(imgStrList, ",");
         blogVO.setImages(imgStr);
         return blogVO;
+    }
+
+    @Override
+    public void deleteBlog(Long blogId, Long userId, boolean isAdmin) {
+        if (isAdmin) {
+            this.removeById(blogId);
+            return;
+        }
+        Blog blog = this.getById(blogId);
+        if (!userId.equals(blog.getUserId())) {
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+        this.removeById(blogId);
+    }
+
+    @Override
+    public void updateBlog(BlogUpdateRequest blogUpdateRequest, Long userId) {
+        if (blogUpdateRequest.getId() == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        Long createUserId = this.getById(blogUpdateRequest.getId()).getUserId();
+        if (!createUserId.equals(userId)) {
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+        String title = blogUpdateRequest.getTitle();
+        String content = blogUpdateRequest.getContent();
+        if (StringUtils.isAnyBlank(title, content)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        Blog blog = new Blog();
+        blog.setId(blogUpdateRequest.getId());
+        ArrayList<String> imageNameList = new ArrayList<>();
+        if (StringUtils.isNotBlank(blogUpdateRequest.getImgStr())) {
+            String imgStr = blogUpdateRequest.getImgStr();
+            String[] imgs = imgStr.split(",");
+            for (String img : imgs) {
+                imageNameList.add(img.substring(25));
+            }
+        }
+        if (blogUpdateRequest.getImages() != null) {
+            MultipartFile[] images = blogUpdateRequest.getImages();
+            for (MultipartFile image : images) {
+                String filename = FileUtils.uploadFile(image);
+                imageNameList.add(filename);
+            }
+        }
+        if (imageNameList.size() > 0) {
+            String imageStr = StringUtils.join(imageNameList, ",");
+            blog.setImages(imageStr);
+        }
+        blog.setTitle(blogUpdateRequest.getTitle());
+        blog.setContent(blogUpdateRequest.getContent());
+        this.updateById(blog);
     }
 }
 
