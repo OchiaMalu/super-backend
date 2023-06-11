@@ -1,6 +1,5 @@
 package net.zjitc.controller;
 
-import cn.hutool.core.lang.UUID;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -12,8 +11,6 @@ import net.zjitc.exception.BusinessException;
 import net.zjitc.model.domain.User;
 import net.zjitc.service.UserService;
 import net.zjitc.utils.FileUtils;
-import net.zjitc.utils.QiNiuUtils;
-import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,23 +19,42 @@ import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
 
 import static net.zjitc.constants.SystemConstants.QiNiuUrl;
 
+/**
+ * 文件控制器
+ *
+ * @author 林哲好
+ * @date 2023/06/11
+ */
 @RestController
 @RequestMapping("/common")
 @CrossOrigin("http://localhost:5173")
 @Api(tags = "文件管理模块")
 public class FileController {
 
-    //图片保存路径
+    /**
+     * 基本路径
+     *///图片保存路径
     @Value("${super.img}")
     private String basePath;
 
+    /**
+     * 用户服务
+     */
     @Resource
     private UserService userService;
 
+    /**
+     * 上传
+     *
+     * @param file    文件
+     * @param request 请求
+     * @return {@link BaseResponse}<{@link String}>
+     */
     @PostMapping("/upload")
     @ApiOperation(value = "文件上传")
     @ApiImplicitParams(
@@ -64,6 +80,12 @@ public class FileController {
         return ResultUtils.success(fileUrl);
     }
 
+    /**
+     * 下载
+     *
+     * @param name     名字
+     * @param response 响应
+     */
     @GetMapping("/download")
     @ApiOperation(value = "文件下载")
     @ApiImplicitParams(

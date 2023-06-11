@@ -14,7 +14,7 @@ import java.util.Date;
  */
 @TableName(value ="user")
 @Data
-@ApiModel
+@ApiModel(value = "用户")
 public class User implements Serializable {
     /**
      * id

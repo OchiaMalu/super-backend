@@ -18,7 +18,7 @@ import java.util.Date;
  */
 @TableName(value ="tag")
 @Data
-@ApiModel
+@ApiModel(value = "标签")
 public class Tag implements Serializable {
     /**
      * id

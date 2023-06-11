@@ -15,7 +15,6 @@ import net.zjitc.exception.BusinessException;
 import net.zjitc.model.domain.Team;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.domain.UserTeam;
-import net.zjitc.model.request.TeamQueryRequest;
 import net.zjitc.model.request.*;
 import net.zjitc.model.vo.TeamVO;
 import net.zjitc.service.TeamService;
@@ -33,20 +32,42 @@ import java.util.stream.Collectors;
 
 import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 
+/**
+ * 队伍控制器
+ *
+ * @author 林哲好
+ * @date 2023/06/11
+ */
 @RestController
 @RequestMapping("/team")
 @Api(tags = "队伍管理模块")
 public class TeamController {
+    /**
+     * 团队服务
+     */
     @Resource
     private TeamService teamService;
 
+    /**
+     * 用户服务
+     */
     @Resource
     private UserService userService;
 
+    /**
+     * 用户团队服务
+     */
     @Resource
     private UserTeamService userTeamService;
 
 
+    /**
+     * 加入团队
+     *
+     * @param teamAddRequest 团队添加请求
+     * @param request        请求
+     * @return {@link BaseResponse}<{@link Long}>
+     */
     @PostMapping("/add")
     @ApiOperation(value = "添加队伍")
     @ApiImplicitParams(
@@ -62,6 +83,13 @@ public class TeamController {
         return ResultUtils.success(teamService.addTeam(team, loginUser));
     }
 
+    /**
+     * 更新团队
+     *
+     * @param teamUpdateRequest 团队更新请求
+     * @param request           请求
+     * @return {@link BaseResponse}<{@link Boolean}>
+     */
     @PostMapping("/update")
     @ApiOperation(value = "更新队伍")
     @ApiImplicitParams({@ApiImplicitParam(name = "teamUpdateRequest", value = "队伍更新请求参数"),
@@ -79,6 +107,13 @@ public class TeamController {
     }
 
 
+    /**
+     * 通过id获取团队
+     *
+     * @param id      id
+     * @param request 请求
+     * @return {@link BaseResponse}<{@link TeamVO}>
+     */
     @GetMapping("/{id}")
     @ApiOperation(value = "根据id查询队伍")
     @ApiImplicitParams({@ApiImplicitParam(name = "id", value = "队伍id")})
@@ -93,6 +128,14 @@ public class TeamController {
         return ResultUtils.success(teamService.getTeam(id,loginUser.getId()));
     }
 
+    /**
+     * 团队名单
+     *
+     * @param currentPage      当前页面
+     * @param teamQueryRequest 团队查询请求
+     * @param request          请求
+     * @return {@link BaseResponse}<{@link Page}<{@link TeamVO}>>
+     */
     @GetMapping("/list")
     @ApiOperation(value = "获取队伍列表")
     @ApiImplicitParams({@ApiImplicitParam(name = "teamQueryRequest", value = "队伍查询请求参数"),
@@ -107,6 +150,13 @@ public class TeamController {
         return getUserJoinedList(loginUser, finalPage);
     }
 
+    /**
+     * 加入团队
+     *
+     * @param teamJoinRequest 团队加入请求
+     * @param request         请求
+     * @return {@link BaseResponse}<{@link Boolean}>
+     */
     @PostMapping("/join")
     @ApiOperation(value = "加入队伍")
     @ApiImplicitParams({@ApiImplicitParam(name = "teamJoinRequest", value = "加入队伍请求参数"),
@@ -120,6 +170,13 @@ public class TeamController {
         return ResultUtils.success(result);
     }
 
+    /**
+     * 退出团队
+     *
+     * @param teamQuitRequest 团队辞职请求
+     * @param request         请求
+     * @return {@link BaseResponse}<{@link Boolean}>
+     */
     @PostMapping("/quit")
     @ApiOperation(value = "退出队伍")
     @ApiImplicitParams({@ApiImplicitParam(name = "teamQuitRequest", value = "退出队伍请求参数"),
@@ -133,6 +190,13 @@ public class TeamController {
         return ResultUtils.success(result);
     }
 
+    /**
+     * 删除团队
+     *
+     * @param deleteRequest 删除请求
+     * @param request       请求
+     * @return {@link BaseResponse}<{@link Boolean}>
+     */
     @PostMapping("/delete")
     @ApiOperation(value = "解散队伍")
     @ApiImplicitParams({@ApiImplicitParam(name = "deleteRequest", value = "解散队伍请求参数"),
@@ -150,6 +214,14 @@ public class TeamController {
         return ResultUtils.success(true);
     }
 
+    /**
+     * 我创建团队名单
+     *
+     * @param currentPage 当前页面
+     * @param teamQuery   团队查询
+     * @param request     请求
+     * @return {@link BaseResponse}<{@link Page}<{@link TeamVO}>>
+     */
     @GetMapping("/list/my/create")
     @ApiOperation(value = "获取我创建的队伍")
     @ApiImplicitParams({@ApiImplicitParam(name = "teamQuery", value = "获取队伍请求参数"),
@@ -165,18 +237,14 @@ public class TeamController {
         return getUserJoinedList(loginUser, finalPage);
     }
 
-    private Page<TeamVO> getTeamHasJoinNum(Page<TeamVO> teamVOPage) {
-        List<TeamVO> teamList = teamVOPage.getRecords();
-        teamList.forEach((team) -> {
-            LambdaQueryWrapper<UserTeam> userTeamLambdaQueryWrapper = new LambdaQueryWrapper<>();
-            userTeamLambdaQueryWrapper.eq(UserTeam::getTeamId, team.getId());
-            long hasJoinNum = userTeamService.count(userTeamLambdaQueryWrapper);
-            team.setHasJoinNum(hasJoinNum);
-        });
-        teamVOPage.setRecords(teamList);
-        return teamVOPage;
-    }
-
+    /**
+     * 名单我加入团队
+     *
+     * @param currentPage 当前页面
+     * @param teamQuery   团队查询
+     * @param request     请求
+     * @return {@link BaseResponse}<{@link Page}<{@link TeamVO}>>
+     */
     @GetMapping("/list/my/join")
     @ApiOperation(value = "获取我加入的队伍")
     @ApiImplicitParams({@ApiImplicitParam(name = "teamQuery", value = "获取队伍请求参数"),
@@ -198,6 +266,13 @@ public class TeamController {
         return getUserJoinedList(loginUser, finalPage);
     }
 
+    /**
+     * 让用户加入列表
+     *
+     * @param loginUser 登录用户
+     * @param teamPage  团队页面
+     * @return {@link BaseResponse}<{@link Page}<{@link TeamVO}>>
+     */
     private BaseResponse<Page<TeamVO>> getUserJoinedList(User loginUser, Page<TeamVO> teamPage) {
         try {
             List<TeamVO> teamList = teamPage.getRecords();
@@ -215,5 +290,23 @@ public class TeamController {
         } catch (Exception ignored) {
         }
         return ResultUtils.success(teamPage);
+    }
+
+    /**
+     * 得到团队加入num
+     *
+     * @param teamVOPage 团队vopage
+     * @return {@link Page}<{@link TeamVO}>
+     */
+    private Page<TeamVO> getTeamHasJoinNum(Page<TeamVO> teamVOPage) {
+        List<TeamVO> teamList = teamVOPage.getRecords();
+        teamList.forEach((team) -> {
+            LambdaQueryWrapper<UserTeam> userTeamLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            userTeamLambdaQueryWrapper.eq(UserTeam::getTeamId, team.getId());
+            long hasJoinNum = userTeamService.count(userTeamLambdaQueryWrapper);
+            team.setHasJoinNum(hasJoinNum);
+        });
+        teamVOPage.setRecords(teamList);
+        return teamVOPage;
     }
 }

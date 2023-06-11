@@ -21,7 +21,6 @@ import net.zjitc.utils.ValidateCodeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.util.CollectionUtils;
@@ -29,7 +28,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.mail.MessagingException;
-import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
@@ -66,19 +64,24 @@ public class UserController {
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
+    /**
+     * java邮件发送者
+     */
     @Resource
     private JavaMailSender javaMailSender;
 
     /**
      * 发送消息
      *
-     * @param phone 电话
-     * @return {@link BaseResponse}
+     * @param phone   电话
+     * @param request 请求
+     * @return {@link BaseResponse}<{@link String}>
      */
     @GetMapping("/message")
-    @ApiOperation(value = "短信发送")
+    @ApiOperation(value = "发送验证码")
     @ApiImplicitParams(
-            {@ApiImplicitParam(name = "phone", value = "手机号")})
+            {@ApiImplicitParam(name = "phone", value = "手机号"),
+                    @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<String> sendMessage(String phone, HttpServletRequest request) {
         User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
         if (loginUser == null) {
@@ -95,10 +98,18 @@ public class UserController {
         return ResultUtils.success("短信发送成功");
     }
 
+    /**
+     * 发送手机更新消息
+     *
+     * @param phone   电话
+     * @param request 请求
+     * @return {@link BaseResponse}<{@link String}>
+     */
     @GetMapping("/message/update/phone")
-    @ApiOperation(value = "短信发送")
+    @ApiOperation(value = "发送手机号更新验证码")
     @ApiImplicitParams(
-            {@ApiImplicitParam(name = "phone", value = "手机号")})
+            {@ApiImplicitParam(name = "phone", value = "手机号"),
+                    @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<String> sendPhoneUpdateMessage(String phone, HttpServletRequest request) {
         User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
         if (loginUser == null) {
@@ -115,7 +126,19 @@ public class UserController {
         return ResultUtils.success("短信发送成功");
     }
 
+    /**
+     * 发送邮件更新消息
+     *
+     * @param email   电子邮件
+     * @param request 请求
+     * @return {@link BaseResponse}<{@link String}>
+     * @throws MessagingException 通讯异常
+     */
     @GetMapping("/message/update/email")
+    @ApiOperation(value = "发送邮箱更新验证码")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "email", value = "邮箱"),
+                    @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<String> sendMailUpdateMessage(String email, HttpServletRequest request) throws MessagingException {
         User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
         if (loginUser == null) {
@@ -343,7 +366,7 @@ public class UserController {
      * 用户分页
      *
      * @param currentPage 当前页面
-     * @return {@link BaseResponse}<{@link Page}<{@link User}>>
+     * @return {@link BaseResponse}<{@link Page}<{@link UserVO}>>
      */
     @GetMapping("/page")
     @ApiOperation(value = "用户分页")
@@ -359,7 +382,7 @@ public class UserController {
      *
      * @param currentPage 当前页面
      * @param request     请求
-     * @return {@link BaseResponse}<{@link List}<{@link User}>>
+     * @return {@link BaseResponse}<{@link Page}<{@link UserVO}>>
      */
     @GetMapping("/match")
     @ApiOperation(value = "获取匹配用户")
@@ -380,7 +403,18 @@ public class UserController {
         }
     }
 
+    /**
+     * 得到用户id
+     *
+     * @param id      id
+     * @param request 请求
+     * @return {@link BaseResponse}<{@link UserVO}>
+     */
     @GetMapping("/{id}")
+    @ApiOperation(value = "根据id获取用户")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "id", value = "用户id"),
+                    @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<UserVO> getUserById(@PathVariable Long id, HttpServletRequest request) {
         User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
         if (loginUser == null) {
@@ -393,7 +427,16 @@ public class UserController {
         return ResultUtils.success(userVO);
     }
 
+    /**
+     * 获取用户标签
+     *
+     * @param request 请求
+     * @return {@link BaseResponse}<{@link List}<{@link String}>>
+     */
     @GetMapping("/tags")
+    @ApiOperation(value = "获取当前用户标签")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<List<String>> getUserTags(HttpServletRequest request) {
         User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
         if (loginUser == null) {
@@ -403,7 +446,18 @@ public class UserController {
         return ResultUtils.success(userTags);
     }
 
+    /**
+     * 更新用户标签
+     *
+     * @param tags    标签
+     * @param request 请求
+     * @return {@link BaseResponse}<{@link String}>
+     */
     @PutMapping("/update/tags")
+    @ApiOperation(value = "更新用户标签")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "tags", value = "标签"),
+                    @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<String> updateUserTags(@RequestBody List<String> tags, HttpServletRequest request) {
         User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
         if (loginUser == null) {

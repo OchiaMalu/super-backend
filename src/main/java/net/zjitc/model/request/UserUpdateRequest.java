@@ -1,11 +1,13 @@
 package net.zjitc.model.request;
 
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
 
 @Data
+@ApiModel(value = "更新用户请求")
 public class UserUpdateRequest implements Serializable {
     private static final long serialVersionUID = -7852848771257290370L;
     /**
@@ -50,5 +52,6 @@ public class UserUpdateRequest implements Serializable {
     @ApiModelProperty(value = "标签列表")
     private String tags;
 
+    @ApiModelProperty(value = "验证码")
     private String code;
 }

@@ -1,5 +1,6 @@
 package net.zjitc.model.request;
 
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -7,6 +8,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 @Data
+@ApiModel(value = "添加队伍请求")
 public class TeamAddRequest implements Serializable {
     private static final long serialVersionUID = 3191241716373120793L;
 

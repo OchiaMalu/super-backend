@@ -17,7 +17,7 @@ import java.util.Date;
  */
 @TableName(value ="team")
 @Data
-@ApiModel
+@ApiModel(value = "队伍")
 public class Team implements Serializable {
     /**
      * id

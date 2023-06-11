@@ -1,5 +1,6 @@
 package net.zjitc.model.vo;
 
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -7,6 +8,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 @Data
+@ApiModel(value = "队伍返回")
 public class TeamVO implements Serializable {
     private static final long serialVersionUID = 6986365414601034543L;
     /**
