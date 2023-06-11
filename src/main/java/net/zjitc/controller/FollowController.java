@@ -6,13 +6,12 @@ import net.zjitc.common.ResultUtils;
 import net.zjitc.exception.BusinessException;
 import net.zjitc.model.domain.User;
 import net.zjitc.service.FollowService;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+
+import java.util.List;
 
 import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 
@@ -30,5 +29,15 @@ public class FollowController {
         }
         followService.followUser(id,loginUser.getId());
         return ResultUtils.success("ok");
+    }
+
+    @GetMapping("/my")
+    public BaseResponse<List<User>> listUserFollowedMe(HttpServletRequest request){
+        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        List<User> userList = followService.listUserFollowedMe(loginUser.getId());
+        return ResultUtils.success(userList);
     }
 }

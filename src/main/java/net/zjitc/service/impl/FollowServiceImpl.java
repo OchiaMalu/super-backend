@@ -3,9 +3,16 @@ package net.zjitc.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import net.zjitc.model.domain.Follow;
+import net.zjitc.model.domain.User;
 import net.zjitc.service.FollowService;
 import net.zjitc.mapper.FollowMapper;
+import net.zjitc.service.UserService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author OchiaMalu
@@ -15,6 +22,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow>
         implements FollowService {
+
+    @Resource
+    @Lazy
+    private UserService userService;
 
     @Override
     public void followUser(Long followUserId, Long userId) {
@@ -29,6 +40,14 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow>
         } else {
             this.remove(followLambdaQueryWrapper);
         }
+    }
+
+    @Override
+    public List<User> listUserFollowedMe(Long userId) {
+        LambdaQueryWrapper<Follow> followLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        followLambdaQueryWrapper.eq(Follow::getFollowUserId,userId);
+        List<Follow> list = this.list(followLambdaQueryWrapper);
+        return list.stream().map((follow -> userService.getById(follow.getUserId()))).collect(Collectors.toList());
     }
 }
 
