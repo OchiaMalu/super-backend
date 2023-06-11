@@ -11,7 +11,7 @@
  Target Server Version : 50635
  File Encoding         : 65001
 
- Date: 08/06/2023 17:00:25
+ Date: 11/06/2023 13:27:34
 */
 
 SET NAMES utf8mb4;
@@ -32,13 +32,13 @@ CREATE TABLE `blog`  (
   `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = COMPACT;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = COMPACT;
 
 -- ----------------------------
 -- Records of blog
 -- ----------------------------
-INSERT INTO `blog` VALUES (1, 1, '111', 'd4958247-4efd-4b75-988c-a29a6ca8cea8.jpg,b8e5722c-34e9-43c5-9910-ba1a14a46749.jpg', '222', 3, 5, '2023-06-03 16:55:19', '2023-06-08 16:22:57');
-INSERT INTO `blog` VALUES (2, 1, '111', NULL, '2223', 2, 8, '2023-06-03 17:01:42', '2023-06-05 22:39:56');
+INSERT INTO `blog` VALUES (2, 1, '1112', '2d9e61a3-5796-4fad-ae22-64582812ed89.jpg', '2223', 2, 8, '2023-06-03 17:01:42', '2023-06-11 12:33:38');
+INSERT INTO `blog` VALUES (3, 1, '新博文1', '5475dd2a-2d87-420e-9868-bb5cdda512d3.jpg,75e31415779979ae40c4c0238aa4c34.jpg\r\n\r\n', '新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文', 0, 0, '2023-06-10 16:05:57', '2023-06-10 19:47:28');
 
 -- ----------------------------
 -- Table structure for blog_comments
@@ -56,16 +56,18 @@ CREATE TABLE `blog_comments`  (
   `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = COMPACT;
+) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = COMPACT;
 
 -- ----------------------------
 -- Records of blog_comments
 -- ----------------------------
-INSERT INTO `blog_comments` VALUES (1, 1, 1, NULL, NULL, 'hello world', 1, 0, '2023-06-08 12:59:53', '2023-06-08 16:55:09');
-INSERT INTO `blog_comments` VALUES (2, 1, 1, NULL, NULL, '111', 0, 0, '2023-06-08 13:18:33', '2023-06-08 13:18:33');
-INSERT INTO `blog_comments` VALUES (3, 1, 1, NULL, NULL, '2222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222', 0, 0, '2023-06-08 13:20:52', '2023-06-08 13:20:52');
-INSERT INTO `blog_comments` VALUES (4, 1, 1, NULL, NULL, '222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222', 0, 0, '2023-06-08 13:22:44', '2023-06-08 13:22:44');
+INSERT INTO `blog_comments` VALUES (1, 1, 1, NULL, NULL, 'hello world', 2, 0, '2023-06-08 12:59:53', '2023-06-10 15:46:00');
+INSERT INTO `blog_comments` VALUES (2, 1, 1, NULL, NULL, '111', 0, 0, '2023-06-08 13:18:33', '2023-06-08 19:52:28');
+INSERT INTO `blog_comments` VALUES (3, 1, 1, NULL, NULL, '2222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222', 0, 0, '2023-06-08 13:20:52', '2023-06-08 19:52:27');
+INSERT INTO `blog_comments` VALUES (4, 1, 1, NULL, NULL, '222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222', 0, 0, '2023-06-08 13:22:44', '2023-06-08 19:52:27');
 INSERT INTO `blog_comments` VALUES (5, 1, 1, NULL, NULL, '111', 0, 0, '2023-06-08 13:30:16', '2023-06-08 13:30:16');
+INSERT INTO `blog_comments` VALUES (6, 1, 1, NULL, NULL, '1111', 1, 0, '2023-06-10 15:46:03', '2023-06-10 15:46:07');
+INSERT INTO `blog_comments` VALUES (7, 1, 1, NULL, NULL, '222', 0, 0, '2023-06-10 15:46:12', '2023-06-10 15:46:12');
 
 -- ----------------------------
 -- Table structure for blog_like
@@ -79,11 +81,13 @@ CREATE TABLE `blog_like`  (
   `update_time` datetime NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   `is_delete` tinyint(4) NULL DEFAULT 0 COMMENT '逻辑删除',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 47 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Compact;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Compact;
 
 -- ----------------------------
 -- Records of blog_like
 -- ----------------------------
+INSERT INTO `blog_like` VALUES (1, 1, 1, '2023-06-10 15:45:58', NULL, 0);
+INSERT INTO `blog_like` VALUES (2, 2, 1, '2023-06-11 12:33:36', '2023-06-11 12:33:38', 1);
 
 -- ----------------------------
 -- Table structure for comment_like
@@ -97,11 +101,18 @@ CREATE TABLE `comment_like`  (
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   `is_delete` tinyint(4) NULL DEFAULT 0 COMMENT '逻辑删除',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Compact;
+) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Compact;
 
 -- ----------------------------
 -- Records of comment_like
 -- ----------------------------
+INSERT INTO `comment_like` VALUES (4, 1, 1, '2023-06-08 19:52:20', '2023-06-08 19:52:35', 1);
+INSERT INTO `comment_like` VALUES (5, 2, 1, '2023-06-08 19:52:21', '2023-06-08 19:52:28', 1);
+INSERT INTO `comment_like` VALUES (6, 3, 1, '2023-06-08 19:52:23', '2023-06-08 19:52:27', 1);
+INSERT INTO `comment_like` VALUES (7, 4, 1, '2023-06-08 19:52:24', '2023-06-08 19:52:27', 1);
+INSERT INTO `comment_like` VALUES (8, 1, 1, '2023-06-10 12:34:16', '2023-06-10 12:34:17', 1);
+INSERT INTO `comment_like` VALUES (9, 1, 1, '2023-06-10 15:46:00', '2023-06-10 15:46:00', 0);
+INSERT INTO `comment_like` VALUES (10, 6, 1, '2023-06-10 15:46:07', '2023-06-10 15:46:07', 0);
 
 -- ----------------------------
 -- Table structure for follow
@@ -113,12 +124,15 @@ CREATE TABLE `follow`  (
   `follow_user_id` bigint(20) UNSIGNED NOT NULL COMMENT '关注的用户id',
   `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `is_delete` tinyint(4) NULL DEFAULT 0 COMMENT '逻辑删除',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = COMPACT;
+) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = COMPACT;
 
 -- ----------------------------
 -- Records of follow
 -- ----------------------------
+INSERT INTO `follow` VALUES (1, 1, 11, '2023-06-11 13:23:59', '2023-06-11 13:23:59', 0);
+INSERT INTO `follow` VALUES (2, 1, 4, '2023-06-11 13:24:54', '2023-06-11 13:24:56', 1);
 
 -- ----------------------------
 -- Table structure for sign
@@ -177,17 +191,18 @@ CREATE TABLE `team`  (
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_delete` tinyint(4) NOT NULL DEFAULT 0 COMMENT '是否删除',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '队伍' ROW_FORMAT = Compact;
+) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '队伍' ROW_FORMAT = Compact;
 
 -- ----------------------------
 -- Records of team
 -- ----------------------------
-INSERT INTO `team` VALUES (1, '蓝桥杯1', '蓝桥杯竞赛', 1, '2023-06-30 22:00:38', 1, 0, '', '2023-05-17 12:36:45', '2023-06-04 22:00:42', 0);
-INSERT INTO `team` VALUES (2, 'oneTop', 'oneTop', 4, '2023-06-30 22:00:38', 10, 0, NULL, '2023-05-17 17:29:35', '2023-06-04 22:00:45', 0);
+INSERT INTO `team` VALUES (1, '蓝桥杯1', '蓝桥杯竞赛', 1, '2023-06-30 22:00:38', 1, 0, '', '2023-05-17 12:36:45', '2023-06-10 15:54:49', 1);
+INSERT INTO `team` VALUES (2, 'oneTop', 'oneTop', 4, '2023-06-30 22:00:38', 10, 0, NULL, '2023-05-17 17:29:35', '2023-06-10 15:52:52', 1);
 INSERT INTO `team` VALUES (3, 'test', '加密队伍', 5, NULL, 2, 2, '1234', '2023-05-21 12:59:13', '2023-05-24 21:31:25', 1);
 INSERT INTO `team` VALUES (4, 'test2', NULL, 5, NULL, 2, 2, '1234', '2023-05-21 13:26:26', '2023-05-24 21:30:19', 0);
 INSERT INTO `team` VALUES (5, 'test', '加密队伍', 5, NULL, 2, 2, '1234', '2023-05-21 12:59:13', '2023-05-24 21:30:20', 0);
 INSERT INTO `team` VALUES (6, 'test', '加密队伍', 5, NULL, 2, 2, '1234', '2023-05-21 12:59:13', '2023-05-24 21:30:21', 0);
+INSERT INTO `team` VALUES (7, '蓝桥杯', '蓝桥杯比赛', 5, NULL, 1, 0, '', '2023-06-10 15:57:33', '2023-06-10 15:57:33', 0);
 
 -- ----------------------------
 -- Table structure for user
@@ -241,12 +256,14 @@ CREATE TABLE `user_team`  (
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_delete` tinyint(4) NOT NULL DEFAULT 0 COMMENT '是否删除',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '用户队伍关系' ROW_FORMAT = Compact;
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '用户队伍关系' ROW_FORMAT = Compact;
 
 -- ----------------------------
 -- Records of user_team
 -- ----------------------------
-INSERT INTO `user_team` VALUES (1, 1, 2, '2023-05-28 19:03:55', '2023-05-28 19:03:54', '2023-05-28 19:03:54', 0);
-INSERT INTO `user_team` VALUES (2, 1, 1, '2023-05-28 19:05:24', '2023-05-28 19:05:24', '2023-05-28 19:05:24', 0);
+INSERT INTO `user_team` VALUES (1, 1, 2, '2023-05-28 19:03:55', '2023-05-28 19:03:54', '2023-06-10 15:52:52', 1);
+INSERT INTO `user_team` VALUES (2, 1, 1, '2023-05-28 19:05:24', '2023-05-28 19:05:24', '2023-06-10 15:54:49', 1);
+INSERT INTO `user_team` VALUES (3, 1, 4, '2023-06-10 15:53:01', '2023-06-10 15:53:00', '2023-06-10 15:53:00', 0);
+INSERT INTO `user_team` VALUES (4, 1, 7, '2023-06-10 15:57:34', '2023-06-10 15:57:33', '2023-06-10 15:57:33', 0);
 
 SET FOREIGN_KEY_CHECKS = 1;
