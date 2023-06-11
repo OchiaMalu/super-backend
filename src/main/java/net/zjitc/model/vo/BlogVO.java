@@ -11,5 +11,5 @@ public class BlogVO extends Blog implements Serializable {
     private static final long serialVersionUID = -1461567317259590205L;
     private Boolean isLike;
     private String coverImage;
-    private User author;
+    private UserVO author;
 }
