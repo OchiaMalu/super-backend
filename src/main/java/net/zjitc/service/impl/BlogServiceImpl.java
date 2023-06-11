@@ -8,12 +8,15 @@ import net.zjitc.exception.BusinessException;
 import net.zjitc.mapper.BlogMapper;
 import net.zjitc.model.domain.Blog;
 import net.zjitc.model.domain.BlogLike;
+import net.zjitc.model.domain.Follow;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.request.BlogAddRequest;
 import net.zjitc.model.request.BlogUpdateRequest;
 import net.zjitc.model.vo.BlogVO;
+import net.zjitc.model.vo.UserVO;
 import net.zjitc.service.BlogLikeService;
 import net.zjitc.service.BlogService;
+import net.zjitc.service.FollowService;
 import net.zjitc.service.UserService;
 import net.zjitc.utils.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -43,6 +46,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private FollowService followService;
 
     @Override
     public Boolean addBlog(BlogAddRequest blogAddRequest, User loginUser) {
@@ -151,7 +157,13 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
         long isLike = blogLikeService.count(blogLikeLambdaQueryWrapper);
         blogVO.setIsLike(isLike > 0);
         User author = userService.getById(blog.getUserId());
-        blogVO.setAuthor(author);
+        UserVO authorVO = new UserVO();
+        BeanUtils.copyProperties(author, authorVO);
+        LambdaQueryWrapper<Follow> followLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        followLambdaQueryWrapper.eq(Follow::getFollowUserId, authorVO.getId()).eq(Follow::getUserId, userId);
+        long count = followService.count(followLambdaQueryWrapper);
+        authorVO.setIsFollow(count > 0);
+        blogVO.setAuthor(authorVO);
         String images = blogVO.getImages();
         if (images == null) {
             return blogVO;
