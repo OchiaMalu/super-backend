@@ -81,4 +81,6 @@ public class UserVO implements Serializable {
     @ApiModelProperty(value = "用户角色")
     private Integer userRole;
 
+    private Boolean isFollow;
+
 }
