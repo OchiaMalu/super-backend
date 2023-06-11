@@ -13,11 +13,15 @@ import net.zjitc.common.ErrorCode;
 import net.zjitc.constants.UserConstants;
 import net.zjitc.exception.BusinessException;
 import net.zjitc.mapper.UserMapper;
+import net.zjitc.model.domain.Follow;
 import net.zjitc.model.domain.User;
+import net.zjitc.model.vo.UserVO;
+import net.zjitc.service.FollowService;
 import net.zjitc.service.UserService;
 import net.zjitc.utils.AlgorithmUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
+import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -57,6 +61,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     };
     @Resource
     private UserMapper userMapper;
+
+    @Resource
+    private FollowService followService;
 
     /**
      * 盐值，混淆密码
@@ -253,9 +260,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public Page<User> userPage(long currentPage) {
+    public Page<UserVO> userPage(long currentPage) {
         Page<User> page = this.page(new Page<>(currentPage, PAGE_SIZE));
-        return page;
+        Page<UserVO> userVOPage = new Page<>();
+        BeanUtils.copyProperties(page,userVOPage);
+        return userVOPage;
     }
 
     @Override
@@ -271,8 +280,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public Boolean isLogin(HttpServletRequest request){
-        if (request==null){
+    public Boolean isLogin(HttpServletRequest request) {
+        if (request == null) {
             return false;
         }
         Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
@@ -324,7 +333,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 //    }
 
     @Override
-    public Page<User> matchUser(long currentPage, User loginUser) {
+    public Page<UserVO> matchUser(long currentPage, User loginUser) {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.select("id", "tags");
         queryWrapper.isNotNull("tags");
@@ -376,16 +385,36 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String idStr = StringUtils.join(userIdList, ",");
         QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
         userQueryWrapper.in("id", userIdList).last("ORDER BY FIELD(id," + idStr + ")");
-        List<User> records = this.list(userQueryWrapper)
+        List<UserVO> userVOList = this.list(userQueryWrapper)
                 .stream()
-                .map(this::getSafetyUser)
+                .map((user) -> {
+                    UserVO userVO = new UserVO();
+                    BeanUtils.copyProperties(user, userVO);
+                    LambdaQueryWrapper<Follow> followLambdaQueryWrapper = new LambdaQueryWrapper<>();
+                    followLambdaQueryWrapper.eq(Follow::getUserId, loginUser.getId()).eq(Follow::getFollowUserId, userVO.getId());
+                    long count = followService.count(followLambdaQueryWrapper);
+                    userVO.setIsFollow(count > 0);
+                    return userVO;
+                })
                 .collect(Collectors.toList());
-        Page<User> userPage = new Page<>();
-        userPage.setRecords(records);
-        userPage.setCurrent(currentPage);
-        userPage.setSize(records.size());
-        userPage.setTotal(userList.size());
-        return userPage;
+        Page<UserVO> userVOPage = new Page<>();
+        userVOPage.setRecords(userVOList);
+        userVOPage.setCurrent(currentPage);
+        userVOPage.setSize(userVOList.size());
+        userVOPage.setTotal(userVOList.size());
+        return userVOPage;
+    }
+
+    @Override
+    public UserVO getUserById(Long userId, Long loginUserId) {
+        User user = this.getById(userId);
+        UserVO userVO = new UserVO();
+        BeanUtils.copyProperties(user,userVO);
+        LambdaQueryWrapper<Follow> followLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        followLambdaQueryWrapper.eq(Follow::getUserId,loginUserId).eq(Follow::getFollowUserId,userId);
+        long count = followService.count(followLambdaQueryWrapper);
+        userVO.setIsFollow(count>0);
+        return userVO;
     }
 
     @Deprecated

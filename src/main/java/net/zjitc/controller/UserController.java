@@ -15,6 +15,7 @@ import net.zjitc.model.domain.User;
 import net.zjitc.model.request.UserLoginRequest;
 import net.zjitc.model.request.UserRegisterRequest;
 import net.zjitc.model.request.UserUpdateRequest;
+import net.zjitc.model.vo.UserVO;
 import net.zjitc.service.UserService;
 import net.zjitc.utils.ValidateCodeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -280,9 +281,9 @@ public class UserController {
     @ApiOperation(value = "用户分页")
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "currentPage", value = "当前页")})
-    public BaseResponse<Page<User>> userPagination(long currentPage) {
-        Page<User> userPage = userService.userPage(currentPage);
-        return ResultUtils.success(userPage);
+    public BaseResponse<Page<UserVO>> userPagination(long currentPage) {
+        Page<UserVO> userVOPage = userService.userPage(currentPage);
+        return ResultUtils.success(userVOPage);
     }
 
     /**
@@ -297,7 +298,7 @@ public class UserController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "currentPage", value = "当前页"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<Page<User>> matchUsers(long currentPage, HttpServletRequest request) {
+    public BaseResponse<Page<UserVO>> matchUsers(long currentPage, HttpServletRequest request) {
         if (currentPage <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -309,5 +310,18 @@ public class UserController {
             //todo 未登录时随机查询
             return ResultUtils.success(userService.userPage(currentPage));
         }
+    }
+
+    @GetMapping("/{id}")
+    public BaseResponse<UserVO> getUserById(@PathVariable Long id,HttpServletRequest request){
+        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        if (id==null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        UserVO userVO = userService.getUserById(id, loginUser.getId());
+        return ResultUtils.success(userVO);
     }
 }
