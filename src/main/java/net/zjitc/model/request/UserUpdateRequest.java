@@ -50,4 +50,5 @@ public class UserUpdateRequest implements Serializable {
     @ApiModelProperty(value = "标签列表")
     private String tags;
 
+    private String code;
 }

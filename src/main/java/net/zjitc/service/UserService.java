@@ -4,6 +4,7 @@ package net.zjitc.service;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import net.zjitc.model.domain.User;
+import net.zjitc.model.request.UserUpdateRequest;
 import net.zjitc.model.vo.UserVO;
 
 import javax.servlet.http.HttpServletRequest;
@@ -40,4 +41,10 @@ public interface UserService extends IService<User> {
     Page<UserVO> matchUser(long currentPage, User loginUser);
 
     UserVO getUserById(Long userId, Long loginUserId);
+
+    List<String> getUserTags(Long id);
+
+    void updateTags(List<String> tags, Long userId);
+
+    void updateUserWithCode(UserUpdateRequest updateRequest,Long userId);
 }

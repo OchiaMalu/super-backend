@@ -1,6 +1,7 @@
 package net.zjitc.service.impl;
 
 
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -15,6 +16,7 @@ import net.zjitc.exception.BusinessException;
 import net.zjitc.mapper.UserMapper;
 import net.zjitc.model.domain.Follow;
 import net.zjitc.model.domain.User;
+import net.zjitc.model.request.UserUpdateRequest;
 import net.zjitc.model.vo.UserVO;
 import net.zjitc.service.FollowService;
 import net.zjitc.service.UserService;
@@ -34,7 +36,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static net.zjitc.constants.RedisConstants.REGISTER_CODE_KEY;
+import static net.zjitc.constants.RedisConstants.*;
 import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
 import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 
@@ -263,7 +265,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public Page<UserVO> userPage(long currentPage) {
         Page<User> page = this.page(new Page<>(currentPage, PAGE_SIZE));
         Page<UserVO> userVOPage = new Page<>();
-        BeanUtils.copyProperties(page,userVOPage);
+        BeanUtils.copyProperties(page, userVOPage);
         return userVOPage;
     }
 
@@ -409,12 +411,52 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public UserVO getUserById(Long userId, Long loginUserId) {
         User user = this.getById(userId);
         UserVO userVO = new UserVO();
-        BeanUtils.copyProperties(user,userVO);
+        BeanUtils.copyProperties(user, userVO);
         LambdaQueryWrapper<Follow> followLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        followLambdaQueryWrapper.eq(Follow::getUserId,loginUserId).eq(Follow::getFollowUserId,userId);
+        followLambdaQueryWrapper.eq(Follow::getUserId, loginUserId).eq(Follow::getFollowUserId, userId);
         long count = followService.count(followLambdaQueryWrapper);
-        userVO.setIsFollow(count>0);
+        userVO.setIsFollow(count > 0);
         return userVO;
+    }
+
+    @Override
+    public List<String> getUserTags(Long id) {
+        User user = this.getById(id);
+        String userTags = user.getTags();
+        Gson gson = new Gson();
+        return gson.fromJson(userTags, new TypeToken<List<String>>() {
+        }.getType());
+    }
+
+    @Override
+    public void updateTags(List<String> tags, Long userId) {
+        User user = new User();
+        Gson gson = new Gson();
+        String tagsJson = gson.toJson(tags);
+        user.setId(userId);
+        user.setTags(tagsJson);
+        this.updateById(user);
+    }
+
+    @Override
+    public void updateUserWithCode(UserUpdateRequest updateRequest, Long userId) {
+        String key;
+        if (StringUtils.isNotBlank(updateRequest.getPhone())) {
+            key = USER_UPDATE_PHONE_KEY+updateRequest.getPhone();
+        } else {
+            key = USER_UPDATE_EMAIL_KEY+updateRequest.getEmail();
+        }
+        String correctCode = stringRedisTemplate.opsForValue().get(key);
+        if (correctCode == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请先发送验证码");
+        }
+        if (!correctCode.equals(updateRequest.getCode())) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "验证码错误");
+        }
+        User user = new User();
+        BeanUtils.copyProperties(updateRequest, user);
+        user.setId(userId);
+        this.updateById(user);
     }
 
     @Deprecated
