@@ -80,13 +80,8 @@ public class UserController {
     @GetMapping("/message")
     @ApiOperation(value = "发送验证码")
     @ApiImplicitParams(
-            {@ApiImplicitParam(name = "phone", value = "手机号"),
-                    @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<String> sendMessage(String phone, HttpServletRequest request) {
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
-        if (loginUser == null) {
-            throw new BusinessException(ErrorCode.NOT_LOGIN);
-        }
+            {@ApiImplicitParam(name = "phone", value = "手机号")})
+    public BaseResponse<String> sendMessage(String phone) {
         //todo SMS服务
         if (StringUtils.isBlank(phone)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
