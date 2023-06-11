@@ -21,18 +21,19 @@ import net.zjitc.utils.ValidateCodeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static net.zjitc.constants.RedisConstants.REGISTER_CODE_KEY;
-import static net.zjitc.constants.RedisConstants.REGISTER_CODE_TTL;
+import static net.zjitc.constants.RedisConstants.*;
+import static net.zjitc.constants.SystemConstants.EMAIL_FROM;
 import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 
 
@@ -60,6 +61,9 @@ public class UserController {
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
+    @Resource
+    private JavaMailSender javaMailSender;
+
     /**
      * 发送消息
      *
@@ -70,16 +74,62 @@ public class UserController {
     @ApiOperation(value = "短信发送")
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "phone", value = "手机号")})
-    public BaseResponse sendMessage(String phone) {
+    public BaseResponse<String> sendMessage(String phone, HttpServletRequest request) {
+        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
         //todo SMS服务
         if (StringUtils.isBlank(phone)) {
-            return ResultUtils.error(ErrorCode.PARAMS_ERROR);
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         Integer code = ValidateCodeUtils.generateValidateCode(6);
         String key = REGISTER_CODE_KEY + phone;
         stringRedisTemplate.opsForValue().set(key, String.valueOf(code), REGISTER_CODE_TTL, TimeUnit.MINUTES);
         System.out.println(code);
         return ResultUtils.success("短信发送成功");
+    }
+
+    @GetMapping("/message/update/phone")
+    @ApiOperation(value = "短信发送")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "phone", value = "手机号")})
+    public BaseResponse<String> sendPhoneUpdateMessage(String phone, HttpServletRequest request) {
+        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        //todo SMS服务
+        if (StringUtils.isBlank(phone)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        Integer code = ValidateCodeUtils.generateValidateCode(6);
+        String key = USER_UPDATE_PHONE_KEY + phone;
+        stringRedisTemplate.opsForValue().set(key, String.valueOf(code), USER_UPDATE_PHONE_TTL, TimeUnit.MINUTES);
+        System.out.println(code);
+        return ResultUtils.success("短信发送成功");
+    }
+
+    @GetMapping("/message/update/email")
+    public BaseResponse<String> sendMailUpdateMessage(String email, HttpServletRequest request) {
+        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        if (StringUtils.isBlank(email)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+        Integer code = ValidateCodeUtils.generateValidateCode(6);
+        simpleMailMessage.setFrom(EMAIL_FROM);
+        simpleMailMessage.setTo(email);
+        simpleMailMessage.setSubject("SUPER 验证码");
+        simpleMailMessage.setText("我们收到了一项请求，要求更新您的邮箱地址为" + email + "。本次操作的验证码为：" + code + "。如果您并未请求此验证码，则可能是他人正在尝试修改以下 SUPER 帐号：" + loginUser.getUserAccount() + "。请勿将此验证码转发给或提供给任何人。");
+        javaMailSender.send(simpleMailMessage);
+        String key = USER_UPDATE_EMAIL_KEY + email;
+        stringRedisTemplate.opsForValue().set(key, String.valueOf(code), USER_UPDATE_EMAIl_TTL, TimeUnit.MINUTES);
+        System.out.println(code);
+        return ResultUtils.success("ok");
     }
 
     /**
@@ -257,14 +307,26 @@ public class UserController {
             {@ApiImplicitParam(name = "user", value = "用户更新请求参数"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<String> updateUser(@RequestBody UserUpdateRequest updateRequest, HttpServletRequest request) {
-        if (updateRequest == null || request == null) {
+        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        if (updateRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        if (StringUtils.isNotBlank(updateRequest.getEmail()) || StringUtils.isNotBlank(updateRequest.getPhone())) {
+            if (StringUtils.isBlank(updateRequest.getCode())) {
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "请输入验证码");
+            } else {
+                userService.updateUserWithCode(updateRequest, loginUser.getId());
+                return ResultUtils.success("ok");
+            }
         }
         User user = new User();
         BeanUtils.copyProperties(updateRequest, user);
         boolean success = userService.updateUser(user, request);
         if (success) {
-            return ResultUtils.success("用户更新成功");
+            return ResultUtils.success("ok");
         } else {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR);
         }
@@ -303,25 +365,45 @@ public class UserController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         Boolean isLogin = userService.isLogin(request);
-        if (isLogin){
+        if (isLogin) {
             User user = userService.getLoginUser(request);
             return ResultUtils.success(userService.matchUser(currentPage, user));
-        }else {
+        } else {
             //todo 未登录时随机查询
             return ResultUtils.success(userService.userPage(currentPage));
         }
     }
 
     @GetMapping("/{id}")
-    public BaseResponse<UserVO> getUserById(@PathVariable Long id,HttpServletRequest request){
+    public BaseResponse<UserVO> getUserById(@PathVariable Long id, HttpServletRequest request) {
         User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
-        if (id==null){
+        if (id == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         UserVO userVO = userService.getUserById(id, loginUser.getId());
         return ResultUtils.success(userVO);
+    }
+
+    @GetMapping("/tags")
+    public BaseResponse<List<String>> getUserTags(HttpServletRequest request) {
+        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        List<String> userTags = userService.getUserTags(loginUser.getId());
+        return ResultUtils.success(userTags);
+    }
+
+    @PutMapping("/update/tags")
+    public BaseResponse<String> updateUserTags(@RequestBody List<String> tags, HttpServletRequest request) {
+        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        userService.updateTags(tags, loginUser.getId());
+        return ResultUtils.success("ok");
     }
 }

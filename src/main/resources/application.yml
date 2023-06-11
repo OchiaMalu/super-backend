@@ -19,6 +19,10 @@ spring:
   jackson:
     time-zone: GMT+8
     date-format: java.text.SimpleDateFormat
+  mail:
+    host: host
+    username: username
+    password: password
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: on
