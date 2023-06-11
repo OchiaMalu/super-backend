@@ -13,7 +13,7 @@ public class UserVO implements Serializable {
      * id
      */
     @ApiModelProperty(value = "id")
-    private long id;
+    private Long id;
 
     /**
      * 用户昵称
@@ -74,6 +74,8 @@ public class UserVO implements Serializable {
      */
     @ApiModelProperty(value = "更新时间")
     private Date updateTime;
+
+    private String profile;
 
     /**
      * 用户角色 0 - 普通用户 1 - 管理员
