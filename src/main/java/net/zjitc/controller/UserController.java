@@ -17,6 +17,7 @@ import net.zjitc.model.request.UserRegisterRequest;
 import net.zjitc.model.request.UserUpdateRequest;
 import net.zjitc.model.vo.UserVO;
 import net.zjitc.service.UserService;
+import net.zjitc.utils.SMSUtils;
 import net.zjitc.utils.ValidateCodeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -74,7 +75,6 @@ public class UserController {
      * 发送消息
      *
      * @param phone   电话
-     * @param request 请求
      * @return {@link BaseResponse}<{@link String}>
      */
     @GetMapping("/message")
@@ -82,14 +82,14 @@ public class UserController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "phone", value = "手机号")})
     public BaseResponse<String> sendMessage(String phone) {
-        //todo SMS服务
         if (StringUtils.isBlank(phone)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         Integer code = ValidateCodeUtils.generateValidateCode(6);
         String key = REGISTER_CODE_KEY + phone;
         stringRedisTemplate.opsForValue().set(key, String.valueOf(code), REGISTER_CODE_TTL, TimeUnit.MINUTES);
-        System.out.println(code);
+//        System.out.println(code);
+        SMSUtils.sendMessage(phone, String.valueOf(code));
         return ResultUtils.success("短信发送成功");
     }
 
@@ -110,14 +110,14 @@ public class UserController {
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
-        //todo SMS服务
         if (StringUtils.isBlank(phone)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         Integer code = ValidateCodeUtils.generateValidateCode(6);
         String key = USER_UPDATE_PHONE_KEY + phone;
         stringRedisTemplate.opsForValue().set(key, String.valueOf(code), USER_UPDATE_PHONE_TTL, TimeUnit.MINUTES);
-        System.out.println(code);
+//        System.out.println(code);
+        SMSUtils.sendMessage(phone, String.valueOf(code));
         return ResultUtils.success("短信发送成功");
     }
 
@@ -152,7 +152,7 @@ public class UserController {
         javaMailSender.send(mimeMessage);
         String key = USER_UPDATE_EMAIL_KEY + email;
         stringRedisTemplate.opsForValue().set(key, String.valueOf(code), USER_UPDATE_EMAIl_TTL, TimeUnit.MINUTES);
-        System.out.println(code);
+//        System.out.println(code);
         return ResultUtils.success("ok");
     }
 

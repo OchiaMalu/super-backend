@@ -14,8 +14,6 @@ spring:
   redis:
     host: localhost
     port: 6379
-  session:
-    store-type: redis
   jackson:
     time-zone: GMT+8
     date-format: java.text.SimpleDateFormat
@@ -23,6 +21,8 @@ spring:
     host: host
     username: username
     password: password
+  session:
+    store-type: redis
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: on
@@ -34,7 +34,7 @@ mybatis-plus:
       logic-delete-field: isDelete
       id-type: auto
 knife4j:
-  enable: true
+  enable: false
   openapi:
     title: super接口文档
     email: linzhehao1108@126.com
