@@ -5,6 +5,7 @@ server:
     session:
       cookie:
         domain: localhost
+        http-only: false
 spring:
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
@@ -23,6 +24,10 @@ spring:
     password: password
   session:
     store-type: redis
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: on
