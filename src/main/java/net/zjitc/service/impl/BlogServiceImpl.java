@@ -54,14 +54,18 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
     public Boolean addBlog(BlogAddRequest blogAddRequest, User loginUser) {
         Blog blog = new Blog();
         ArrayList<String> imageNameList = new ArrayList<>();
-        MultipartFile[] images = blogAddRequest.getImages();
-        if (images != null) {
-            for (MultipartFile image : images) {
-                String filename = FileUtils.uploadFile(image);
-                imageNameList.add(filename);
+        try {
+            MultipartFile[] images = blogAddRequest.getImages();
+            if (images != null) {
+                for (MultipartFile image : images) {
+                    String filename = FileUtils.uploadFile(image);
+                    imageNameList.add(filename);
+                }
+                String imageStr = StringUtils.join(imageNameList, ",");
+                blog.setImages(imageStr);
             }
-            String imageStr = StringUtils.join(imageNameList, ",");
-            blog.setImages(imageStr);
+        } catch (Exception e) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, e.getMessage());
         }
         blog.setUserId(loginUser.getId());
         blog.setTitle(blogAddRequest.getTitle());

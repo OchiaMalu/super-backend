@@ -260,6 +260,9 @@ public class TeamController {
         Map<Long, List<UserTeam>> listMap = userTeamList.stream()
                 .collect(Collectors.groupingBy(UserTeam::getTeamId));
         List<Long> idList = new ArrayList<>(listMap.keySet());
+        if (idList.isEmpty()){
+            return ResultUtils.success(new Page<TeamVO>());
+        }
         teamQuery.setIdList(idList);
         Page<TeamVO> teamVOPage = teamService.listTeams(currentPage, teamQuery, true);
         Page<TeamVO> finalPage = getTeamHasJoinNum(teamVOPage);
