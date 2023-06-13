@@ -11,7 +11,7 @@
  Target Server Version : 50635
  File Encoding         : 65001
 
- Date: 11/06/2023 13:27:34
+ Date: 13/06/2023 23:54:42
 */
 
 SET NAMES utf8mb4;
@@ -32,13 +32,7 @@ CREATE TABLE `blog`  (
   `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = COMPACT;
-
--- ----------------------------
--- Records of blog
--- ----------------------------
-INSERT INTO `blog` VALUES (2, 1, '1112', '2d9e61a3-5796-4fad-ae22-64582812ed89.jpg', '2223', 2, 8, '2023-06-03 17:01:42', '2023-06-11 12:33:38');
-INSERT INTO `blog` VALUES (3, 1, '新博文1', '5475dd2a-2d87-420e-9868-bb5cdda512d3.jpg,75e31415779979ae40c4c0238aa4c34.jpg\r\n\r\n', '新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文新博文', 0, 0, '2023-06-10 16:05:57', '2023-06-10 19:47:28');
+) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = COMPACT;
 
 -- ----------------------------
 -- Table structure for blog_comments
@@ -56,18 +50,7 @@ CREATE TABLE `blog_comments`  (
   `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = COMPACT;
-
--- ----------------------------
--- Records of blog_comments
--- ----------------------------
-INSERT INTO `blog_comments` VALUES (1, 1, 1, NULL, NULL, 'hello world', 2, 0, '2023-06-08 12:59:53', '2023-06-10 15:46:00');
-INSERT INTO `blog_comments` VALUES (2, 1, 1, NULL, NULL, '111', 0, 0, '2023-06-08 13:18:33', '2023-06-08 19:52:28');
-INSERT INTO `blog_comments` VALUES (3, 1, 1, NULL, NULL, '2222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222', 0, 0, '2023-06-08 13:20:52', '2023-06-08 19:52:27');
-INSERT INTO `blog_comments` VALUES (4, 1, 1, NULL, NULL, '222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222', 0, 0, '2023-06-08 13:22:44', '2023-06-08 19:52:27');
-INSERT INTO `blog_comments` VALUES (5, 1, 1, NULL, NULL, '111', 0, 0, '2023-06-08 13:30:16', '2023-06-08 13:30:16');
-INSERT INTO `blog_comments` VALUES (6, 1, 1, NULL, NULL, '1111', 1, 0, '2023-06-10 15:46:03', '2023-06-10 15:46:07');
-INSERT INTO `blog_comments` VALUES (7, 1, 1, NULL, NULL, '222', 0, 0, '2023-06-10 15:46:12', '2023-06-10 15:46:12');
+) ENGINE = InnoDB AUTO_INCREMENT = 13 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = COMPACT;
 
 -- ----------------------------
 -- Table structure for blog_like
@@ -81,13 +64,7 @@ CREATE TABLE `blog_like`  (
   `update_time` datetime NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   `is_delete` tinyint(4) NULL DEFAULT 0 COMMENT '逻辑删除',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Compact;
-
--- ----------------------------
--- Records of blog_like
--- ----------------------------
-INSERT INTO `blog_like` VALUES (1, 1, 1, '2023-06-10 15:45:58', NULL, 0);
-INSERT INTO `blog_like` VALUES (2, 2, 1, '2023-06-11 12:33:36', '2023-06-11 12:33:38', 1);
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = COMPACT;
 
 -- ----------------------------
 -- Table structure for comment_like
@@ -101,18 +78,7 @@ CREATE TABLE `comment_like`  (
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   `is_delete` tinyint(4) NULL DEFAULT 0 COMMENT '逻辑删除',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Compact;
-
--- ----------------------------
--- Records of comment_like
--- ----------------------------
-INSERT INTO `comment_like` VALUES (4, 1, 1, '2023-06-08 19:52:20', '2023-06-08 19:52:35', 1);
-INSERT INTO `comment_like` VALUES (5, 2, 1, '2023-06-08 19:52:21', '2023-06-08 19:52:28', 1);
-INSERT INTO `comment_like` VALUES (6, 3, 1, '2023-06-08 19:52:23', '2023-06-08 19:52:27', 1);
-INSERT INTO `comment_like` VALUES (7, 4, 1, '2023-06-08 19:52:24', '2023-06-08 19:52:27', 1);
-INSERT INTO `comment_like` VALUES (8, 1, 1, '2023-06-10 12:34:16', '2023-06-10 12:34:17', 1);
-INSERT INTO `comment_like` VALUES (9, 1, 1, '2023-06-10 15:46:00', '2023-06-10 15:46:00', 0);
-INSERT INTO `comment_like` VALUES (10, 6, 1, '2023-06-10 15:46:07', '2023-06-10 15:46:07', 0);
+) ENGINE = InnoDB AUTO_INCREMENT = 14 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = COMPACT;
 
 -- ----------------------------
 -- Table structure for follow
@@ -126,13 +92,7 @@ CREATE TABLE `follow`  (
   `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   `is_delete` tinyint(4) NULL DEFAULT 0 COMMENT '逻辑删除',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = COMPACT;
-
--- ----------------------------
--- Records of follow
--- ----------------------------
-INSERT INTO `follow` VALUES (1, 1, 11, '2023-06-11 13:23:59', '2023-06-11 13:23:59', 0);
-INSERT INTO `follow` VALUES (2, 1, 4, '2023-06-11 13:24:54', '2023-06-11 13:24:56', 1);
+) ENGINE = InnoDB AUTO_INCREMENT = 19 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = COMPACT;
 
 -- ----------------------------
 -- Table structure for sign
@@ -147,10 +107,6 @@ CREATE TABLE `sign`  (
   `is_backup` tinyint(1) UNSIGNED NULL DEFAULT NULL COMMENT '是否补签',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = COMPACT;
-
--- ----------------------------
--- Records of sign
--- ----------------------------
 
 -- ----------------------------
 -- Table structure for tag
@@ -171,10 +127,6 @@ CREATE TABLE `tag`  (
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
--- Records of tag
--- ----------------------------
-
--- ----------------------------
 -- Table structure for team
 -- ----------------------------
 DROP TABLE IF EXISTS `team`;
@@ -191,18 +143,7 @@ CREATE TABLE `team`  (
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_delete` tinyint(4) NOT NULL DEFAULT 0 COMMENT '是否删除',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '队伍' ROW_FORMAT = Compact;
-
--- ----------------------------
--- Records of team
--- ----------------------------
-INSERT INTO `team` VALUES (1, '蓝桥杯1', '蓝桥杯竞赛', 1, '2023-06-30 22:00:38', 1, 0, '', '2023-05-17 12:36:45', '2023-06-10 15:54:49', 1);
-INSERT INTO `team` VALUES (2, 'oneTop', 'oneTop', 4, '2023-06-30 22:00:38', 10, 0, NULL, '2023-05-17 17:29:35', '2023-06-10 15:52:52', 1);
-INSERT INTO `team` VALUES (3, 'test', '加密队伍', 5, NULL, 2, 2, '1234', '2023-05-21 12:59:13', '2023-05-24 21:31:25', 1);
-INSERT INTO `team` VALUES (4, 'test2', NULL, 5, NULL, 2, 2, '1234', '2023-05-21 13:26:26', '2023-05-24 21:30:19', 0);
-INSERT INTO `team` VALUES (5, 'test', '加密队伍', 5, NULL, 2, 2, '1234', '2023-05-21 12:59:13', '2023-05-24 21:30:20', 0);
-INSERT INTO `team` VALUES (6, 'test', '加密队伍', 5, NULL, 2, 2, '1234', '2023-05-21 12:59:13', '2023-05-24 21:30:21', 0);
-INSERT INTO `team` VALUES (7, '蓝桥杯', '蓝桥杯比赛', 5, NULL, 1, 0, '', '2023-06-10 15:57:33', '2023-06-10 15:57:33', 0);
+) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '队伍' ROW_FORMAT = COMPACT;
 
 -- ----------------------------
 -- Table structure for user
@@ -226,22 +167,7 @@ CREATE TABLE `user`  (
   `is_delete` tinyint(4) NOT NULL DEFAULT 0 COMMENT '是否删除',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uniIdx_account`(`user_account`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Records of user
--- ----------------------------
-INSERT INTO `user` VALUES (1, 'ochiamalu', '2a1e9392cd2ca500456941ec1345e626', 'ochiamalu', 'http://niu.ochiamalu.xyz/zhiyue.jpg', 1, '', '13738728682', 'linzhehao1108@126.com', 0, 1, '[\"java\",\"大一\",\"男\"]', '2023-05-17 12:33:29', '2023-06-04 19:40:46', 0);
-INSERT INTO `user` VALUES (2, 'tH8SazReq1', '11111111', 'th8sazreq1', 'http://niu.ochiamalu.xyz/75e31415779979ae40c4c0238aa4c34.jpg', 0, '我是一个有耐心的作家。', '17579910380', 'tH8SazReq1@hotmail.com', 0, 0, '[\"html/css\", \"c\", \"大二\", \"保密\"]', '2023-05-28 19:04:56', '2023-05-28 19:04:56', 0);
-INSERT INTO `user` VALUES (3, 'vOyXQ865Xi', '11111111', 'voyxq865xi', 'http://niu.ochiamalu.xyz/12d4949b4009d089eaf071aef0f1f40.jpg', 0, '我是一个无聊的作家。', '18685439434', 'vOyXQ865Xi@hotmail.com', 0, 0, '[\"c#\", \"html/css\", \"高二\", \"保密\"]', '2023-05-28 19:04:56', '2023-05-28 19:04:56', 0);
-INSERT INTO `user` VALUES (4, 't1UXa2FzyT', '11111111', 't1uxa2fzyt', 'http://niu.ochiamalu.xyz/22fe8428428c93a565e181782e97654.jpg', 1, '我是一个有毅力的艺术家。', '18940806775', 't1UXa2FzyT@yahoo.com', 0, 0, '[\"c++\", \"c#\", \"高三\", \"男\"]', '2023-05-28 19:04:56', '2023-05-28 19:04:56', 0);
-INSERT INTO `user` VALUES (5, 'HUNyIuAffu', '11111111', 'hunyiuaffu', 'http://niu.ochiamalu.xyz/905731909dfdafd0b53b3c4117438d3.jpg', 0, '我是一个有野心的工程师。', '17421786943', 'HUNyIuAffu@yandex.com', 0, 0, '[\"c++\", \"react\", \"高一\", \"保密\"]', '2023-05-28 19:04:56', '2023-05-28 19:04:56', 0);
-INSERT INTO `user` VALUES (6, 'EiOXAqto3S', '11111111', 'eioxaqto3s', 'http://niu.ochiamalu.xyz/f870176b1a628623fa7fe9918b862d7.jpg', 1, '我是一个有野心的政治家。', '17439796595', 'EiOXAqto3S@protonmail.com', 0, 0, '[\"vue\", \"大三\", \"女\"]', '2023-05-28 19:04:56', '2023-05-28 19:04:56', 0);
-INSERT INTO `user` VALUES (7, 'kKugEJWQwf', '11111111', 'kkugejwqwf', 'http://niu.ochiamalu.xyz/f870176b1a628623fa7fe9918b862d7.jpg', 1, '我是一个有创意的画家。', '11914380574', 'kKugEJWQwf@yandex.com', 0, 0, '[\"c\", \"python\", \"研究生\", \"女\"]', '2023-05-28 19:04:56', '2023-05-28 19:04:56', 0);
-INSERT INTO `user` VALUES (8, 'HIQ6FaTpFi', '11111111', 'hiq6fatpfi', 'http://niu.ochiamalu.xyz/905731909dfdafd0b53b3c4117438d3.jpg', 1, '我是一个有智慧的作家。', '17000407484', 'HIQ6FaTpFi@protonmail.com', 0, 0, '[\"vue\", \"已工作\"]', '2023-05-28 19:04:56', '2023-05-28 19:04:56', 0);
-INSERT INTO `user` VALUES (9, 'DzPfP97Uko', '11111111', 'dzpfp97uko', 'http://niu.ochiamalu.xyz/75e31415779979ae40c4c0238aa4c34.jpg', 0, '我是一个搞笑的经理。', '11895377518', 'DzPfP97Uko@inbox.com', 0, 0, '[\"c\", \"html/css\", \"研究生\", \"保密\"]', '2023-05-28 19:04:56', '2023-05-28 19:04:56', 0);
-INSERT INTO `user` VALUES (10, '2LW5vFyYDD', '11111111', '2lw5vfyydd', 'http://niu.ochiamalu.xyz/22fe8428428c93a565e181782e97654.jpg', 1, '我是一个有趣的程序员。', '11793323314', '2LW5vFyYDD@mail.com', 0, 0, '[\"c#\", \"大四\", \"女\"]', '2023-05-28 19:04:56', '2023-05-28 19:04:56', 0);
-INSERT INTO `user` VALUES (11, 'MomxLE7eq8', '11111111', 'momxle7eq8', 'http://niu.ochiamalu.xyz/cccfb0995f5d103414bd8a8bd742c34.jpg', 0, '我是一个搞笑的演员。', '10756286548', 'MomxLE7eq8@aol.com', 0, 0, '[\"html/css\", \"大一\", \"保密\"]', '2023-05-28 19:04:56', '2023-05-28 19:04:56', 0);
+) ENGINE = InnoDB AUTO_INCREMENT = 20 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Table structure for user_team
@@ -256,14 +182,6 @@ CREATE TABLE `user_team`  (
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `is_delete` tinyint(4) NOT NULL DEFAULT 0 COMMENT '是否删除',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '用户队伍关系' ROW_FORMAT = Compact;
-
--- ----------------------------
--- Records of user_team
--- ----------------------------
-INSERT INTO `user_team` VALUES (1, 1, 2, '2023-05-28 19:03:55', '2023-05-28 19:03:54', '2023-06-10 15:52:52', 1);
-INSERT INTO `user_team` VALUES (2, 1, 1, '2023-05-28 19:05:24', '2023-05-28 19:05:24', '2023-06-10 15:54:49', 1);
-INSERT INTO `user_team` VALUES (3, 1, 4, '2023-06-10 15:53:01', '2023-06-10 15:53:00', '2023-06-10 15:53:00', 0);
-INSERT INTO `user_team` VALUES (4, 1, 7, '2023-06-10 15:57:34', '2023-06-10 15:57:33', '2023-06-10 15:57:33', 0);
+) ENGINE = InnoDB AUTO_INCREMENT = 7 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '用户队伍关系' ROW_FORMAT = COMPACT;
 
 SET FOREIGN_KEY_CHECKS = 1;
