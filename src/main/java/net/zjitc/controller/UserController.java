@@ -393,8 +393,7 @@ public class UserController {
             User user = userService.getLoginUser(request);
             return ResultUtils.success(userService.matchUser(currentPage, user));
         } else {
-            //todo 未登录时随机查询
-            return ResultUtils.success(userService.userPage(currentPage));
+            return ResultUtils.success(userService.getRandomUser());
         }
     }
 

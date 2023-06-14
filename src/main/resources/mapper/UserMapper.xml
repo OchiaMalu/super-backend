@@ -28,4 +28,15 @@
         role,tags,create_time,
         update_time,is_delete
     </sql>
+    <select id="getRandomUser" resultType="net.zjitc.model.domain.User">
+        SELECT
+            *
+        FROM
+            `user`
+        WHERE
+            id >= ( SELECT floor( RAND() * ( SELECT MAX( id ) FROM `user` ) ) )
+        ORDER BY
+            id
+        LIMIT 10;
+    </select>
 </mapper>

@@ -3,6 +3,8 @@ package net.zjitc.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import net.zjitc.model.domain.User;
 
+import java.util.List;
+
 /**
 * @author OchiaMalu
 * @description 针对表【user】的数据库操作Mapper
@@ -11,6 +13,7 @@ import net.zjitc.model.domain.User;
 */
 public interface UserMapper extends BaseMapper<User> {
 
+    List<User> getRandomUser();
 }
 
 

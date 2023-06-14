@@ -47,4 +47,6 @@ public interface UserService extends IService<User> {
     void updateTags(List<String> tags, Long userId);
 
     void updateUserWithCode(UserUpdateRequest updateRequest,Long userId);
+
+    Page<UserVO> getRandomUser();
 }

@@ -1,7 +1,6 @@
 package net.zjitc.service.impl;
 
 
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -66,6 +65,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Resource
     private FollowService followService;
+
 
     /**
      * 盐值，混淆密码
@@ -464,6 +464,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         BeanUtils.copyProperties(updateRequest, user);
         user.setId(userId);
         this.updateById(user);
+    }
+
+    @Override
+    public Page<UserVO> getRandomUser() {
+        List<User> randomUser = userMapper.getRandomUser();
+        List<UserVO> userVOList = randomUser.stream().map((item) -> {
+            UserVO userVO = new UserVO();
+            BeanUtils.copyProperties(item, userVO);
+            return userVO;
+        }).collect(Collectors.toList());
+        BeanUtils.copyProperties(randomUser,userVOList);
+        Page<UserVO> userVOPage = new Page<>();
+        userVOPage.setRecords(userVOList);
+        return userVOPage;
     }
 
     @Deprecated
