@@ -140,6 +140,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (!saveResult) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR);
         }
+        stringRedisTemplate.delete(key);
         return user.getId();
     }
 
