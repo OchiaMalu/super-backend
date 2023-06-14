@@ -227,6 +227,12 @@ public class UserController {
         return ResultUtils.success(result);
     }
 
+    /**
+     * 获取用户通过电话
+     *
+     * @param phone 电话
+     * @return {@link BaseResponse}<{@link String}>
+     */
     @GetMapping("/forget")
     @ApiOperation(value = "通过手机号查询用户")
     @ApiImplicitParams(
@@ -250,7 +256,18 @@ public class UserController {
         }
     }
 
+    /**
+     * 校验码
+     *
+     * @param phone 电话
+     * @param code  代码
+     * @return {@link BaseResponse}<{@link String}>
+     */
     @GetMapping("/check")
+    @ApiOperation(value = "校验验证码")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "phone", value = "手机号"),
+            @ApiImplicitParam(name = "code", value = "验证码")})
     public BaseResponse<String> checkCode(String phone, String code) {
         String key = USER_FORGET_PASSWORD_KEY + phone;
         String correctCode = stringRedisTemplate.opsForValue().get(key);
@@ -263,7 +280,16 @@ public class UserController {
         return ResultUtils.success("ok");
     }
 
+    /**
+     * 更新密码
+     *
+     * @param updatePasswordRequest 更新密码请求
+     * @return {@link BaseResponse}<{@link String}>
+     */
     @PutMapping("/forget")
+    @ApiOperation(value = "修改密码")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "updatePasswordRequest", value = "修改密码请求")})
     public BaseResponse<String> updatePassword(@RequestBody UpdatePasswordRequest updatePasswordRequest) {
         String phone = updatePasswordRequest.getPhone();
         String code = updatePasswordRequest.getCode();
