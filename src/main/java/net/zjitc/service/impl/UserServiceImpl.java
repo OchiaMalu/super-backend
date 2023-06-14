@@ -385,7 +385,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 finalUserPairList.add(topUserPairList.get(i));
             }
         } else {
-            for (int i = begin; i <= end; i++) {
+            for (int i = begin; i < end; i++) {
                 finalUserPairList.add(topUserPairList.get(i));
             }
         }
