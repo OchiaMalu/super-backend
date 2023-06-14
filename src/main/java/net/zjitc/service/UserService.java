@@ -49,4 +49,6 @@ public interface UserService extends IService<User> {
     void updateUserWithCode(UserUpdateRequest updateRequest,Long userId);
 
     Page<UserVO> getRandomUser();
+
+    void updatePassword(String phone, String code, String password, String confirmPassword);
 }

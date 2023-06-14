@@ -448,8 +448,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public void updateUserWithCode(UserUpdateRequest updateRequest, Long userId) {
         String key;
+        boolean isPhone=false;
         if (StringUtils.isNotBlank(updateRequest.getPhone())) {
             key = USER_UPDATE_PHONE_KEY+updateRequest.getPhone();
+            isPhone=true;
         } else {
             key = USER_UPDATE_EMAIL_KEY+updateRequest.getEmail();
         }
@@ -459,6 +461,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         if (!correctCode.equals(updateRequest.getCode())) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "验证码错误");
+        }
+        if (isPhone){
+            LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            userLambdaQueryWrapper.eq(User::getPhone,updateRequest.getPhone());
+            User user = this.getOne(userLambdaQueryWrapper);
+            if (user!=null){
+                throw new BusinessException(ErrorCode.PARAMS_ERROR,"该手机号已被绑定");
+            }
+        }else {
+            LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            userLambdaQueryWrapper.eq(User::getEmail,updateRequest.getEmail());
+            User user = this.getOne(userLambdaQueryWrapper);
+            if (user!=null){
+                throw new BusinessException(ErrorCode.PARAMS_ERROR,"该邮箱已被绑定");
+            }
         }
         User user = new User();
         BeanUtils.copyProperties(updateRequest, user);
@@ -478,6 +495,27 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         Page<UserVO> userVOPage = new Page<>();
         userVOPage.setRecords(userVOList);
         return userVOPage;
+    }
+
+    @Override
+    public void updatePassword(String phone, String code, String password, String confirmPassword) {
+        if (!password.equals(confirmPassword)){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"两次输入的密码不一致");
+        }
+        String key = USER_FORGET_PASSWORD_KEY + phone;
+        String correctCode = stringRedisTemplate.opsForValue().get(key);
+        if (correctCode==null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"请先获取验证码");
+        }
+        if (!correctCode.equals(code)){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"验证码错误");
+        }
+        LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        userLambdaQueryWrapper.eq(User::getPhone,phone);
+        User user = this.getOne(userLambdaQueryWrapper);
+        String encryptPassword = DigestUtils.md5DigestAsHex((SALT + password).getBytes());
+        user.setPassword(encryptPassword);
+        this.updateById(user);
     }
 
     @Deprecated

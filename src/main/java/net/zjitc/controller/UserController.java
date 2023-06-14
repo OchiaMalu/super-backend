@@ -1,5 +1,6 @@
 package net.zjitc.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.annotations.Api;
@@ -12,6 +13,7 @@ import net.zjitc.common.ErrorCode;
 import net.zjitc.common.ResultUtils;
 import net.zjitc.exception.BusinessException;
 import net.zjitc.model.domain.User;
+import net.zjitc.model.request.UpdatePasswordRequest;
 import net.zjitc.model.request.UserLoginRequest;
 import net.zjitc.model.request.UserRegisterRequest;
 import net.zjitc.model.request.UserUpdateRequest;
@@ -74,7 +76,7 @@ public class UserController {
     /**
      * 发送消息
      *
-     * @param phone   电话
+     * @param phone 电话
      * @return {@link BaseResponse}<{@link String}>
      */
     @GetMapping("/message")
@@ -223,6 +225,55 @@ public class UserController {
         }
         int result = userService.userLogout(request);
         return ResultUtils.success(result);
+    }
+
+    @GetMapping("/forget")
+    @ApiOperation(value = "通过手机号查询用户")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "phone", value = "手机号")})
+    public BaseResponse<String> getUserByPhone(String phone) {
+        if (phone==null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        userLambdaQueryWrapper.eq(User::getPhone, phone);
+        User user = userService.getOne(userLambdaQueryWrapper);
+        if (user == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "该手机号未绑定账号");
+        } else {
+            String key = USER_FORGET_PASSWORD_KEY + phone;
+            Integer code = ValidateCodeUtils.generateValidateCode(4);
+            SMSUtils.sendMessage(phone, String.valueOf(code));
+//            System.out.println(code);
+            stringRedisTemplate.opsForValue().set(key, String.valueOf(code), USER_FORGET_PASSWORD_TTL, TimeUnit.MINUTES);
+            return ResultUtils.success(user.getUserAccount());
+        }
+    }
+
+    @GetMapping("/check")
+    public BaseResponse<String> checkCode(String phone, String code) {
+        String key = USER_FORGET_PASSWORD_KEY + phone;
+        String correctCode = stringRedisTemplate.opsForValue().get(key);
+        if (correctCode == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请先获取验证码");
+        }
+        if (!correctCode.equals(code)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "验证码错误");
+        }
+        return ResultUtils.success("ok");
+    }
+
+    @PutMapping("/forget")
+    public BaseResponse<String> updatePassword(@RequestBody UpdatePasswordRequest updatePasswordRequest) {
+        String phone = updatePasswordRequest.getPhone();
+        String code = updatePasswordRequest.getCode();
+        String password = updatePasswordRequest.getPassword();
+        String confirmPassword = updatePasswordRequest.getConfirmPassword();
+        if (StringUtils.isAnyBlank(phone, code, password, confirmPassword)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        userService.updatePassword(phone, code, password, confirmPassword);
+        return ResultUtils.success("ok");
     }
 
     /**

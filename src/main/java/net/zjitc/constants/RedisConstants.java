@@ -8,4 +8,6 @@ public interface RedisConstants {
     Long USER_UPDATE_PHONE_TTL = 15L;
     String USER_UPDATE_EMAIL_KEY = "suer:user:update:email:";
     Long USER_UPDATE_EMAIl_TTL = 15L;
+    String USER_FORGET_PASSWORD_KEY = "super:user:forget:";
+    Long USER_FORGET_PASSWORD_TTL = 15L;
 }
