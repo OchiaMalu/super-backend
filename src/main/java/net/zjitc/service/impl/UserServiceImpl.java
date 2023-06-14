@@ -516,6 +516,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String encryptPassword = DigestUtils.md5DigestAsHex((SALT + password).getBytes());
         user.setPassword(encryptPassword);
         this.updateById(user);
+        stringRedisTemplate.delete(key);
     }
 
     @Deprecated
