@@ -164,17 +164,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 2. 加密
         String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
         // 查询用户是否存在
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_account", userAccount);
-        queryWrapper.eq("password", encryptPassword);
-        User user = userMapper.selectOne(queryWrapper);
-        // 用户不存在
-        if (user == null) {
-            log.info("user login failed, userAccount cannot match userPassword");
-            return null;
+        LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        userLambdaQueryWrapper.eq(User::getUserAccount,userAccount);
+        User userInDatabase = this.getOne(userLambdaQueryWrapper);
+        if (userInDatabase==null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"用户不存在");
+        }
+        if (!userInDatabase.getPassword().equals(encryptPassword)){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"密码错误");
         }
         // 3. 用户脱敏
-        User safetyUser = getSafetyUser(user);
+        User safetyUser = getSafetyUser(userInDatabase);
         // 4. 记录用户的登录态
         request.getSession().setAttribute(USER_LOGIN_STATE, safetyUser);
         return safetyUser;
