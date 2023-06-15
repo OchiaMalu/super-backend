@@ -39,7 +39,7 @@ mybatis-plus:
       logic-delete-field: isDelete
       id-type: auto
 knife4j:
-  enable: false
+  enable: true
   openapi:
     title: super接口文档
     email: linzhehao1108@126.com
