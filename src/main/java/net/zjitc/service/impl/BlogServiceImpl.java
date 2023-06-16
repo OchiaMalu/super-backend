@@ -196,13 +196,13 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
     }
 
     @Override
-    public void updateBlog(BlogUpdateRequest blogUpdateRequest, Long userId) {
+    public void updateBlog(BlogUpdateRequest blogUpdateRequest, Long userId,boolean isAdmin) {
         if (blogUpdateRequest.getId() == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         Long createUserId = this.getById(blogUpdateRequest.getId()).getUserId();
-        if (!createUserId.equals(userId)) {
-            throw new BusinessException(ErrorCode.NO_AUTH);
+        if (!createUserId.equals(userId) && !isAdmin) {
+            throw new BusinessException(ErrorCode.NO_AUTH,"没有权限");
         }
         String title = blogUpdateRequest.getTitle();
         String content = blogUpdateRequest.getContent();

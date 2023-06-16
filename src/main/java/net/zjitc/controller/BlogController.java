@@ -197,7 +197,8 @@ public class BlogController {
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
-        blogService.updateBlog(blogUpdateRequest,loginUser.getId());
+        boolean admin = userService.isAdmin(loginUser);
+        blogService.updateBlog(blogUpdateRequest,loginUser.getId(),admin);
         return ResultUtils.success("更新成功");
     }
 }

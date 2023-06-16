@@ -27,5 +27,5 @@ public interface BlogService extends IService<Blog> {
 
     void deleteBlog(Long blogId, Long userId, boolean isAdmin);
 
-    void updateBlog(BlogUpdateRequest blogUpdateRequest, Long userId);
+    void updateBlog(BlogUpdateRequest blogUpdateRequest, Long userId,boolean isAdmin);
 }
