@@ -168,7 +168,7 @@ public class UserController {
     @ApiOperation(value = "用户注册")
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "userRegisterRequest", value = "用户注册请求参数")})
-    public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
+    public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest,HttpServletRequest request) {
         if (userRegisterRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -180,8 +180,11 @@ public class UserController {
         if (StringUtils.isAnyBlank(phone, code, account, password, checkPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        long result = userService.userRegister(phone, code, account, password, checkPassword);
-        return ResultUtils.success(result);
+        long userId = userService.userRegister(phone, code, account, password, checkPassword);
+        User userInDatabase = userService.getById(userId);
+        User safetyUser = userService.getSafetyUser(userInDatabase);
+        request.getSession().setAttribute(USER_LOGIN_STATE, safetyUser);
+        return ResultUtils.success(userId);
     }
 
     /**
