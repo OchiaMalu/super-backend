@@ -36,4 +36,6 @@ public interface TeamService extends IService<Team> {
     boolean deleteTeam(long id, User loginUser);
 
     TeamVO getTeam(Long teamId,Long userId);
+
+    Page<TeamVO> listMyJoin(long currentPage, TeamQueryRequest teamQuery);
 }

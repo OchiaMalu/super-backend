@@ -376,6 +376,40 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         return teamVO;
     }
 
+    @Override
+    public Page<TeamVO> listMyJoin(long currentPage, TeamQueryRequest teamQuery) {
+        List<Long> idList = teamQuery.getIdList();
+        LambdaQueryWrapper<Team> teamLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        teamLambdaQueryWrapper.in(Team::getId,idList);
+        Page<Team> teamPage = this.page(new Page<>(currentPage, PAGE_SIZE), teamLambdaQueryWrapper);
+        if (CollectionUtils.isEmpty(teamPage.getRecords())) {
+            return new Page<>();
+        }
+        Page<TeamVO> teamVOPage = new Page<>();
+        // 关联查询创建人的用户信息
+        BeanUtils.copyProperties(teamPage, teamVOPage, "records");
+        List<Team> teamPageRecords = teamPage.getRecords();
+        ArrayList<TeamVO> teamUserVOList = new ArrayList<>();
+        for (Team team : teamPageRecords) {
+            Long userId = team.getUserId();
+            if (userId == null) {
+                continue;
+            }
+            User user = userService.getById(userId);
+            TeamVO teamUserVO = new TeamVO();
+            BeanUtils.copyProperties(team, teamUserVO);
+            // 脱敏用户信息
+            if (user != null) {
+                UserVO userVO = new UserVO();
+                BeanUtils.copyProperties(user, userVO);
+                teamUserVO.setCreateUser(userVO);
+            }
+            teamUserVOList.add(teamUserVO);
+        }
+        teamVOPage.setRecords(teamUserVOList);
+        return teamVOPage;
+    }
+
 
     /**
      * 根据 id 获取队伍信息

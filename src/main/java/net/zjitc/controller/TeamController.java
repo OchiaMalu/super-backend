@@ -254,9 +254,9 @@ public class TeamController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
-        QueryWrapper<UserTeam> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_id", loginUser.getId());
-        List<UserTeam> userTeamList = userTeamService.list(queryWrapper);
+        LambdaQueryWrapper<UserTeam> userTeamLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        userTeamLambdaQueryWrapper.eq(UserTeam::getUserId,loginUser.getId());
+        List<UserTeam> userTeamList = userTeamService.list(userTeamLambdaQueryWrapper);
         Map<Long, List<UserTeam>> listMap = userTeamList.stream()
                 .collect(Collectors.groupingBy(UserTeam::getTeamId));
         List<Long> idList = new ArrayList<>(listMap.keySet());
@@ -264,7 +264,7 @@ public class TeamController {
             return ResultUtils.success(new Page<TeamVO>());
         }
         teamQuery.setIdList(idList);
-        Page<TeamVO> teamVOPage = teamService.listTeams(currentPage, teamQuery, true);
+        Page<TeamVO> teamVOPage = teamService.listMyJoin(currentPage, teamQuery);
         Page<TeamVO> finalPage = getTeamHasJoinNum(teamVOPage);
         return getUserJoinedList(loginUser, finalPage);
     }
