@@ -6,6 +6,8 @@ import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import net.zjitc.common.ErrorCode;
+import net.zjitc.exception.BusinessException;
 import net.zjitc.model.domain.Blog;
 import net.zjitc.model.domain.BlogComments;
 import net.zjitc.model.domain.CommentLike;
@@ -111,6 +113,27 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
                     .set("liked_num", blogComments.getLikedNum() - 1)
                     .update();
         }
+    }
+
+    @Override
+    @Transactional
+    public void deleteComment(Long id, Long userId, boolean isAdmin) {
+        BlogComments blogComments = this.getById(id);
+        if (isAdmin) {
+            this.removeById(id);
+            Integer commentsNum = blogService.getById(blogComments.getBlogId()).getCommentsNum();
+            blogService.update().eq("id", blogComments.getBlogId()).set("comments_num", commentsNum - 1).update();
+            return;
+        }
+        if (blogComments == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        if (!blogComments.getUserId().equals(userId)) {
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+        this.removeById(id);
+        Integer commentsNum = blogService.getById(blogComments.getBlogId()).getCommentsNum();
+        blogService.update().eq("id", blogComments.getBlogId()).set("comments_num", commentsNum - 1).update();
     }
 }
 

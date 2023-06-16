@@ -12,7 +12,9 @@ import net.zjitc.model.domain.User;
 import net.zjitc.model.request.AddCommentRequest;
 import net.zjitc.model.vo.BlogCommentsVO;
 import net.zjitc.service.BlogCommentsService;
+import net.zjitc.service.UserService;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.annotations.Delete;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -37,6 +39,8 @@ public class BlogCommentsController {
     @Resource
     private BlogCommentsService blogCommentsService;
 
+    @Resource
+    private UserService userService;
     /**
      * 添加评论
      *
@@ -122,5 +126,20 @@ public class BlogCommentsController {
         }
         BlogCommentsVO commentsVO = blogCommentsService.getComment(id, loginUser.getId());
         return ResultUtils.success(commentsVO);
+    }
+
+    @DeleteMapping("/{id}")
+    @ApiOperation(value = "根据id删除评论")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "id", value = "博文评论id"),
+                    @ApiImplicitParam(name = "request", value = "request请求")})
+    public BaseResponse<String> deleteBlogComment(@PathVariable Long id,HttpServletRequest request){
+        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        boolean isAdmin = userService.isAdmin(loginUser);
+        blogCommentsService.deleteComment(id,loginUser.getId(),isAdmin);
+        return ResultUtils.success("ok");
     }
 }
