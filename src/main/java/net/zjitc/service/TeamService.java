@@ -33,7 +33,7 @@ public interface TeamService extends IService<Team> {
     @Transactional(rollbackFor = Exception.class)
     boolean quitTeam(TeamQuitRequest teamQuitRequest, User loginUser);
 
-    boolean deleteTeam(long id, User loginUser);
+    boolean deleteTeam(long id, User loginUser,boolean isAdmin);
 
     TeamVO getTeam(Long teamId,Long userId);
 

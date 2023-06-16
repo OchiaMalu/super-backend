@@ -340,11 +340,21 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean deleteTeam(long id, User loginUser) {
+    public boolean deleteTeam(long id, User loginUser,boolean isAdmin) {
         // 校验队伍是否存在
         Team team = getTeamById(id);
         long teamId = team.getId();
         // 校验你是不是队伍的队长
+        if (isAdmin){
+            // 移除所有加入队伍的关联信息
+            QueryWrapper<UserTeam> userTeamQueryWrapper = new QueryWrapper<>();
+            userTeamQueryWrapper.eq("team_id", teamId);
+            boolean result = userTeamService.remove(userTeamQueryWrapper);
+            if (!result) {
+                throw new BusinessException(ErrorCode.SYSTEM_ERROR, "删除队伍关联信息失败");
+            }
+            this.removeById(teamId);
+        }
         if (!team.getUserId().equals(loginUser.getId())) {
             throw new BusinessException(ErrorCode.NO_AUTH, "无访问权限");
         }

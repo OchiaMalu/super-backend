@@ -207,7 +207,8 @@ public class TeamController {
         }
         long id = deleteRequest.getId();
         User loginUser = userService.getLoginUser(request);
-        boolean result = teamService.deleteTeam(id, loginUser);
+        boolean isAdmin = userService.isAdmin(loginUser);
+        boolean result = teamService.deleteTeam(id, loginUser,isAdmin);
         if (!result) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "删除失败");
         }
