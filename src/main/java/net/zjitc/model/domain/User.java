@@ -76,6 +76,9 @@ public class User implements Serializable {
     @ApiModelProperty(value = "用户状态，0为正常")
     private Integer status;
 
+    @ApiModelProperty(value = "好友id")
+    private String friendIds;
+
     /**
      * 用户角色 0-普通用户,1-管理员
      */
