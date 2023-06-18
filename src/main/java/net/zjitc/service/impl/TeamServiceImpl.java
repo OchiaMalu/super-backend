@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.exception.BusinessException;
 import net.zjitc.mapper.TeamMapper;
+import net.zjitc.model.domain.Follow;
 import net.zjitc.model.domain.Team;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.domain.UserTeam;
@@ -19,6 +20,7 @@ import net.zjitc.model.request.TeamQuitRequest;
 import net.zjitc.model.request.TeamUpdateRequest;
 import net.zjitc.model.vo.TeamVO;
 import net.zjitc.model.vo.UserVO;
+import net.zjitc.service.FollowService;
 import net.zjitc.service.TeamService;
 import net.zjitc.service.UserService;
 import net.zjitc.service.UserTeamService;
@@ -28,7 +30,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.lang.invoke.LambdaMetafactory;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
 
@@ -44,6 +48,9 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private FollowService followService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -418,6 +425,30 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         }
         teamVOPage.setRecords(teamUserVOList);
         return teamVOPage;
+    }
+
+    @Override
+    public List<UserVO> getTeamMember(Long teamId, Long userId) {
+        Team team = this.getById(teamId);
+        if (team==null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"队伍不存在");
+        }
+        LambdaQueryWrapper<UserTeam> userTeamLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        userTeamLambdaQueryWrapper.eq(UserTeam::getTeamId,teamId);
+        List<UserTeam> userTeamList = userTeamService.list(userTeamLambdaQueryWrapper);
+        List<Long> userIdList = userTeamList.stream().map(UserTeam::getUserId).filter(id-> !Objects.equals(id, userId)).collect(Collectors.toList());
+        LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        userLambdaQueryWrapper.in(User::getId,userIdList);
+        List<User> userList = userService.list(userLambdaQueryWrapper);
+        return userList.stream().map((user) -> {
+            UserVO userVO = new UserVO();
+            BeanUtils.copyProperties(user, userVO);
+            LambdaQueryWrapper<Follow> followLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            followLambdaQueryWrapper.eq(Follow::getUserId, userId).eq(Follow::getFollowUserId, user.getId());
+            long count = followService.count(followLambdaQueryWrapper);
+            userVO.setIsFollow(count > 0);
+            return userVO;
+        }).collect(Collectors.toList());
     }
 
 

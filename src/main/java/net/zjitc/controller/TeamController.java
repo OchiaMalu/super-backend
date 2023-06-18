@@ -2,7 +2,6 @@ package net.zjitc.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -17,6 +16,7 @@ import net.zjitc.model.domain.User;
 import net.zjitc.model.domain.UserTeam;
 import net.zjitc.model.request.*;
 import net.zjitc.model.vo.TeamVO;
+import net.zjitc.model.vo.UserVO;
 import net.zjitc.service.TeamService;
 import net.zjitc.service.UserService;
 import net.zjitc.service.UserTeamService;
@@ -312,5 +312,18 @@ public class TeamController {
         });
         teamVOPage.setRecords(teamList);
         return teamVOPage;
+    }
+
+    @GetMapping("/member/{id}")
+    public BaseResponse<List<UserVO>> getTeamMemberById(@PathVariable Long id,HttpServletRequest request){
+        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        if (loginUser==null){
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        if (id==null || id<0){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        List<UserVO> teamMember = teamService.getTeamMember(id, loginUser.getId());
+        return ResultUtils.success(teamMember);
     }
 }

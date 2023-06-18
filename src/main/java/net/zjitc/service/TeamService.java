@@ -10,6 +10,7 @@ import net.zjitc.model.request.TeamQueryRequest;
 import net.zjitc.model.request.TeamQuitRequest;
 import net.zjitc.model.request.TeamUpdateRequest;
 import net.zjitc.model.vo.TeamVO;
+import net.zjitc.model.vo.UserVO;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -38,4 +39,6 @@ public interface TeamService extends IService<Team> {
     TeamVO getTeam(Long teamId,Long userId);
 
     Page<TeamVO> listMyJoin(long currentPage, TeamQueryRequest teamQuery);
+
+    List<UserVO> getTeamMember(Long teamId, Long userId);
 }
