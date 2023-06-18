@@ -11,7 +11,7 @@ import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
 
 @Component
-public class HttpSessionConfigurator extends ServerEndpointConfig.Configurator implements ServletRequestListener {
+public class HttpSessionConfig extends ServerEndpointConfig.Configurator implements ServletRequestListener {
 
     @Override
     public void requestInitialized(ServletRequestEvent sre) {
@@ -27,7 +27,4 @@ public class HttpSessionConfigurator extends ServerEndpointConfig.Configurator i
         super.modifyHandshake(sec, request, response);
     }
 
-    @Override
-    public void requestDestroyed(ServletRequestEvent arg0) {
-    }
 }

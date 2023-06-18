@@ -24,6 +24,6 @@ public class WebSocketVO implements Serializable {
     /**
      * 用户头像
      */
-    private String userAvatarUrl;
+    private String avatarUrl;
 
 }

@@ -390,6 +390,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         teamVO.setHasJoin(userJoin > 0);
         User leader = userService.getById(team.getUserId());
         teamVO.setLeaderName(leader.getUsername());
+
         return teamVO;
     }
 

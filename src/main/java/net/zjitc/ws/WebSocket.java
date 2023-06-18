@@ -6,7 +6,7 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
-import net.zjitc.config.HttpSessionConfigurator;
+import net.zjitc.config.HttpSessionConfig;
 import net.zjitc.model.domain.Chat;
 import net.zjitc.model.domain.Team;
 import net.zjitc.model.request.MessageRequest;
@@ -39,7 +39,7 @@ import static net.zjitc.utils.StringUtils.stringJsonListToLongSet;
 
 @Component
 @Slf4j
-@ServerEndpoint(value = "/websocket/{userId}/{teamId}", configurator = HttpSessionConfigurator.class)
+@ServerEndpoint(value = "/websocket/{userId}/{teamId}", configurator = HttpSessionConfig.class)
 public class WebSocket {
     /**
      * 保存队伍的连接信息
@@ -151,11 +151,9 @@ public class WebSocket {
                         addOnlineCount();
                     }
                 }
-                log.info("有新连接加入！当前在线人数为" + getOnlineCount());
             } else {
                 SESSIONS.add(session);
                 SESSION_POOL.put(userId, session);
-                log.info("有新用户加入，userId={}, 当前在线人数为：{}", userId, SESSION_POOL.size());
                 sendAllUsers();
             }
         } catch (Exception e) {
@@ -171,13 +169,11 @@ public class WebSocket {
                 if (getOnlineCount() > 0) {
                     subOnlineCount();
                 }
-                log.info("用户退出:当前在线人数为:" + getOnlineCount());
             } else {
                 if (!SESSION_POOL.isEmpty()) {
                     SESSION_POOL.remove(userId);
                     SESSIONS.remove(session);
                 }
-                log.info("【WebSocket消息】连接断开，总数为：" + SESSION_POOL.size());
                 sendAllUsers();
             }
         } catch (Exception e) {
@@ -189,10 +185,8 @@ public class WebSocket {
     public void onMessage(String message, @PathParam("userId") String userId) {
         if ("PING".equals(message)) {
             sendOneMessage(userId, "pong");
-            log.error("心跳包，发送给={},在线:{}人", userId, getOnlineCount());
             return;
         }
-        log.info("服务端收到用户username={}的消息:{}", userId, message);
         MessageRequest messageRequest = new Gson().fromJson(message, MessageRequest.class);
         Long toId = messageRequest.getToId();
         Long teamId = messageRequest.getTeamId();
@@ -241,7 +235,6 @@ public class WebSocket {
             broadcast(String.valueOf(team.getId()), toJson);
             savaChat(user.getId(), null, text, team.getId(), chatType);
             chatService.deleteKey(CACHE_CHAT_TEAM, String.valueOf(team.getId()));
-            log.error("队伍聊天，发送给={},队伍={},在线:{}人", user.getId(), team.getId(), getOnlineCount());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -291,9 +284,7 @@ public class WebSocket {
             String toJson = new Gson().toJson(MessageVO);
             sendOneMessage(toId.toString(), toJson);
             savaChat(user.getId(), toId, text, null, chatType);
-            log.info("发送给用户username={}，消息：{}", MessageVO.getToUser(), toJson);
         } else {
-            log.info("发送失败，未找到用户username={}的session", toId);
         }
         chatService.deleteKey(CACHE_CHAT_PRIVATE, user.getId() + "" + toId);
         chatService.deleteKey(CACHE_CHAT_PRIVATE, toId + "" + user.getId());
@@ -347,7 +338,6 @@ public class WebSocket {
      * @param message 消息
      */
     public void sendAllMessage(String message) {
-        log.info("【WebSocket消息】广播消息：" + message);
         for (Session session : SESSIONS) {
             try {
                 if (session.isOpen()) {
@@ -373,7 +363,6 @@ public class WebSocket {
         if (session != null && session.isOpen()) {
             try {
                 synchronized (session) {
-                    log.info("【WebSocket消息】单点消息：" + message);
                     session.getAsyncRemote().sendText(message);
                 }
             } catch (Exception e) {
@@ -386,7 +375,6 @@ public class WebSocket {
      * 发送所有在线用户信息
      */
     public void sendAllUsers() {
-        log.info("【WebSocket消息】发送所有在线用户信息");
         HashMap<String, List<WebSocketVO>> stringListHashMap = new HashMap<>(0);
         List<WebSocketVO> WebSocketVOs = new ArrayList<>();
         stringListHashMap.put("users", WebSocketVOs);
