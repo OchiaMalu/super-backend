@@ -18,9 +18,9 @@ public class QiNiuUtils {
     public static void upload(byte[] uploadBytes, String fileName) {
         Configuration cfg = new Configuration(Region.region0());
         UploadManager uploadManager = new UploadManager(cfg);
-        String accessKey = "YEbtH-gNUUMXLQ1ZJkU9ZYXxI_KD3eLQdEPoN5Uq";
-        String secretKey = "AF_TexI1P0viU15b1H57gTxX-n9CeuGTsOGISbl4";
-        String bucket = "picgo-ochiamalu";
+        String accessKey = "ak";
+        String secretKey = "sk";
+        String bucket = "bucket";
 
         ByteArrayInputStream byteInputStream = new ByteArrayInputStream(uploadBytes);
         Auth auth = Auth.create(accessKey, secretKey);
