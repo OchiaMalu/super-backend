@@ -13,7 +13,9 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -45,17 +47,29 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow>
     }
 
     @Override
-    public List<User> listFans(Long userId) {
+    public List<UserVO> listFans(Long userId) {
         LambdaQueryWrapper<Follow> followLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        followLambdaQueryWrapper.eq(Follow::getFollowUserId,userId);
+        followLambdaQueryWrapper.eq(Follow::getFollowUserId, userId);
         List<Follow> list = this.list(followLambdaQueryWrapper);
-        return list.stream().map((follow -> userService.getById(follow.getUserId()))).collect(Collectors.toList());
+        if (list == null || list.size() == 0) {
+            return new ArrayList<>();
+        }
+        List<User> userList = list.stream().map((follow -> userService.getById(follow.getUserId()))).filter(Objects::nonNull).collect(Collectors.toList());
+        return userList.stream().map((item) -> {
+            UserVO userVO = new UserVO();
+            BeanUtils.copyProperties(item, userVO);
+            LambdaQueryWrapper<Follow> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+            lambdaQueryWrapper.eq(Follow::getUserId, userId).eq(Follow::getFollowUserId, item.getId());
+            long count = this.count(lambdaQueryWrapper);
+            userVO.setIsFollow(count > 0);
+            return userVO;
+        }).collect(Collectors.toList());
     }
 
     @Override
     public List<UserVO> listMyFollow(Long userId) {
         LambdaQueryWrapper<Follow> followLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        followLambdaQueryWrapper.eq(Follow::getUserId,userId);
+        followLambdaQueryWrapper.eq(Follow::getUserId, userId);
         List<Follow> list = this.list(followLambdaQueryWrapper);
         List<User> userList = list.stream().map((follow -> userService.getById(follow.getFollowUserId()))).collect(Collectors.toList());
         return userList.stream().map((user) -> {

@@ -66,13 +66,13 @@ public class FollowController {
     @ApiOperation(value = "获取粉丝")
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<List<User>> listFans(HttpServletRequest request){
+    public BaseResponse<List<UserVO>> listFans(HttpServletRequest request){
         User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
-        List<User> userList = followService.listFans(loginUser.getId());
-        return ResultUtils.success(userList);
+        List<UserVO> userVOList = followService.listFans(loginUser.getId());
+        return ResultUtils.success(userVOList);
     }
 
     @GetMapping("/my")

@@ -16,7 +16,7 @@ public interface FollowService extends IService<Follow> {
 
     void followUser(Long followUserId, Long userId);
 
-    List<User> listFans(Long userId);
+    List<UserVO> listFans(Long userId);
 
     List<UserVO> listMyFollow(Long userId);
 }
