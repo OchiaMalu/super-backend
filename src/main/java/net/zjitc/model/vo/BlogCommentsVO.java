@@ -6,6 +6,7 @@ import lombok.Data;
 import net.zjitc.model.domain.BlogComments;
 
 import java.io.Serializable;
+
 @Data
 @ApiModel(value = "博文评论返回")
 public class BlogCommentsVO extends BlogComments implements Serializable {
@@ -14,4 +15,5 @@ public class BlogCommentsVO extends BlogComments implements Serializable {
     private UserVO commentUser;
     @ApiModelProperty(value = "是否点赞")
     private Boolean isLiked;
+    private BlogVO blog;
 }

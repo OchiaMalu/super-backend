@@ -1,5 +1,6 @@
 package net.zjitc.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -8,18 +9,22 @@ import net.zjitc.common.BaseResponse;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.common.ResultUtils;
 import net.zjitc.exception.BusinessException;
+import net.zjitc.model.domain.BlogComments;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.request.AddCommentRequest;
 import net.zjitc.model.vo.BlogCommentsVO;
+import net.zjitc.model.vo.UserVO;
 import net.zjitc.service.BlogCommentsService;
 import net.zjitc.service.UserService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.annotations.Delete;
+import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 
@@ -41,6 +46,7 @@ public class BlogCommentsController {
 
     @Resource
     private UserService userService;
+
     /**
      * 添加评论
      *
@@ -133,13 +139,23 @@ public class BlogCommentsController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "id", value = "博文评论id"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<String> deleteBlogComment(@PathVariable Long id,HttpServletRequest request){
+    public BaseResponse<String> deleteBlogComment(@PathVariable Long id, HttpServletRequest request) {
         User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
         boolean isAdmin = userService.isAdmin(loginUser);
-        blogCommentsService.deleteComment(id,loginUser.getId(),isAdmin);
+        blogCommentsService.deleteComment(id, loginUser.getId(), isAdmin);
         return ResultUtils.success("ok");
+    }
+
+    @GetMapping("/list/my")
+    public BaseResponse<List<BlogCommentsVO>> listMyBlogComments(HttpServletRequest request) {
+        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        List<BlogCommentsVO> commentsVOList = blogCommentsService.listMyComments(loginUser.getId());
+        return ResultUtils.success(commentsVOList);
     }
 }

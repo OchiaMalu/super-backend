@@ -14,6 +14,7 @@ import net.zjitc.model.domain.CommentLike;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.request.AddCommentRequest;
 import net.zjitc.model.vo.BlogCommentsVO;
+import net.zjitc.model.vo.BlogVO;
 import net.zjitc.model.vo.UserVO;
 import net.zjitc.service.BlogCommentsService;
 import net.zjitc.mapper.BlogCommentsMapper;
@@ -25,6 +26,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+
+import static net.zjitc.constants.SystemConstants.QiNiuUrl;
 
 /**
  * @author OchiaMalu
@@ -134,6 +137,42 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
         this.removeById(id);
         Integer commentsNum = blogService.getById(blogComments.getBlogId()).getCommentsNum();
         blogService.update().eq("id", blogComments.getBlogId()).set("comments_num", commentsNum - 1).update();
+    }
+
+    @Override
+    public List<BlogCommentsVO> listMyComments(Long id) {
+        LambdaQueryWrapper<BlogComments> blogCommentsLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        blogCommentsLambdaQueryWrapper.eq(BlogComments::getUserId, id);
+        List<BlogComments> blogCommentsList = this.list(blogCommentsLambdaQueryWrapper);
+        List<BlogCommentsVO> commentsVOList = blogCommentsList.stream().map((item) -> {
+            BlogCommentsVO blogCommentsVO = new BlogCommentsVO();
+            BeanUtils.copyProperties(item, blogCommentsVO);
+            User user = userService.getById(item.getUserId());
+            UserVO userVO = new UserVO();
+            BeanUtils.copyProperties(user, userVO);
+            blogCommentsVO.setCommentUser(userVO);
+
+            Long blogId = blogCommentsVO.getBlogId();
+            Blog blog = blogService.getById(blogId);
+            BlogVO blogVO = new BlogVO();
+            BeanUtils.copyProperties(blog,blogVO);
+            String images = blogVO.getImages();
+            if (images == null) {
+                blogVO.setCoverImage(null);
+            }else {
+                String[] imgStrs = images.split(",");
+                blogVO.setCoverImage(QiNiuUrl + imgStrs[0]);
+            }
+            Long authorId = blogVO.getUserId();
+            User author = userService.getById(authorId);
+            UserVO authorVO = new UserVO();
+            BeanUtils.copyProperties(author,authorVO);
+            blogVO.setAuthor(authorVO);
+
+            blogCommentsVO.setBlog(blogVO);
+            return blogCommentsVO;
+        }).collect(Collectors.toList());
+        return commentsVOList;
     }
 }
 
