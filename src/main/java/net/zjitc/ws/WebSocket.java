@@ -363,7 +363,7 @@ public class WebSocket {
         if (session != null && session.isOpen()) {
             try {
                 synchronized (session) {
-                    session.getAsyncRemote().sendText(message);
+                    session.getBasicRemote().sendText(message);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
