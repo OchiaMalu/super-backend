@@ -41,4 +41,6 @@ public interface TeamService extends IService<Team> {
     Page<TeamVO> listMyJoin(long currentPage, TeamQueryRequest teamQuery);
 
     List<UserVO> getTeamMember(Long teamId, Long userId);
+
+    List<TeamVO> listAllMyJoin(Long id);
 }

@@ -27,7 +27,7 @@ public class Friends implements Serializable {
     private Long fromId;
 
     /**
-     * 接收申请的用户id 
+     * 接收申请的用户id
      */
     private Long receiveId;
 
@@ -47,7 +47,7 @@ public class Friends implements Serializable {
     private Date createTime;
 
     /**
-     * 
+     *
      */
     private Date updateTime;
 

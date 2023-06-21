@@ -3,6 +3,8 @@ package net.zjitc.service;
 import net.zjitc.model.domain.Follow;
 import com.baomidou.mybatisplus.extension.service.IService;
 import net.zjitc.model.domain.User;
+import net.zjitc.model.vo.UserVO;
+
 import java.util.List;
 
 /**
@@ -14,5 +16,7 @@ public interface FollowService extends IService<Follow> {
 
     void followUser(Long followUserId, Long userId);
 
-    List<User> listUserFollowedMe(Long userId);
+    List<User> listFans(Long userId);
+
+    List<UserVO> listMyFollow(Long userId);
 }

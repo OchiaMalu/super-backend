@@ -270,6 +270,19 @@ public class TeamController {
         return getUserJoinedList(loginUser, finalPage);
     }
 
+    @GetMapping("/list/my/join/all")
+    @ApiOperation(value = "获取我加入的队伍")
+    @ApiImplicitParams({@ApiImplicitParam(name = "teamQuery", value = "获取队伍请求参数"),
+            @ApiImplicitParam(name = "request", value = "request请求")})
+    public BaseResponse<List<TeamVO>> listAllMyJoinTeams(HttpServletRequest request) {
+        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        if (loginUser==null){
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        List<TeamVO> teamVOList = teamService.listAllMyJoin(loginUser.getId());
+        return ResultUtils.success(teamVOList);
+    }
+
     /**
      * 让用户加入列表
      *

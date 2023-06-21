@@ -452,6 +452,22 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         }).collect(Collectors.toList());
     }
 
+    @Override
+    public List<TeamVO> listAllMyJoin(Long id) {
+        LambdaQueryWrapper<UserTeam> userTeamLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        userTeamLambdaQueryWrapper.eq(UserTeam::getUserId,id);
+        List<Long> teamIds = userTeamService.list(userTeamLambdaQueryWrapper).stream().map(UserTeam::getTeamId).collect(Collectors.toList());
+        LambdaQueryWrapper<Team> teamLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        teamLambdaQueryWrapper.in(Team::getId,teamIds);
+        List<Team> teamList = this.list(teamLambdaQueryWrapper);
+        return teamList.stream().map((team) -> {
+            TeamVO teamVO = new TeamVO();
+            BeanUtils.copyProperties(team, teamVO);
+            teamVO.setHasJoin(true);
+            return teamVO;
+        }).collect(Collectors.toList());
+    }
+
 
     /**
      * 根据 id 获取队伍信息

@@ -4,9 +4,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import net.zjitc.model.domain.Follow;
 import net.zjitc.model.domain.User;
+import net.zjitc.model.vo.UserVO;
 import net.zjitc.service.FollowService;
 import net.zjitc.mapper.FollowMapper;
 import net.zjitc.service.UserService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -43,11 +45,25 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow>
     }
 
     @Override
-    public List<User> listUserFollowedMe(Long userId) {
+    public List<User> listFans(Long userId) {
         LambdaQueryWrapper<Follow> followLambdaQueryWrapper = new LambdaQueryWrapper<>();
         followLambdaQueryWrapper.eq(Follow::getFollowUserId,userId);
         List<Follow> list = this.list(followLambdaQueryWrapper);
         return list.stream().map((follow -> userService.getById(follow.getUserId()))).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<UserVO> listMyFollow(Long userId) {
+        LambdaQueryWrapper<Follow> followLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        followLambdaQueryWrapper.eq(Follow::getUserId,userId);
+        List<Follow> list = this.list(followLambdaQueryWrapper);
+        List<User> userList = list.stream().map((follow -> userService.getById(follow.getFollowUserId()))).collect(Collectors.toList());
+        return userList.stream().map((user) -> {
+            UserVO userVO = new UserVO();
+            BeanUtils.copyProperties(user, userVO);
+            userVO.setIsFollow(true);
+            return userVO;
+        }).collect(Collectors.toList());
     }
 }
 
