@@ -17,7 +17,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import net.zjitc.model.domain.User;
-import net.zjitc.model.vo.MessageVO;
+import net.zjitc.model.vo.ChatMessageVO;
 
 import static net.zjitc.constants.ChatConstant.*;
 import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
@@ -49,14 +49,14 @@ public class ChatController {
      *
      * @param chatRequest 聊天请求
      * @param request     请求
-     * @return {@link BaseResponse}<{@link List}<{@link MessageVO}>>
+     * @return {@link BaseResponse}<{@link List}<{@link ChatMessageVO}>>
      */
     @PostMapping("/privateChat")
     @ApiOperation(value = "获取私聊")
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "chatRequest", value = "聊天请求"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<List<MessageVO>> getPrivateChat(@RequestBody ChatRequest chatRequest, HttpServletRequest request) {
+    public BaseResponse<List<ChatMessageVO>> getPrivateChat(@RequestBody ChatRequest chatRequest, HttpServletRequest request) {
         if (chatRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -64,7 +64,7 @@ public class ChatController {
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
-        List<MessageVO> privateChat = chatService.getPrivateChat(chatRequest, PRIVATE_CHAT, loginUser);
+        List<ChatMessageVO> privateChat = chatService.getPrivateChat(chatRequest, PRIVATE_CHAT, loginUser);
         return ResultUtils.success(privateChat);
     }
 
@@ -73,26 +73,26 @@ public class ChatController {
      *
      * @param chatRequest 聊天请求
      * @param request     请求
-     * @return {@link BaseResponse}<{@link List}<{@link MessageVO}>>
+     * @return {@link BaseResponse}<{@link List}<{@link ChatMessageVO}>>
      */
     @PostMapping("/teamChat")
     @ApiOperation(value = "获取队伍聊天")
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "chatRequest", value = "聊天请求"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<List<MessageVO>> getTeamChat(@RequestBody ChatRequest chatRequest, HttpServletRequest request) {
+    public BaseResponse<List<ChatMessageVO>> getTeamChat(@RequestBody ChatRequest chatRequest, HttpServletRequest request) {
         if (chatRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求有误");
         }
         User loginUser = userService.getLoginUser(request);
-        List<MessageVO> teamChat = chatService.getTeamChat(chatRequest, TEAM_CHAT, loginUser);
+        List<ChatMessageVO> teamChat = chatService.getTeamChat(chatRequest, TEAM_CHAT, loginUser);
         return ResultUtils.success(teamChat);
     }
 
     @GetMapping("/hallChat")
-    public BaseResponse<List<MessageVO>> getHallChat(HttpServletRequest request) {
+    public BaseResponse<List<ChatMessageVO>> getHallChat(HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
-        List<MessageVO> hallChat = chatService.getHallChat(HALL_CHAT, loginUser);
+        List<ChatMessageVO> hallChat = chatService.getHallChat(HALL_CHAT, loginUser);
         return ResultUtils.success(hallChat);
     }
 }

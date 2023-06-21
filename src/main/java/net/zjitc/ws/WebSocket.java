@@ -10,7 +10,7 @@ import net.zjitc.config.HttpSessionConfig;
 import net.zjitc.model.domain.Chat;
 import net.zjitc.model.domain.Team;
 import net.zjitc.model.request.MessageRequest;
-import net.zjitc.model.vo.MessageVO;
+import net.zjitc.model.vo.ChatMessageVO;
 import net.zjitc.model.vo.WebSocketVO;
 import net.zjitc.service.ChatService;
 import net.zjitc.service.TeamService;
@@ -215,22 +215,22 @@ public class WebSocket {
      * @param chatType
      */
     private void teamChat(User user, String text, Team team, Integer chatType) {
-        MessageVO MessageVO = new MessageVO();
+        ChatMessageVO ChatMessageVO = new ChatMessageVO();
         WebSocketVO fromWebSocketVO = new WebSocketVO();
         BeanUtils.copyProperties(user, fromWebSocketVO);
-        MessageVO.setFormUser(fromWebSocketVO);
-        MessageVO.setText(text);
-        MessageVO.setTeamId(team.getId());
-        MessageVO.setChatType(chatType);
-        MessageVO.setCreateTime(DateUtil.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
+        ChatMessageVO.setFormUser(fromWebSocketVO);
+        ChatMessageVO.setText(text);
+        ChatMessageVO.setTeamId(team.getId());
+        ChatMessageVO.setChatType(chatType);
+        ChatMessageVO.setCreateTime(DateUtil.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
         if (user.getId() == team.getUserId() || user.getRole() == ADMIN_ROLE) {
-            MessageVO.setIsAdmin(true);
+            ChatMessageVO.setIsAdmin(true);
         }
         User loginUser = (User) this.httpSession.getAttribute(USER_LOGIN_STATE);
         if (loginUser.getId() == user.getId()) {
-            MessageVO.setIsMy(true);
+            ChatMessageVO.setIsMy(true);
         }
-        String toJson = new Gson().toJson(MessageVO);
+        String toJson = new Gson().toJson(ChatMessageVO);
         try {
             broadcast(String.valueOf(team.getId()), toJson);
             savaChat(user.getId(), null, text, team.getId(), chatType);
@@ -247,21 +247,21 @@ public class WebSocket {
      * @param text
      */
     private void hallChat(User user, String text, Integer chatType) {
-        MessageVO MessageVO = new MessageVO();
+        ChatMessageVO ChatMessageVO = new ChatMessageVO();
         WebSocketVO fromWebSocketVO = new WebSocketVO();
         BeanUtils.copyProperties(user, fromWebSocketVO);
-        MessageVO.setFormUser(fromWebSocketVO);
-        MessageVO.setText(text);
-        MessageVO.setChatType(chatType);
-        MessageVO.setCreateTime(DateUtil.format(new Date(), "yyyy年MM月dd日 HH:mm:ss"));
+        ChatMessageVO.setFormUser(fromWebSocketVO);
+        ChatMessageVO.setText(text);
+        ChatMessageVO.setChatType(chatType);
+        ChatMessageVO.setCreateTime(DateUtil.format(new Date(), "yyyy年MM月dd日 HH:mm:ss"));
         if (user.getRole() == ADMIN_ROLE) {
-            MessageVO.setIsAdmin(true);
+            ChatMessageVO.setIsAdmin(true);
         }
         User loginUser = (User) this.httpSession.getAttribute(USER_LOGIN_STATE);
         if (loginUser.getId() == user.getId()) {
-            MessageVO.setIsMy(true);
+            ChatMessageVO.setIsMy(true);
         }
-        String toJson = new Gson().toJson(MessageVO);
+        String toJson = new Gson().toJson(ChatMessageVO);
         sendAllMessage(toJson);
         savaChat(user.getId(), null, text, null, chatType);
         chatService.deleteKey(CACHE_CHAT_HALL, String.valueOf(user.getId()));
@@ -276,12 +276,12 @@ public class WebSocket {
     private void privateChat(User user, Long toId, String text, Integer chatType) {
         Session toSession = SESSION_POOL.get(toId.toString());
         if (toSession != null) {
-            MessageVO MessageVO = chatService.chatResult(user.getId(), toId, text, chatType, DateUtil.date(System.currentTimeMillis()));
+            ChatMessageVO ChatMessageVO = chatService.chatResult(user.getId(), toId, text, chatType, DateUtil.date(System.currentTimeMillis()));
             User loginUser = (User) this.httpSession.getAttribute(USER_LOGIN_STATE);
             if (loginUser.getId() == user.getId()) {
-                MessageVO.setIsMy(true);
+                ChatMessageVO.setIsMy(true);
             }
-            String toJson = new Gson().toJson(MessageVO);
+            String toJson = new Gson().toJson(ChatMessageVO);
             sendOneMessage(toId.toString(), toJson);
             savaChat(user.getId(), toId, text, null, chatType);
         } else {

@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import net.zjitc.model.domain.Chat;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.request.ChatRequest;
-import net.zjitc.model.vo.MessageVO;
+import net.zjitc.model.vo.ChatMessageVO;
 
 import java.util.Date;
 import java.util.List;
@@ -15,17 +15,17 @@ import java.util.List;
 * @createDate 2023-06-17 21:50:15
 */
 public interface ChatService extends IService<Chat> {
-     List<MessageVO> getPrivateChat(ChatRequest chatRequest, int chatType, User loginUser);
+     List<ChatMessageVO> getPrivateChat(ChatRequest chatRequest, int chatType, User loginUser);
 
-     List<MessageVO> getCache(String redisKey, String id);
+     List<ChatMessageVO> getCache(String redisKey, String id);
 
-     void saveCache(String redisKey, String id, List<MessageVO> messageVos);
+     void saveCache(String redisKey, String id, List<ChatMessageVO> chatMessageVos);
 
-     MessageVO chatResult(Long userId, Long toId, String text, Integer chatType, Date createTime);
+     ChatMessageVO chatResult(Long userId, Long toId, String text, Integer chatType, Date createTime);
 
      void deleteKey(String key, String id);
 
-    List<MessageVO> getTeamChat(ChatRequest chatRequest, int teamChat, User loginUser);
+    List<ChatMessageVO> getTeamChat(ChatRequest chatRequest, int teamChat, User loginUser);
 
-    List<MessageVO> getHallChat(int chatType, User loginUser);
+    List<ChatMessageVO> getHallChat(int chatType, User loginUser);
 }

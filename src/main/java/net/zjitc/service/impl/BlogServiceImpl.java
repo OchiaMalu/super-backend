@@ -6,18 +6,13 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.exception.BusinessException;
 import net.zjitc.mapper.BlogMapper;
-import net.zjitc.model.domain.Blog;
-import net.zjitc.model.domain.BlogLike;
-import net.zjitc.model.domain.Follow;
-import net.zjitc.model.domain.User;
+import net.zjitc.model.domain.*;
+import net.zjitc.model.enums.MessageTypeEnum;
 import net.zjitc.model.request.BlogAddRequest;
 import net.zjitc.model.request.BlogUpdateRequest;
 import net.zjitc.model.vo.BlogVO;
 import net.zjitc.model.vo.UserVO;
-import net.zjitc.service.BlogLikeService;
-import net.zjitc.service.BlogService;
-import net.zjitc.service.FollowService;
-import net.zjitc.service.UserService;
+import net.zjitc.service.*;
 import net.zjitc.utils.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -49,6 +44,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
 
     @Resource
     private FollowService followService;
+
+    @Resource
+    private MessageService messageService;
 
     @Override
     public Boolean addBlog(BlogAddRequest blogAddRequest, User loginUser) {
@@ -124,6 +122,12 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
             blogLikeService.save(blogLike);
             int newNum = blog.getLikedNum() + 1;
             this.update().eq("id", blogId).set("liked_num", newNum).update();
+            Message message = new Message();
+            message.setType(MessageTypeEnum.BLOG_LIKE.getValue());
+            message.setFromId(userId);
+            message.setToId(blog.getUserId());
+            message.setData(String.valueOf(blog.getId()));
+            messageService.save(message);
         }
     }
 
@@ -196,13 +200,13 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
     }
 
     @Override
-    public void updateBlog(BlogUpdateRequest blogUpdateRequest, Long userId,boolean isAdmin) {
+    public void updateBlog(BlogUpdateRequest blogUpdateRequest, Long userId, boolean isAdmin) {
         if (blogUpdateRequest.getId() == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         Long createUserId = this.getById(blogUpdateRequest.getId()).getUserId();
         if (!createUserId.equals(userId) && !isAdmin) {
-            throw new BusinessException(ErrorCode.NO_AUTH,"没有权限");
+            throw new BusinessException(ErrorCode.NO_AUTH, "没有权限");
         }
         String title = blogUpdateRequest.getTitle();
         String content = blogUpdateRequest.getContent();

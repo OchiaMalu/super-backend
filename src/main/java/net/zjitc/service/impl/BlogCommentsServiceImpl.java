@@ -8,19 +8,14 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.exception.BusinessException;
-import net.zjitc.model.domain.Blog;
-import net.zjitc.model.domain.BlogComments;
-import net.zjitc.model.domain.CommentLike;
-import net.zjitc.model.domain.User;
+import net.zjitc.model.domain.*;
+import net.zjitc.model.enums.MessageTypeEnum;
 import net.zjitc.model.request.AddCommentRequest;
 import net.zjitc.model.vo.BlogCommentsVO;
 import net.zjitc.model.vo.BlogVO;
 import net.zjitc.model.vo.UserVO;
-import net.zjitc.service.BlogCommentsService;
+import net.zjitc.service.*;
 import net.zjitc.mapper.BlogCommentsMapper;
-import net.zjitc.service.BlogService;
-import net.zjitc.service.CommentLikeService;
-import net.zjitc.service.UserService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +41,9 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
 
     @Resource
     private CommentLikeService commentLikeService;
+
+    @Resource
+    private MessageService messageService;
 
     @Override
     @Transactional
@@ -109,6 +107,12 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
             this.update().eq("id", commentId)
                     .set("liked_num", blogComments.getLikedNum() + 1)
                     .update();
+            Message message = new Message();
+            message.setType(MessageTypeEnum.BLOG_COMMENT_LIKE.getValue());
+            message.setFromId(userId);
+            message.setToId(blogComments.getUserId());
+            message.setData(String.valueOf(blogComments.getId()));
+            messageService.save(message);
         } else {
             commentLikeService.remove(commentLikeLambdaQueryWrapper);
             BlogComments blogComments = this.getById(commentId);
