@@ -31,13 +31,13 @@ import static net.zjitc.constants.ChatConstant.*;
 import static net.zjitc.constants.UserConstants.ADMIN_ROLE;
 
 /**
-* @author OchiaMalu
-* @description 针对表【chat(聊天消息表)】的数据库操作Service实现
-* @createDate 2023-06-17 21:50:15
-*/
+ * @author OchiaMalu
+ * @description 针对表【chat(聊天消息表)】的数据库操作Service实现
+ * @createDate 2023-06-17 21:50:15
+ */
 @Service
 public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
-    implements ChatService{
+        implements ChatService {
 
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
@@ -105,15 +105,17 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
             log.error("redis set key error");
         }
     }
+
     private MessageVO chatResult(Long userId, String text) {
-        MessageVO messageVo = new MessageVO();
+        MessageVO MessageVO = new MessageVO();
         User fromUser = userService.getById(userId);
         WebSocketVO fromWebSocketVo = new WebSocketVO();
         BeanUtils.copyProperties(fromUser, fromWebSocketVo);
-        messageVo.setFormUser(fromWebSocketVo);
-        messageVo.setText(text);
-        return messageVo;
+        MessageVO.setFormUser(fromWebSocketVo);
+        MessageVO.setText(text);
+        return MessageVO;
     }
+
     @Override
     public MessageVO chatResult(Long userId, Long toId, String text, Integer chatType, Date createTime) {
         MessageVO MessageVO = new MessageVO();
@@ -160,6 +162,21 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         return MessageVOs;
     }
 
+    @Override
+    public List<MessageVO> getHallChat(int chatType, User loginUser) {
+        List<MessageVO> chatRecords = getCache(CACHE_CHAT_HALL, String.valueOf(loginUser.getId()));
+        if (chatRecords != null) {
+            List<MessageVO> MessageVOs = checkIsMyMessage(loginUser, chatRecords);
+            saveCache(CACHE_CHAT_HALL, String.valueOf(loginUser.getId()), MessageVOs);
+            return MessageVOs;
+        }
+        LambdaQueryWrapper<Chat> chatLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        chatLambdaQueryWrapper.eq(Chat::getChatType, chatType);
+        List<MessageVO> MessageVOs = returnMessage(loginUser, null, chatLambdaQueryWrapper);
+        saveCache(CACHE_CHAT_HALL, String.valueOf(loginUser.getId()), MessageVOs);
+        return MessageVOs;
+    }
+
     private List<MessageVO> checkIsMyMessage(User loginUser, List<MessageVO> chatRecords) {
         return chatRecords.stream().peek(chat -> {
             if (chat.getFormUser().getId() != loginUser.getId() && chat.getIsMy()) {
@@ -174,16 +191,16 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
     private List<MessageVO> returnMessage(User loginUser, Long userId, LambdaQueryWrapper<Chat> chatLambdaQueryWrapper) {
         List<Chat> chatList = this.list(chatLambdaQueryWrapper);
         return chatList.stream().map(chat -> {
-            MessageVO messageVo = chatResult(chat.getFromId(), chat.getText());
+            MessageVO MessageVO = chatResult(chat.getFromId(), chat.getText());
             boolean isCaptain = userId != null && userId.equals(chat.getFromId());
             if (userService.getById(chat.getFromId()).getRole() == ADMIN_ROLE || isCaptain) {
-                messageVo.setIsAdmin(true);
+                MessageVO.setIsAdmin(true);
             }
             if (chat.getFromId().equals(loginUser.getId())) {
-                messageVo.setIsMy(true);
+                MessageVO.setIsMy(true);
             }
-            messageVo.setCreateTime(DateUtil.format(chat.getCreateTime(), "yyyy年MM月dd日 HH:mm:ss"));
-            return messageVo;
+            MessageVO.setCreateTime(DateUtil.format(chat.getCreateTime(), "yyyy年MM月dd日 HH:mm:ss"));
+            return MessageVO;
         }).collect(Collectors.toList());
     }
 }

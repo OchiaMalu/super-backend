@@ -26,4 +26,6 @@ public interface ChatService extends IService<Chat> {
      void deleteKey(String key, String id);
 
     List<MessageVO> getTeamChat(ChatRequest chatRequest, int teamChat, User loginUser);
+
+    List<MessageVO> getHallChat(int chatType, User loginUser);
 }

@@ -19,8 +19,7 @@ import java.util.List;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.vo.MessageVO;
 
-import static net.zjitc.constants.ChatConstant.PRIVATE_CHAT;
-import static net.zjitc.constants.ChatConstant.TEAM_CHAT;
+import static net.zjitc.constants.ChatConstant.*;
 import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 
 /**
@@ -88,5 +87,12 @@ public class ChatController {
         User loginUser = userService.getLoginUser(request);
         List<MessageVO> teamChat = chatService.getTeamChat(chatRequest, TEAM_CHAT, loginUser);
         return ResultUtils.success(teamChat);
+    }
+
+    @GetMapping("/hallChat")
+    public BaseResponse<List<MessageVO>> getHallChat(HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        List<MessageVO> hallChat = chatService.getHallChat(HALL_CHAT, loginUser);
+        return ResultUtils.success(hallChat);
     }
 }
