@@ -95,8 +95,8 @@ public class UserController {
         Integer code = ValidateCodeUtils.generateValidateCode(6);
         String key = REGISTER_CODE_KEY + phone;
         stringRedisTemplate.opsForValue().set(key, String.valueOf(code), REGISTER_CODE_TTL, TimeUnit.MINUTES);
-//        System.out.println(code);
-        SMSUtils.sendMessage(phone, String.valueOf(code));
+        System.out.println(code);
+//        SMSUtils.sendMessage(phone, String.valueOf(code));
         return ResultUtils.success("短信发送成功");
     }
 
@@ -326,7 +326,11 @@ public class UserController {
             {@ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<User> getCurrentUser(HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
-        return ResultUtils.success(loginUser);
+        //用户更新标签后，取得的用户是旧数据
+        Long userId = loginUser.getId();
+        User user = userService.getById(userId);
+        User safetyUser = userService.getSafetyUser(user);
+        return ResultUtils.success(safetyUser);
     }
 
     /**
