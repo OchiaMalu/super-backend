@@ -9,7 +9,7 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Random;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class MockData {
     @Resource
     private UserService userService;
@@ -36,7 +36,7 @@ public class MockData {
     @Test
     void insert() {
         Random random = new Random();
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 1000000; i++) {
 //            String randomUsername = getRandomUsername(random);
             String randomUsername = getRandomString(10);
             ArrayList<String> randomTags = getRandomTags(random);

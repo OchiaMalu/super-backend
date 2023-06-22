@@ -3,6 +3,8 @@ package net.zjitc.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -471,7 +473,21 @@ public class UserController {
         Boolean isLogin = userService.isLogin(request);
         if (isLogin) {
             User user = userService.getLoginUser(request);
-            return ResultUtils.success(userService.matchUser(currentPage, user));
+            if (currentPage <= 5) {
+                String key = USER_RECOMMEND_KEY + user.getId() + ":" + currentPage;
+                Boolean hasKey = stringRedisTemplate.hasKey(key);
+                if (Boolean.TRUE.equals(hasKey)) {
+                    String userVOPageStr = stringRedisTemplate.opsForValue().get(key);
+                    Gson gson = new Gson();
+                    Page<UserVO> userVOPage = gson.fromJson(userVOPageStr, new TypeToken<Page<UserVO>>() {
+                    }.getType());
+                    return ResultUtils.success(userVOPage);
+                } else {
+                    return ResultUtils.success(userService.matchUser(currentPage, user));
+                }
+            } else {
+                return ResultUtils.success(userService.matchUser(currentPage, user));
+            }
         } else {
             return ResultUtils.success(userService.getRandomUser());
         }

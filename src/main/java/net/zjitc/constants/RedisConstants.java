@@ -8,10 +8,6 @@ package net.zjitc.constants;
  */
 public interface RedisConstants {
     /**
-     * 推荐键
-     */
-    String RECOMMEND_KEY = "super:user:recommend";
-    /**
      * 注册验证码键
      */
     String REGISTER_CODE_KEY = "super:register:";
@@ -55,4 +51,8 @@ public interface RedisConstants {
      * 新点赞消息键
      */
     String MESSAGE_LIKE_NUM_KEY = "super:message:like:num:";
+    /**
+     * 用户推荐缓存
+     */
+    String USER_RECOMMEND_KEY = "super:recommend:";
 }

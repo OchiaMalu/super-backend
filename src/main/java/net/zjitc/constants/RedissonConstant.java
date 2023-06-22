@@ -10,5 +10,7 @@ public interface RedissonConstant {
     /**
      * 应用锁
      */
-    String APPLY_LOCK="super:apply:";
+    String APPLY_LOCK = "super:apply:lock:";
+
+    String DISBAND_EXPIRED_TEAM_LOCK = "super:disbandTeam:lock";
 }
