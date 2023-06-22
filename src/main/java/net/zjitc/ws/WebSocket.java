@@ -37,6 +37,12 @@ import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 import static net.zjitc.utils.StringUtils.stringJsonListToLongSet;
 
 
+/**
+ * WebSocket服务
+ *
+ * @author 林哲好
+ * @date 2023/06/22
+ */
 @Component
 @Slf4j
 @ServerEndpoint(value = "/websocket/{userId}/{teamId}", configurator = HttpSessionConfig.class)
@@ -45,49 +51,92 @@ public class WebSocket {
      * 保存队伍的连接信息
      */
     private static final Map<String, ConcurrentHashMap<String, WebSocket>> ROOMS = new HashMap<>();
+
     /**
      * 线程安全的无序的集合
      */
     private static final CopyOnWriteArraySet<Session> SESSIONS = new CopyOnWriteArraySet<>();
+
     /**
-     * 存储在线连接数
+     * 会话池
      */
     private static final Map<String, Session> SESSION_POOL = new HashMap<>(0);
+    /**
+     * 用户服务
+     */
     private static UserService userService;
+    /**
+     * 聊天服务
+     */
     private static ChatService chatService;
+    /**
+     * 团队服务
+     */
     private static TeamService teamService;
+
     /**
      * 房间在线人数
      */
     private static int onlineCount = 0;
+
     /**
      * 当前信息
      */
     private Session session;
+
+    /**
+     * http会话
+     */
     private HttpSession httpSession;
 
+    /**
+     * 上网数
+     *
+     * @return int
+     */
     public static synchronized int getOnlineCount() {
         return onlineCount;
     }
 
+    /**
+     * 添加在线计数
+     */
     public static synchronized void addOnlineCount() {
         WebSocket.onlineCount++;
     }
 
+    /**
+     * 子在线计数
+     */
     public static synchronized void subOnlineCount() {
         WebSocket.onlineCount--;
     }
 
+    /**
+     * 集热地图服务
+     *
+     * @param userService 用户服务
+     */
     @Resource
     public void setHeatMapService(UserService userService) {
         WebSocket.userService = userService;
     }
 
+    /**
+     * 集热地图服务
+     *
+     * @param chatService 聊天服务
+     */
     @Resource
     public void setHeatMapService(ChatService chatService) {
         WebSocket.chatService = chatService;
     }
 
+    /**
+     * 集热地图服务
+     *
+     * @param teamService 团队服务
+     */
     @Resource
     public void setHeatMapService(TeamService teamService) {
         WebSocket.teamService = teamService;
@@ -97,9 +146,8 @@ public class WebSocket {
     /**
      * 队伍内群发消息
      *
-     * @param teamId
-     * @param msg
-     * @throws Exception
+     * @param teamId 团队id
+     * @param msg    消息
      */
     public static void broadcast(String teamId, String msg) {
         ConcurrentHashMap<String, WebSocket> map = ROOMS.get(teamId);
@@ -117,13 +165,21 @@ public class WebSocket {
     /**
      * 发送消息
      *
-     * @param message
-     * @throws IOException
+     * @param message 消息
+     * @throws IOException ioexception
      */
     public void sendMessage(String message) throws IOException {
         this.session.getBasicRemote().sendText(message);
     }
 
+    /**
+     * 开放
+     *
+     * @param session 会话
+     * @param userId  用户id
+     * @param teamId  团队id
+     * @param config  配置
+     */
     @OnOpen
     public void onOpen(Session session, @PathParam(value = "userId") String userId, @PathParam(value = "teamId") String teamId, EndpointConfig config) {
         try {
@@ -161,6 +217,13 @@ public class WebSocket {
         }
     }
 
+    /**
+     * 关闭
+     *
+     * @param userId  用户id
+     * @param teamId  团队id
+     * @param session 会话
+     */
     @OnClose
     public void onClose(@PathParam("userId") String userId, @PathParam(value = "teamId") String teamId, Session session) {
         try {
@@ -181,6 +244,12 @@ public class WebSocket {
         }
     }
 
+    /**
+     * 消息
+     *
+     * @param message 消息
+     * @param userId  用户id
+     */
     @OnMessage
     public void onMessage(String message, @PathParam("userId") String userId) {
         if ("PING".equals(message)) {
@@ -209,10 +278,10 @@ public class WebSocket {
     /**
      * 队伍聊天
      *
-     * @param user
-     * @param text
-     * @param team
-     * @param chatType
+     * @param user     用户
+     * @param text     文本
+     * @param team     团队
+     * @param chatType 聊天类型
      */
     private void teamChat(User user, String text, Team team, Integer chatType) {
         ChatMessageVO ChatMessageVO = new ChatMessageVO();
@@ -243,8 +312,9 @@ public class WebSocket {
     /**
      * 大厅聊天
      *
-     * @param user
-     * @param text
+     * @param user     用户
+     * @param text     文本
+     * @param chatType 聊天类型
      */
     private void hallChat(User user, String text, Integer chatType) {
         ChatMessageVO ChatMessageVO = new ChatMessageVO();
@@ -270,8 +340,10 @@ public class WebSocket {
     /**
      * 私聊
      *
-     * @param user
-     * @param text
+     * @param user     用户
+     * @param toId     为id
+     * @param text     文本
+     * @param chatType 聊天类型
      */
     private void privateChat(User user, Long toId, String text, Integer chatType) {
         Session toSession = SESSION_POOL.get(toId.toString());
@@ -293,9 +365,11 @@ public class WebSocket {
     /**
      * 保存聊天
      *
-     * @param userId
-     * @param toId
-     * @param text
+     * @param userId   用户id
+     * @param toId     为id
+     * @param text     文本
+     * @param teamId   团队id
+     * @param chatType 聊天类型
      */
     private void savaChat(Long userId, Long toId, String text, Long teamId, Integer chatType) {
         if (chatType == PRIVATE_CHAT) {
@@ -323,8 +397,8 @@ public class WebSocket {
     /**
      * 发送失败
      *
-     * @param userId
-     * @param errorMessage
+     * @param userId       用户id
+     * @param errorMessage 错误消息
      */
     private void sendError(String userId, String errorMessage) {
         JSONObject obj = new JSONObject();
@@ -333,7 +407,7 @@ public class WebSocket {
     }
 
     /**
-     * 此为广播消息
+     * 广播消息
      *
      * @param message 消息
      */
@@ -353,7 +427,7 @@ public class WebSocket {
 
 
     /**
-     * 此为单点消息
+     * 发送一个消息
      *
      * @param userId  用户编号
      * @param message 消息
@@ -372,7 +446,7 @@ public class WebSocket {
     }
 
     /**
-     * 发送所有在线用户信息
+     * 给所有用户
      */
     public void sendAllUsers() {
         HashMap<String, List<WebSocketVO>> stringListHashMap = new HashMap<>(0);

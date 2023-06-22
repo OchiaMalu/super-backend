@@ -6,6 +6,13 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.util.List;
+
+/**
+ * 团队查询请求
+ *
+ * @author 林哲好
+ * @date 2023/06/22
+ */
 @Data
 @ApiModel(value = "队伍搜索请求")
 public class TeamQueryRequest implements Serializable {

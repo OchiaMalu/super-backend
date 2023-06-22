@@ -2,6 +2,12 @@ package net.zjitc.utils;
 
 import java.util.Random;
 
+/**
+ * 验证码生成工具
+ *
+ * @author 林哲好
+ * @date 2023/06/22
+ */
 public class ValidateCodeUtils {
     /**
      * 生成验证代码
@@ -25,18 +31,5 @@ public class ValidateCodeUtils {
             throw new RuntimeException("只能生成4位或6位数字验证码");
         }
         return code;
-    }
-
-    /**
-     * 生成验证code4字符串
-     *
-     * @param length 长度
-     * @return {@link String}
-     */
-    public static String generateValidateCode4String(int length){
-        Random rdm = new Random();
-        String hash1 = Integer.toHexString(rdm.nextInt());
-        String capstr = hash1.substring(0, length);
-        return capstr;
     }
 }

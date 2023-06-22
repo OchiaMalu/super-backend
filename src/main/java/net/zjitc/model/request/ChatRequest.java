@@ -6,9 +6,18 @@ import lombok.Data;
 
 import java.io.Serializable;
 
+/**
+ * 聊天请求
+ *
+ * @author 林哲好
+ * @date 2023/06/22
+ */
 @Data
 @ApiModel(value = "用户队伍")
 public class ChatRequest implements Serializable {
+    /**
+     * 串行版本uid
+     */
     private static final long serialVersionUID = 1445805872513828206L;
 
     /**

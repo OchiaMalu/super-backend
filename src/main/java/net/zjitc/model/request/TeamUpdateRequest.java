@@ -7,6 +7,12 @@ import lombok.Data;
 import java.io.Serializable;
 import java.util.Date;
 
+/**
+ * 团队更新请求
+ *
+ * @author 林哲好
+ * @date 2023/06/22
+ */
 @Data
 @ApiModel(value = "更新队伍请求")
 public class TeamUpdateRequest implements Serializable {

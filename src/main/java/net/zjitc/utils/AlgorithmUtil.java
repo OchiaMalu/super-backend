@@ -3,6 +3,12 @@ package net.zjitc.utils;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * 最短编辑距离算法
+ *
+ * @author 林哲好
+ * @date 2023/06/22
+ */
 public class AlgorithmUtil {
     public static int minDistance(List<String> tagList1, List<String> tagList2) {
         int n = tagList1.size();

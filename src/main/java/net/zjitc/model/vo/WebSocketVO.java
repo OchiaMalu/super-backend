@@ -6,6 +6,12 @@ import lombok.Data;
 
 import java.io.Serializable;
 
+/**
+ * 网络套接字签证官
+ *
+ * @author 林哲好
+ * @date 2023/06/22
+ */
 @Data
 @ApiModel(value = "websocket返回")
 public class WebSocketVO implements Serializable {

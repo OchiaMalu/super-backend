@@ -7,6 +7,12 @@ import lombok.Data;
 import java.io.Serializable;
 import java.util.Date;
 
+/**
+ * 用户签证官
+ *
+ * @author 林哲好
+ * @date 2023/06/22
+ */
 @Data
 @ApiModel(value = "用户返回")
 public class UserVO implements Serializable {
@@ -85,6 +91,10 @@ public class UserVO implements Serializable {
     @ApiModelProperty(value = "用户角色")
     private Integer userRole;
 
+    /**
+     * 是否关注
+     */
+    @ApiModelProperty(value = "是否关注")
     private Boolean isFollow;
 
 }

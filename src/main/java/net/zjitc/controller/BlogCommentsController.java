@@ -161,12 +161,15 @@ public class BlogCommentsController {
     }
 
     /**
-     * 我博客评论列表
+     * 获取我的评论
      *
      * @param request 请求
      * @return {@link BaseResponse}<{@link List}<{@link BlogCommentsVO}>>
      */
     @GetMapping("/list/my")
+    @ApiOperation(value = "获取我的评论")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<List<BlogCommentsVO>> listMyBlogComments(HttpServletRequest request) {
         User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
         if (loginUser == null) {

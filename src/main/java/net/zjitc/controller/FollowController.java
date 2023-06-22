@@ -30,13 +30,13 @@ import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 @Api(tags = "关注管理模块")
 public class FollowController {
     /**
-     * 遵循服务
+     * 关注服务
      */
     @Resource
     private FollowService followService;
 
     /**
-     * 遵循用户
+     * 关注用户
      *
      * @param id      id
      * @param request 请求
@@ -57,10 +57,10 @@ public class FollowController {
     }
 
     /**
-     * 用户列表跟着我
+     * 获取粉丝
      *
      * @param request 请求
-     * @return {@link BaseResponse}<{@link List}<{@link User}>>
+     * @return {@link BaseResponse}<{@link List}<{@link UserVO}>>
      */
     @GetMapping("/fans")
     @ApiOperation(value = "获取粉丝")
@@ -75,6 +75,12 @@ public class FollowController {
         return ResultUtils.success(userVOList);
     }
 
+    /**
+     * 获取我关注的用户
+     *
+     * @param request 请求
+     * @return {@link BaseResponse}<{@link List}<{@link UserVO}>>
+     */
     @GetMapping("/my")
     @ApiOperation(value = "获取我关注的用户")
     @ApiImplicitParams(

@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 
 /**
+ * 团队控制器
  * 队伍控制器
  *
  * @author 林哲好
@@ -239,7 +240,7 @@ public class TeamController {
     }
 
     /**
-     * 名单我加入团队
+     * 我加入团队名单
      *
      * @param currentPage 当前页面
      * @param teamQuery   团队查询
@@ -270,6 +271,12 @@ public class TeamController {
         return getUserJoinedList(loginUser, finalPage);
     }
 
+    /**
+     * 列出所有我加入团队
+     *
+     * @param request 请求
+     * @return {@link BaseResponse}<{@link List}<{@link TeamVO}>>
+     */
     @GetMapping("/list/my/join/all")
     @ApiOperation(value = "获取我加入的队伍")
     @ApiImplicitParams({@ApiImplicitParam(name = "teamQuery", value = "获取队伍请求参数"),
@@ -284,7 +291,30 @@ public class TeamController {
     }
 
     /**
-     * 让用户加入列表
+     * 通过id获取团队成员
+     *
+     * @param id      id
+     * @param request 请求
+     * @return {@link BaseResponse}<{@link List}<{@link UserVO}>>
+     */
+    @GetMapping("/member/{id}")
+    @ApiOperation(value = "获取我加入的队伍")
+    @ApiImplicitParams({@ApiImplicitParam(name = "id", value = "队伍id"),
+            @ApiImplicitParam(name = "request", value = "request请求")})
+    public BaseResponse<List<UserVO>> getTeamMemberById(@PathVariable Long id,HttpServletRequest request){
+        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        if (loginUser==null){
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        if (id==null || id<0){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        List<UserVO> teamMember = teamService.getTeamMember(id, loginUser.getId());
+        return ResultUtils.success(teamMember);
+    }
+
+    /**
+     * 获取已加入的用户
      *
      * @param loginUser 登录用户
      * @param teamPage  团队页面
@@ -310,7 +340,7 @@ public class TeamController {
     }
 
     /**
-     * 得到团队加入num
+     * 获取队伍已加入人数
      *
      * @param teamVOPage 团队vopage
      * @return {@link Page}<{@link TeamVO}>
@@ -325,18 +355,5 @@ public class TeamController {
         });
         teamVOPage.setRecords(teamList);
         return teamVOPage;
-    }
-
-    @GetMapping("/member/{id}")
-    public BaseResponse<List<UserVO>> getTeamMemberById(@PathVariable Long id,HttpServletRequest request){
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
-        if (loginUser==null){
-            throw new BusinessException(ErrorCode.NOT_LOGIN);
-        }
-        if (id==null || id<0){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        List<UserVO> teamMember = teamService.getTeamMember(id, loginUser.getId());
-        return ResultUtils.success(teamMember);
     }
 }

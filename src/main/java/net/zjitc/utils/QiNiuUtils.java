@@ -14,6 +14,12 @@ import net.zjitc.exception.BusinessException;
 
 import java.io.ByteArrayInputStream;
 
+/**
+ * 七牛云工具
+ *
+ * @author 林哲好
+ * @date 2023/06/22
+ */
 public class QiNiuUtils {
     public static void upload(byte[] uploadBytes, String fileName) {
         Configuration cfg = new Configuration(Region.region0());

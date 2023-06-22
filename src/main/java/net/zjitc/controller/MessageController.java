@@ -1,5 +1,9 @@
 package net.zjitc.controller;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import net.zjitc.common.BaseResponse;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.common.ResultUtils;
@@ -15,44 +19,82 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-
 import java.util.List;
 
 import static net.zjitc.constants.RedisConstants.MESSAGE_BLOG_NUM_KEY;
-import static net.zjitc.constants.RedisConstants.MESSAGE_LIKE_NUM_KEY;
 import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 
+/**
+ * 消息控制器
+ *
+ * @author 林哲好
+ * @date 2023/06/22
+ */
 @RestController
 @RequestMapping("/message")
+@Api(tags = "消息管理模块")
 public class MessageController {
 
+    /**
+     * 消息服务
+     */
     @Resource
     private MessageService messageService;
 
+    /**
+     * redis
+     */
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
+    /**
+     * 用户是否有新消息
+     *
+     * @param request 请求
+     * @return {@link BaseResponse}<{@link Boolean}>
+     */
     @GetMapping
+    @ApiOperation(value = "用户是否有新消息")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<Boolean> userHasNewMessage(HttpServletRequest request) {
         User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
         if (loginUser == null) {
-            throw new BusinessException(ErrorCode.NOT_LOGIN);
+            return ResultUtils.success(false);
         }
         Boolean hasNewMessage = messageService.hasNewMessage(loginUser.getId());
         return ResultUtils.success(hasNewMessage);
     }
 
+    /**
+     * 获取用户新消息数量
+     *
+     * @param request 请求
+     * @return {@link BaseResponse}<{@link Long}>
+     */
     @GetMapping("/num")
+    @ApiOperation(value = "获取用户新消息数量")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<Long> getUserMessageNum(HttpServletRequest request) {
         User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
         if (loginUser == null) {
-            throw new BusinessException(ErrorCode.NOT_LOGIN);
+            return ResultUtils.success(0L);
         }
         long messageNum = messageService.getMessageNum(loginUser.getId());
         return ResultUtils.success(messageNum);
     }
 
+    /**
+     * 获取用户点赞消息数量
+     *
+     * @param request 请求
+     * @return {@link BaseResponse}<{@link Long}>
+     */
     @GetMapping("/like/num")
+    @ApiOperation(value = "获取用户点赞消息数量")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<Long> getUserLikeMessageNum(HttpServletRequest request) {
         User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
         if (loginUser == null) {
@@ -62,7 +104,16 @@ public class MessageController {
         return ResultUtils.success(messageNum);
     }
 
+    /**
+     * 获取用户点赞消息
+     *
+     * @param request 请求
+     * @return {@link BaseResponse}<{@link List}<{@link MessageVO}>>
+     */
     @GetMapping("/like")
+    @ApiOperation(value = "获取用户点赞消息")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<List<MessageVO>> getUserLikeMessage(HttpServletRequest request) {
         User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
         if (loginUser == null) {
@@ -72,7 +123,16 @@ public class MessageController {
         return ResultUtils.success(messageVOList);
     }
 
+    /**
+     * 获取用户博客消息数量
+     *
+     * @param request 请求
+     * @return {@link BaseResponse}<{@link String}>
+     */
     @GetMapping("/blog/num")
+    @ApiOperation(value = "获取用户博客消息数量")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<String> getUserBlogMessageNum(HttpServletRequest request) {
         User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
         if (loginUser == null) {
@@ -88,7 +148,16 @@ public class MessageController {
         }
     }
 
+    /**
+     * 获取用户博客消息
+     *
+     * @param request 请求
+     * @return {@link BaseResponse}<{@link List}<{@link BlogVO}>>
+     */
     @GetMapping("/blog")
+    @ApiOperation(value = "获取用户博客消息")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<List<BlogVO>> getUserBlogMessage(HttpServletRequest request) {
         User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
         if (loginUser == null) {

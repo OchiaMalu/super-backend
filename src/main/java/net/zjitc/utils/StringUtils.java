@@ -7,6 +7,12 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * 字符串工具
+ *
+ * @author 林哲好
+ * @date 2023/06/22
+ */
 public class StringUtils {
     /**
      * 字符串json数组转Long类型set集合

@@ -7,13 +7,13 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * 消息签证官
+ * 聊天信息vo
  *
  * @author 林哲好
  * @date 2023/06/19
  */
 @Data
-@ApiModel(value = "消息返回")
+@ApiModel(value = "聊天消息返回")
 public class ChatMessageVO implements Serializable {
     /**
      * 串行版本uid

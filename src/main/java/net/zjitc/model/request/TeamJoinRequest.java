@@ -5,6 +5,13 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
+
+/**
+ * 团队加入请求
+ *
+ * @author 林哲好
+ * @date 2023/06/22
+ */
 @Data
 @ApiModel(value = "加入队伍请求")
 public class TeamJoinRequest implements Serializable {

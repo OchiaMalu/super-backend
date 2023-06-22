@@ -12,6 +12,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
+/**
+ * 文件工具
+ *
+ * @author 林哲好
+ * @date 2023/06/22
+ */
 public class FileUtils {
 
     @Value("${super.img}")

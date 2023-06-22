@@ -8,6 +8,12 @@ import com.aliyuncs.exceptions.ClientException;
 import com.aliyuncs.profile.DefaultProfile;
 import com.aliyuncs.profile.IClientProfile;
 
+/**
+ * 短信发送工具
+ *
+ * @author 林哲好
+ * @date 2023/06/22
+ */
 public class SMSUtils {
     public static void sendMessage(String phoneNum,String code) {
         IClientProfile profile = DefaultProfile.getProfile("cn-hangzhou", "ak", "sk");

@@ -45,7 +45,7 @@ public class ChatController {
     private UserService userService;
 
     /**
-     * 让私人聊天
+     * 私聊
      *
      * @param chatRequest 聊天请求
      * @param request     请求
@@ -69,7 +69,7 @@ public class ChatController {
     }
 
     /**
-     * 得到团队聊天
+     * 团队聊天
      *
      * @param chatRequest 聊天请求
      * @param request     请求
@@ -89,7 +89,16 @@ public class ChatController {
         return ResultUtils.success(teamChat);
     }
 
+    /**
+     * 大厅聊天
+     *
+     * @param request 请求
+     * @return {@link BaseResponse}<{@link List}<{@link ChatMessageVO}>>
+     */
     @GetMapping("/hallChat")
+    @ApiOperation(value = "获取大厅聊天")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<List<ChatMessageVO>> getHallChat(HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         List<ChatMessageVO> hallChat = chatService.getHallChat(HALL_CHAT, loginUser);
