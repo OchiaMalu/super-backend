@@ -42,14 +42,16 @@ knife4j:
   enable: true
   openapi:
     title: super接口文档
+    description: "用户匹配系统"
     email: linzhehao1108@126.com
-    version: v1.0
-    terms-of-service-url: https://stackoverflow.com/
+    version: v2.0.0
+    concat: 林哲好
     group:
-      test1:
+      super:
         group-name: super
         api-rule: package
         api-rule-resources:
           - net.zjitc
 super:
   img: /img/
+  job: "0 0 0 * * ? *"
