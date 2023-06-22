@@ -183,7 +183,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 3. 用户脱敏
         User safetyUser = getSafetyUser(userInDatabase);
         // 4. 记录用户的登录态
-//        request.getSession().setAttribute(USER_LOGIN_STATE, safetyUser);
+        request.getSession().setAttribute(USER_LOGIN_STATE, safetyUser);
+        request.getSession().setMaxInactiveInterval(900);
         String token = UUID.randomUUID().toString(true);
         Gson gson = new Gson();
         String userStr = gson.toJson(safetyUser);
@@ -232,6 +233,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         stringRedisTemplate.delete(LOGIN_USER_KEY + token);
+        request.getSession().removeAttribute(USER_LOGIN_STATE);
         return 1;
     }
 
@@ -302,6 +304,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         Gson gson = new Gson();
         User user = gson.fromJson(userStr, User.class);
         stringRedisTemplate.expire(LOGIN_USER_KEY + token, LOGIN_USER_TTL, TimeUnit.MINUTES);
+        request.getSession().setAttribute(USER_LOGIN_STATE, user);
+        request.getSession().setMaxInactiveInterval(900);
         return user;
     }
 

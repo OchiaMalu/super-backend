@@ -191,6 +191,8 @@ public class UserController {
         String token = UUID.randomUUID().toString(true);
         Gson gson = new Gson();
         String userStr = gson.toJson(safetyUser);
+        request.getSession().setAttribute(USER_LOGIN_STATE, safetyUser);
+        request.getSession().setMaxInactiveInterval(900);
         stringRedisTemplate.opsForValue().set(LOGIN_USER_KEY + token, userStr);
         stringRedisTemplate.expire(LOGIN_USER_KEY + token, Duration.ofMinutes(15));
         return ResultUtils.success(token);
