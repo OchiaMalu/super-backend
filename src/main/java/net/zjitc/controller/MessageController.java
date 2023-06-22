@@ -12,6 +12,7 @@ import net.zjitc.model.domain.User;
 import net.zjitc.model.vo.BlogVO;
 import net.zjitc.model.vo.MessageVO;
 import net.zjitc.service.MessageService;
+import net.zjitc.service.UserService;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -47,6 +48,9 @@ public class MessageController {
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
+    @Resource
+    private UserService userService;
+
     /**
      * 用户是否有新消息
      *
@@ -58,7 +62,7 @@ public class MessageController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<Boolean> userHasNewMessage(HttpServletRequest request) {
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             return ResultUtils.success(false);
         }
@@ -77,7 +81,7 @@ public class MessageController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<Long> getUserMessageNum(HttpServletRequest request) {
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             return ResultUtils.success(0L);
         }
@@ -96,7 +100,7 @@ public class MessageController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<Long> getUserLikeMessageNum(HttpServletRequest request) {
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
@@ -115,7 +119,7 @@ public class MessageController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<List<MessageVO>> getUserLikeMessage(HttpServletRequest request) {
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
@@ -134,7 +138,7 @@ public class MessageController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<String> getUserBlogMessageNum(HttpServletRequest request) {
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
@@ -159,7 +163,7 @@ public class MessageController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<List<BlogVO>> getUserBlogMessage(HttpServletRequest request) {
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }

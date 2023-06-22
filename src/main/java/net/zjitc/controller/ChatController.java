@@ -60,7 +60,7 @@ public class ChatController {
         if (chatRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
@@ -85,6 +85,9 @@ public class ChatController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求有误");
         }
         User loginUser = userService.getLoginUser(request);
+        if (loginUser==null){
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
         List<ChatMessageVO> teamChat = chatService.getTeamChat(chatRequest, TEAM_CHAT, loginUser);
         return ResultUtils.success(teamChat);
     }
@@ -101,6 +104,9 @@ public class ChatController {
             {@ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<List<ChatMessageVO>> getHallChat(HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
+        if (loginUser==null){
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
         List<ChatMessageVO> hallChat = chatService.getHallChat(HALL_CHAT, loginUser);
         return ResultUtils.success(hallChat);
     }

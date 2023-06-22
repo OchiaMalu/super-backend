@@ -58,7 +58,7 @@ public class BlogController {
             {@ApiImplicitParam(name = "currentPage", value = "当前页"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<Page<BlogVO>> listBlogPage(long currentPage, HttpServletRequest request) {
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             return ResultUtils.success(blogService.pageBlog(currentPage, null));
         } else {
@@ -79,7 +79,7 @@ public class BlogController {
             {@ApiImplicitParam(name = "blogAddRequest", value = "博文添加请求"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<String> addBlog(BlogAddRequest blogAddRequest, HttpServletRequest request) {
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
@@ -103,7 +103,7 @@ public class BlogController {
             {@ApiImplicitParam(name = "currentPage", value = "当前页"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<Page<BlogVO>> listMyBlogs(long currentPage, HttpServletRequest request) {
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
@@ -124,7 +124,7 @@ public class BlogController {
             {@ApiImplicitParam(name = "id", value = "博文id"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<String> likeBlog(@PathVariable long id, HttpServletRequest request) {
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
@@ -145,7 +145,7 @@ public class BlogController {
             {@ApiImplicitParam(name = "id", value = "博文id"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<BlogVO> getBlogById(@PathVariable Long id, HttpServletRequest request) {
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
@@ -168,7 +168,7 @@ public class BlogController {
             {@ApiImplicitParam(name = "id", value = "博文id"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<String> deleteBlogById(@PathVariable Long id, HttpServletRequest request) {
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
@@ -193,7 +193,7 @@ public class BlogController {
             {@ApiImplicitParam(name = "blogUpdateRequest", value = "博文更新请求"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<String> updateBlog(BlogUpdateRequest blogUpdateRequest,HttpServletRequest request){
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }

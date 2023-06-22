@@ -11,6 +11,7 @@ import net.zjitc.exception.BusinessException;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.vo.UserVO;
 import net.zjitc.service.FollowService;
+import net.zjitc.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -35,6 +36,9 @@ public class FollowController {
     @Resource
     private FollowService followService;
 
+    @Resource
+    private UserService userService;
+
     /**
      * 关注用户
      *
@@ -48,7 +52,7 @@ public class FollowController {
             {@ApiImplicitParam(name = "id", value = "关注用户id"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<String> followUser(@PathVariable Long id, HttpServletRequest request){
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
@@ -67,7 +71,7 @@ public class FollowController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<List<UserVO>> listFans(HttpServletRequest request){
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
@@ -86,7 +90,7 @@ public class FollowController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<List<UserVO>> listMyFollow(HttpServletRequest request){
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }

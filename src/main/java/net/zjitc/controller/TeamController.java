@@ -79,6 +79,9 @@ public class TeamController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
+        if (loginUser==null){
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
         Team team = new Team();
         BeanUtil.copyProperties(teamAddRequest, team);
         return ResultUtils.success(teamService.addTeam(team, loginUser));
@@ -100,6 +103,9 @@ public class TeamController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
+        if (loginUser==null){
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
         boolean result = teamService.updateTeam(teamUpdateRequest, loginUser);
         if (!result) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "更新失败");
@@ -122,7 +128,7 @@ public class TeamController {
         if (id == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser==null){
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
@@ -145,7 +151,7 @@ public class TeamController {
         if (teamQueryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         Page<TeamVO> teamVOPage = teamService.listTeams(currentPage, teamQueryRequest, userService.isAdmin(loginUser));
         Page<TeamVO> finalPage = getTeamHasJoinNum(teamVOPage);
         return getUserJoinedList(loginUser, finalPage);
@@ -167,6 +173,9 @@ public class TeamController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
+        if (loginUser==null){
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
         boolean result = teamService.joinTeam(teamJoinRequest, loginUser);
         return ResultUtils.success(result);
     }
@@ -187,6 +196,9 @@ public class TeamController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
+        if (loginUser==null){
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
         boolean result = teamService.quitTeam(teamQuitRequest, loginUser);
         return ResultUtils.success(result);
     }
@@ -208,6 +220,9 @@ public class TeamController {
         }
         long id = deleteRequest.getId();
         User loginUser = userService.getLoginUser(request);
+        if (loginUser==null){
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
         boolean isAdmin = userService.isAdmin(loginUser);
         boolean result = teamService.deleteTeam(id, loginUser,isAdmin);
         if (!result) {
@@ -233,6 +248,9 @@ public class TeamController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
+        if (loginUser==null){
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
         teamQuery.setUserId(loginUser.getId());
         Page<TeamVO> teamVOPage = teamService.listTeams(currentPage, teamQuery, true);
         Page<TeamVO> finalPage = getTeamHasJoinNum(teamVOPage);
@@ -256,6 +274,9 @@ public class TeamController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
+        if (loginUser==null){
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
         LambdaQueryWrapper<UserTeam> userTeamLambdaQueryWrapper = new LambdaQueryWrapper<>();
         userTeamLambdaQueryWrapper.eq(UserTeam::getUserId,loginUser.getId());
         List<UserTeam> userTeamList = userTeamService.list(userTeamLambdaQueryWrapper);
@@ -282,7 +303,7 @@ public class TeamController {
     @ApiImplicitParams({@ApiImplicitParam(name = "teamQuery", value = "获取队伍请求参数"),
             @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<List<TeamVO>> listAllMyJoinTeams(HttpServletRequest request) {
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser==null){
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
@@ -302,7 +323,7 @@ public class TeamController {
     @ApiImplicitParams({@ApiImplicitParam(name = "id", value = "队伍id"),
             @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<List<UserVO>> getTeamMemberById(@PathVariable Long id,HttpServletRequest request){
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser==null){
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }

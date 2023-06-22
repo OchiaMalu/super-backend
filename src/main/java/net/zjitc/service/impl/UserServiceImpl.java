@@ -1,6 +1,10 @@
 package net.zjitc.service.impl;
 
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.bean.copier.CopyOptions;
+import cn.hutool.core.lang.UUID;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -30,7 +34,9 @@ import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -145,7 +151,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public User userLogin(String userAccount, String userPassword, HttpServletRequest request) {
+    public String userLogin(String userAccount, String userPassword, HttpServletRequest request) {
         // 1. 校验
         if (StringUtils.isAnyBlank(userAccount, userPassword)) {
             return null;
@@ -166,19 +172,24 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
         // 查询用户是否存在
         LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        userLambdaQueryWrapper.eq(User::getUserAccount,userAccount);
+        userLambdaQueryWrapper.eq(User::getUserAccount, userAccount);
         User userInDatabase = this.getOne(userLambdaQueryWrapper);
-        if (userInDatabase==null){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR,"用户不存在");
+        if (userInDatabase == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户不存在");
         }
-        if (!userInDatabase.getPassword().equals(encryptPassword)){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR,"密码错误");
+        if (!userInDatabase.getPassword().equals(encryptPassword)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码错误");
         }
         // 3. 用户脱敏
         User safetyUser = getSafetyUser(userInDatabase);
         // 4. 记录用户的登录态
-        request.getSession().setAttribute(USER_LOGIN_STATE, safetyUser);
-        return safetyUser;
+//        request.getSession().setAttribute(USER_LOGIN_STATE, safetyUser);
+        String token = UUID.randomUUID().toString(true);
+        Gson gson = new Gson();
+        String userStr = gson.toJson(safetyUser);
+        stringRedisTemplate.opsForValue().set(LOGIN_USER_KEY + token, userStr);
+        stringRedisTemplate.expire(LOGIN_USER_KEY + token, Duration.ofMinutes(15));
+        return token;
     }
 
     /**
@@ -216,7 +227,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public int userLogout(HttpServletRequest request) {
         // 移除登录态
-        request.getSession().removeAttribute(USER_LOGIN_STATE);
+        String token = request.getHeader("authorization");
+        if (StrUtil.isBlank(token)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        stringRedisTemplate.delete(LOGIN_USER_KEY + token);
         return 1;
     }
 
@@ -276,14 +291,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public User getLoginUser(HttpServletRequest request) {
-        if (request == null) {
+        String token = request.getHeader("authorization");
+        if (StrUtil.isBlank(token)) {
             return null;
         }
-        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
-        if (userObj == null) {
-            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        String userStr = stringRedisTemplate.opsForValue().get(LOGIN_USER_KEY + token);
+        if (StrUtil.isBlank(userStr)) {
+            return null;
         }
-        return (User) userObj;
+        Gson gson = new Gson();
+        User user = gson.fromJson(userStr, User.class);
+        stringRedisTemplate.expire(LOGIN_USER_KEY + token, LOGIN_USER_TTL, TimeUnit.MINUTES);
+        return user;
     }
 
     @Override
@@ -342,7 +361,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public Page<UserVO> matchUser(long currentPage, User loginUser) {
         String tags = loginUser.getTags();
-        if(tags==null){
+        if (tags == null) {
             return this.userPage(currentPage);
         }
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
@@ -449,12 +468,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public void updateUserWithCode(UserUpdateRequest updateRequest, Long userId) {
         String key;
-        boolean isPhone=false;
+        boolean isPhone = false;
         if (StringUtils.isNotBlank(updateRequest.getPhone())) {
-            key = USER_UPDATE_PHONE_KEY+updateRequest.getPhone();
-            isPhone=true;
+            key = USER_UPDATE_PHONE_KEY + updateRequest.getPhone();
+            isPhone = true;
         } else {
-            key = USER_UPDATE_EMAIL_KEY+updateRequest.getEmail();
+            key = USER_UPDATE_EMAIL_KEY + updateRequest.getEmail();
         }
         String correctCode = stringRedisTemplate.opsForValue().get(key);
         if (correctCode == null) {
@@ -463,19 +482,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (!correctCode.equals(updateRequest.getCode())) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "验证码错误");
         }
-        if (isPhone){
+        if (isPhone) {
             LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
-            userLambdaQueryWrapper.eq(User::getPhone,updateRequest.getPhone());
+            userLambdaQueryWrapper.eq(User::getPhone, updateRequest.getPhone());
             User user = this.getOne(userLambdaQueryWrapper);
-            if (user!=null){
-                throw new BusinessException(ErrorCode.PARAMS_ERROR,"该手机号已被绑定");
+            if (user != null) {
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "该手机号已被绑定");
             }
-        }else {
+        } else {
             LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
-            userLambdaQueryWrapper.eq(User::getEmail,updateRequest.getEmail());
+            userLambdaQueryWrapper.eq(User::getEmail, updateRequest.getEmail());
             User user = this.getOne(userLambdaQueryWrapper);
-            if (user!=null){
-                throw new BusinessException(ErrorCode.PARAMS_ERROR,"该邮箱已被绑定");
+            if (user != null) {
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "该邮箱已被绑定");
             }
         }
         User user = new User();
@@ -492,7 +511,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             BeanUtils.copyProperties(item, userVO);
             return userVO;
         }).collect(Collectors.toList());
-        BeanUtils.copyProperties(randomUser,userVOList);
+        BeanUtils.copyProperties(randomUser, userVOList);
         Page<UserVO> userVOPage = new Page<>();
         userVOPage.setRecords(userVOList);
         return userVOPage;
@@ -500,19 +519,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public void updatePassword(String phone, String code, String password, String confirmPassword) {
-        if (!password.equals(confirmPassword)){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR,"两次输入的密码不一致");
+        if (!password.equals(confirmPassword)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "两次输入的密码不一致");
         }
         String key = USER_FORGET_PASSWORD_KEY + phone;
         String correctCode = stringRedisTemplate.opsForValue().get(key);
-        if (correctCode==null){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR,"请先获取验证码");
+        if (correctCode == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请先获取验证码");
         }
-        if (!correctCode.equals(code)){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR,"验证码错误");
+        if (!correctCode.equals(code)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "验证码错误");
         }
         LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        userLambdaQueryWrapper.eq(User::getPhone,phone);
+        userLambdaQueryWrapper.eq(User::getPhone, phone);
         User user = this.getOne(userLambdaQueryWrapper);
         String encryptPassword = DigestUtils.md5DigestAsHex((SALT + password).getBytes());
         user.setPassword(encryptPassword);

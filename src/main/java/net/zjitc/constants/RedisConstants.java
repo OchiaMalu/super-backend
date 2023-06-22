@@ -7,6 +7,9 @@ package net.zjitc.constants;
  * @date 2023/06/22
  */
 public interface RedisConstants {
+    String LOGIN_USER_KEY = "super:login:token:";
+
+    Long LOGIN_USER_TTL = 15L;
     /**
      * 注册验证码键
      */

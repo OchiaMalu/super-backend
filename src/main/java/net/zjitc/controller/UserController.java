@@ -1,5 +1,6 @@
 package net.zjitc.controller;
 
+import cn.hutool.core.lang.UUID;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -36,11 +37,13 @@ import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static net.zjitc.constants.RedisConstants.*;
+import static net.zjitc.constants.SystemConstants.DEFAULT_CACHE_PAGE;
 import static net.zjitc.constants.SystemConstants.EMAIL_FROM;
 import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 
@@ -110,7 +113,7 @@ public class UserController {
             {@ApiImplicitParam(name = "phone", value = "手机号"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<String> sendPhoneUpdateMessage(String phone, HttpServletRequest request) {
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
@@ -139,7 +142,7 @@ public class UserController {
             {@ApiImplicitParam(name = "email", value = "邮箱"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<String> sendMailUpdateMessage(String email, HttpServletRequest request) throws MessagingException {
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
@@ -170,7 +173,7 @@ public class UserController {
     @ApiOperation(value = "用户注册")
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "userRegisterRequest", value = "用户注册请求参数")})
-    public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest,HttpServletRequest request) {
+    public BaseResponse<String> userRegister(@RequestBody UserRegisterRequest userRegisterRequest, HttpServletRequest request) {
         if (userRegisterRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -185,8 +188,12 @@ public class UserController {
         long userId = userService.userRegister(phone, code, account, password, checkPassword);
         User userInDatabase = userService.getById(userId);
         User safetyUser = userService.getSafetyUser(userInDatabase);
-        request.getSession().setAttribute(USER_LOGIN_STATE, safetyUser);
-        return ResultUtils.success(userId);
+        String token = UUID.randomUUID().toString(true);
+        Gson gson = new Gson();
+        String userStr = gson.toJson(safetyUser);
+        stringRedisTemplate.opsForValue().set(LOGIN_USER_KEY + token, userStr);
+        stringRedisTemplate.expire(LOGIN_USER_KEY + token, Duration.ofMinutes(15));
+        return ResultUtils.success(token);
     }
 
     /**
@@ -201,7 +208,7 @@ public class UserController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "userLoginRequest", value = "用户登录请求参数"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<User> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
+    public BaseResponse<String> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
         if (userLoginRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -210,8 +217,8 @@ public class UserController {
         if (StringUtils.isAnyBlank(userAccount, userPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        User user = userService.userLogin(userAccount, userPassword, request);
-        return ResultUtils.success(user);
+        String token = userService.userLogin(userAccount, userPassword, request);
+        return ResultUtils.success(token);
     }
 
     /**
@@ -243,7 +250,7 @@ public class UserController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "phone", value = "手机号")})
     public BaseResponse<String> getUserByPhone(String phone) {
-        if (phone==null){
+        if (phone == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
@@ -272,7 +279,7 @@ public class UserController {
     @ApiOperation(value = "校验验证码")
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "phone", value = "手机号"),
-            @ApiImplicitParam(name = "code", value = "验证码")})
+                    @ApiImplicitParam(name = "code", value = "验证码")})
     public BaseResponse<String> checkCode(String phone, String code) {
         String key = USER_FORGET_PASSWORD_KEY + phone;
         String correctCode = stringRedisTemplate.opsForValue().get(key);
@@ -318,17 +325,8 @@ public class UserController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<User> getCurrentUser(HttpServletRequest request) {
-        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
-        User currentUser = (User) userObj;
-        if (currentUser == null) {
-//            throw new BusinessException(ErrorCode.NOT_LOGIN);
-            return ResultUtils.success(null);
-        }
-        long userId = currentUser.getId();
-        // TODO 校验用户是否合法
-        User user = userService.getById(userId);
-        User safetyUser = userService.getSafetyUser(user);
-        return ResultUtils.success(safetyUser);
+        User loginUser = userService.getLoginUser(request);
+        return ResultUtils.success(loginUser);
     }
 
     /**
@@ -344,7 +342,10 @@ public class UserController {
             {@ApiImplicitParam(name = "id", value = "用户id"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<Boolean> deleteUser(@RequestBody long id, HttpServletRequest request) {
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
         if (!userService.isAdmin(loginUser)) {
             throw new BusinessException(ErrorCode.NO_AUTH);
         }
@@ -387,7 +388,10 @@ public class UserController {
             {@ApiImplicitParam(name = "username", value = "用户名"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<List<User>> searchUsersByUserName(String username, HttpServletRequest request) {
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
         if (!userService.isAdmin(loginUser)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -413,7 +417,7 @@ public class UserController {
             {@ApiImplicitParam(name = "user", value = "用户更新请求参数"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<String> updateUser(@RequestBody UserUpdateRequest updateRequest, HttpServletRequest request) {
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
@@ -470,11 +474,10 @@ public class UserController {
         if (currentPage <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        Boolean isLogin = userService.isLogin(request);
-        if (isLogin) {
-            User user = userService.getLoginUser(request);
-            if (currentPage <= 5) {
-                String key = USER_RECOMMEND_KEY + user.getId() + ":" + currentPage;
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser != null) {
+            if (currentPage <= DEFAULT_CACHE_PAGE) {
+                String key = USER_RECOMMEND_KEY + loginUser.getId() + ":" + currentPage;
                 Boolean hasKey = stringRedisTemplate.hasKey(key);
                 if (Boolean.TRUE.equals(hasKey)) {
                     String userVOPageStr = stringRedisTemplate.opsForValue().get(key);
@@ -483,10 +486,10 @@ public class UserController {
                     }.getType());
                     return ResultUtils.success(userVOPage);
                 } else {
-                    return ResultUtils.success(userService.matchUser(currentPage, user));
+                    return ResultUtils.success(userService.matchUser(currentPage, loginUser));
                 }
             } else {
-                return ResultUtils.success(userService.matchUser(currentPage, user));
+                return ResultUtils.success(userService.matchUser(currentPage, loginUser));
             }
         } else {
             return ResultUtils.success(userService.getRandomUser());
@@ -506,7 +509,7 @@ public class UserController {
             {@ApiImplicitParam(name = "id", value = "用户id"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<UserVO> getUserById(@PathVariable Long id, HttpServletRequest request) {
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
@@ -528,7 +531,7 @@ public class UserController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<List<String>> getUserTags(HttpServletRequest request) {
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
@@ -549,7 +552,7 @@ public class UserController {
             {@ApiImplicitParam(name = "tags", value = "标签"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<String> updateUserTags(@RequestBody List<String> tags, HttpServletRequest request) {
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }

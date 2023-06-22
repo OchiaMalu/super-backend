@@ -64,7 +64,7 @@ public class BlogCommentsController {
             {@ApiImplicitParam(name = "addCommentRequest", value = "博文评论添加请求"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<String> addComment(@RequestBody AddCommentRequest addCommentRequest, HttpServletRequest request) {
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
@@ -88,7 +88,7 @@ public class BlogCommentsController {
             {@ApiImplicitParam(name = "blogId", value = "博文id"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<List<BlogCommentsVO>> listBlogComments(long blogId, HttpServletRequest request) {
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
@@ -109,7 +109,7 @@ public class BlogCommentsController {
             {@ApiImplicitParam(name = "id", value = "博文评论id"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<String> likeComment(@PathVariable Long id, HttpServletRequest request) {
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
@@ -130,7 +130,7 @@ public class BlogCommentsController {
             {@ApiImplicitParam(name = "id", value = "博文评论id"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<BlogCommentsVO> getCommentById(@PathVariable Long id, HttpServletRequest request) {
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
@@ -151,7 +151,7 @@ public class BlogCommentsController {
             {@ApiImplicitParam(name = "id", value = "博文评论id"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<String> deleteBlogComment(@PathVariable Long id, HttpServletRequest request) {
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
@@ -171,7 +171,7 @@ public class BlogCommentsController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<List<BlogCommentsVO>> listMyBlogComments(HttpServletRequest request) {
-        User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
+        User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
