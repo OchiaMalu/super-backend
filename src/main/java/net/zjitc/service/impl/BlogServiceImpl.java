@@ -16,6 +16,7 @@ import net.zjitc.service.*;
 import net.zjitc.utils.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static net.zjitc.constants.RedisConstants.*;
 import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
 import static net.zjitc.constants.SystemConstants.QiNiuUrl;
 
@@ -48,6 +50,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
     @Resource
     private MessageService messageService;
 
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
+
     @Override
     public Boolean addBlog(BlogAddRequest blogAddRequest, User loginUser) {
         Blog blog = new Blog();
@@ -68,7 +73,24 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
         blog.setUserId(loginUser.getId());
         blog.setTitle(blogAddRequest.getTitle());
         blog.setContent(blogAddRequest.getContent());
-        return this.save(blog);
+        boolean saved = this.save(blog);
+        if (saved) {
+            List<UserVO> userVOList = followService.listFans(loginUser.getId());
+            if (!userVOList.isEmpty()) {
+                for (UserVO userVO : userVOList) {
+                    String key = BLOG_FEED_KEY + userVO.getId();
+                    stringRedisTemplate.opsForZSet().add(key, blog.getId().toString(), System.currentTimeMillis());
+                    String likeNumKey = MESSAGE_BLOG_NUM_KEY + userVO.getId();
+                    Boolean hasKey = stringRedisTemplate.hasKey(likeNumKey);
+                    if (Boolean.TRUE.equals(hasKey)) {
+                        stringRedisTemplate.opsForValue().increment(likeNumKey);
+                    } else {
+                        stringRedisTemplate.opsForValue().set(likeNumKey, "1");
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     @Override
@@ -128,6 +150,13 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
             message.setToId(blog.getUserId());
             message.setData(String.valueOf(blog.getId()));
             messageService.save(message);
+            String likeNumKey = MESSAGE_LIKE_NUM_KEY + blog.getUserId();
+            Boolean hasKey = stringRedisTemplate.hasKey(likeNumKey);
+            if (Boolean.TRUE.equals(hasKey)) {
+                stringRedisTemplate.opsForValue().increment(likeNumKey);
+            } else {
+                stringRedisTemplate.opsForValue().set(likeNumKey, "1");
+            }
         }
     }
 

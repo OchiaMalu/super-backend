@@ -2,6 +2,7 @@ package net.zjitc.service;
 
 import net.zjitc.model.domain.Message;
 import com.baomidou.mybatisplus.extension.service.IService;
+import net.zjitc.model.vo.BlogVO;
 import net.zjitc.model.vo.MessageVO;
 
 import java.util.List;
@@ -18,4 +19,8 @@ public interface MessageService extends IService<Message> {
     long getLikeNum(Long userId);
 
     List<MessageVO> getLike(Long userId);
+
+    List<BlogVO> getUserBlog(Long userId);
+
+    Boolean hasNewMessage(Long userId);
 }

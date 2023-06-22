@@ -17,11 +17,13 @@ import net.zjitc.model.vo.UserVO;
 import net.zjitc.service.*;
 import net.zjitc.mapper.BlogCommentsMapper;
 import org.springframework.beans.BeanUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 
+import static net.zjitc.constants.RedisConstants.MESSAGE_LIKE_NUM_KEY;
 import static net.zjitc.constants.SystemConstants.QiNiuUrl;
 
 /**
@@ -44,6 +46,9 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
 
     @Resource
     private MessageService messageService;
+
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
     @Override
     @Transactional
@@ -107,6 +112,13 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
             this.update().eq("id", commentId)
                     .set("liked_num", blogComments.getLikedNum() + 1)
                     .update();
+            String likeNumKey = MESSAGE_LIKE_NUM_KEY + blogComments.getUserId();
+            Boolean hasKey = stringRedisTemplate.hasKey(likeNumKey);
+            if (Boolean.TRUE.equals(hasKey)) {
+                stringRedisTemplate.opsForValue().increment(likeNumKey);
+            } else {
+                stringRedisTemplate.opsForValue().set(likeNumKey, "1");
+            }
             Message message = new Message();
             message.setType(MessageTypeEnum.BLOG_COMMENT_LIKE.getValue());
             message.setFromId(userId);
@@ -159,18 +171,18 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
             Long blogId = blogCommentsVO.getBlogId();
             Blog blog = blogService.getById(blogId);
             BlogVO blogVO = new BlogVO();
-            BeanUtils.copyProperties(blog,blogVO);
+            BeanUtils.copyProperties(blog, blogVO);
             String images = blogVO.getImages();
             if (images == null) {
                 blogVO.setCoverImage(null);
-            }else {
+            } else {
                 String[] imgStrs = images.split(",");
                 blogVO.setCoverImage(QiNiuUrl + imgStrs[0]);
             }
             Long authorId = blogVO.getUserId();
             User author = userService.getById(authorId);
             UserVO authorVO = new UserVO();
-            BeanUtils.copyProperties(author,authorVO);
+            BeanUtils.copyProperties(author, authorVO);
             blogVO.setAuthor(authorVO);
 
             blogCommentsVO.setBlog(blogVO);

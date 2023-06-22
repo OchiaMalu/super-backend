@@ -1,5 +1,10 @@
 package net.zjitc.constants;
-
+/**
+ * 好友常量
+ *
+ * @author 林哲好
+ * @date 2023/06/22
+ */
 public interface FriendConstant {
     /**
      * 默认状态 未处理

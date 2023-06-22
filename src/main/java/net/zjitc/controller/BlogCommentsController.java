@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 
 /**
+ * 博客评论控制器
  * 博文评论控制器
  *
  * @author 林哲好
@@ -39,11 +40,14 @@ import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 @Api(tags = "博文评论管理模块")
 public class BlogCommentsController {
     /**
-     * 博文评论服务
+     * 博客评论服务
      */
     @Resource
     private BlogCommentsService blogCommentsService;
 
+    /**
+     * 用户服务
+     */
     @Resource
     private UserService userService;
 
@@ -72,7 +76,7 @@ public class BlogCommentsController {
     }
 
     /**
-     * 博文评论列表
+     * 博客评论列表
      *
      * @param blogId  博文id
      * @param request 请求
@@ -134,6 +138,13 @@ public class BlogCommentsController {
         return ResultUtils.success(commentsVO);
     }
 
+    /**
+     * 删除博客评论
+     *
+     * @param id      id
+     * @param request 请求
+     * @return {@link BaseResponse}<{@link String}>
+     */
     @DeleteMapping("/{id}")
     @ApiOperation(value = "根据id删除评论")
     @ApiImplicitParams(
@@ -149,6 +160,12 @@ public class BlogCommentsController {
         return ResultUtils.success("ok");
     }
 
+    /**
+     * 我博客评论列表
+     *
+     * @param request 请求
+     * @return {@link BaseResponse}<{@link List}<{@link BlogCommentsVO}>>
+     */
     @GetMapping("/list/my")
     public BaseResponse<List<BlogCommentsVO>> listMyBlogComments(HttpServletRequest request) {
         User loginUser = (User) request.getSession().getAttribute(USER_LOGIN_STATE);
