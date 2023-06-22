@@ -95,8 +95,8 @@ public class UserController {
         Integer code = ValidateCodeUtils.generateValidateCode(6);
         String key = REGISTER_CODE_KEY + phone;
         stringRedisTemplate.opsForValue().set(key, String.valueOf(code), REGISTER_CODE_TTL, TimeUnit.MINUTES);
-        System.out.println(code);
-//        SMSUtils.sendMessage(phone, String.valueOf(code));
+//        System.out.println(code);
+        SMSUtils.sendMessage(phone, String.valueOf(code));
         return ResultUtils.success("短信发送成功");
     }
 
