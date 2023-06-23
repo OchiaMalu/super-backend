@@ -21,7 +21,7 @@ import java.io.ByteArrayInputStream;
  * @date 2023/06/22
  */
 public class QiNiuUtils {
-    public static String upload(byte[] uploadBytes) {
+    public static String upload(byte[] uploadBytes, String fileName) {
         Configuration cfg = new Configuration(Region.region0());
         UploadManager uploadManager = new UploadManager(cfg);
         String accessKey = "ak";
