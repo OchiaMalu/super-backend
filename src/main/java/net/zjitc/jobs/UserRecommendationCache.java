@@ -15,6 +15,8 @@ import net.zjitc.utils.AlgorithmUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.quartz.QuartzJobBean;
@@ -23,13 +25,17 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static net.zjitc.constants.RedisConstants.USER_RECOMMEND_KEY;
+import static net.zjitc.constants.RedissonConstant.USER_RECOMMEND_LOCK;
 import static net.zjitc.constants.SystemConstants.DEFAULT_CACHE_PAGE;
 import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
 
 public class UserRecommendationCache extends QuartzJobBean {
+    @Resource
+    private RedissonClient redissonClient;
 
     @Resource
     private UserService userService;
@@ -44,16 +50,29 @@ public class UserRecommendationCache extends QuartzJobBean {
 
     @Override
     protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
-        userList = userService.list();
-        for (User user : userList) {
-            for (int i = 1; i <= DEFAULT_CACHE_PAGE; i++) {
-                Page<UserVO> userVOPage = this.matchUser(i, user);
-                Gson gson = new Gson();
-                String userVOPageStr = gson.toJson(userVOPage);
-                String key = USER_RECOMMEND_KEY + user.getId() + ":" + i;
-                stringRedisTemplate.opsForValue().set(key, userVOPageStr);
+        RLock lock = redissonClient.getLock(USER_RECOMMEND_LOCK);
+        try {
+            if (lock.tryLock(0, -1, TimeUnit.MICROSECONDS)) {
+                userList = userService.list();
+                for (User user : userList) {
+                    for (int i = 1; i <= DEFAULT_CACHE_PAGE; i++) {
+                        Page<UserVO> userVOPage = this.matchUser(i, user);
+                        Gson gson = new Gson();
+                        String userVOPageStr = gson.toJson(userVOPage);
+                        String key = USER_RECOMMEND_KEY + user.getId() + ":" + i;
+                        stringRedisTemplate.opsForValue().set(key, userVOPageStr);
+                    }
+                }
+            }
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (lock.isHeldByCurrentThread()) {
+                System.out.println("unLock: " + Thread.currentThread().getId());
+                lock.unlock();
             }
         }
+
     }
 
     private Page<UserVO> matchUser(long currentPage, User loginUser) {

@@ -13,4 +13,5 @@ public interface RedissonConstant {
     String APPLY_LOCK = "super:apply:lock:";
 
     String DISBAND_EXPIRED_TEAM_LOCK = "super:disbandTeam:lock";
+    String USER_RECOMMEND_LOCK = "super:user:recommend:lock";
 }
