@@ -21,7 +21,7 @@ import java.io.ByteArrayInputStream;
  * @date 2023/06/22
  */
 public class QiNiuUtils {
-    public static void upload(byte[] uploadBytes, String fileName) {
+    public static String upload(byte[] uploadBytes, String fileName) {
         Configuration cfg = new Configuration(Region.region0());
         UploadManager uploadManager = new UploadManager(cfg);
         String accessKey = "ak";
@@ -32,7 +32,9 @@ public class QiNiuUtils {
         Auth auth = Auth.create(accessKey, secretKey);
         String upToken = auth.uploadToken(bucket);
         try {
-            Response response = uploadManager.put(byteInputStream, fileName, upToken, null, null);
+            Response response = uploadManager.put(byteInputStream, null, upToken, null, null);
+            DefaultPutRet putRet = new Gson().fromJson(response.bodyString(), DefaultPutRet.class);
+            return putRet.key;
         } catch (QiniuException ex) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "头像上传失败");
         }
