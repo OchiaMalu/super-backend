@@ -14,20 +14,19 @@ import net.zjitc.model.domain.Team;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.domain.UserTeam;
 import net.zjitc.model.enums.TeamStatusEnum;
-import net.zjitc.model.request.TeamJoinRequest;
-import net.zjitc.model.request.TeamQueryRequest;
-import net.zjitc.model.request.TeamQuitRequest;
-import net.zjitc.model.request.TeamUpdateRequest;
+import net.zjitc.model.request.*;
 import net.zjitc.model.vo.TeamVO;
 import net.zjitc.model.vo.UserVO;
 import net.zjitc.service.FollowService;
 import net.zjitc.service.TeamService;
 import net.zjitc.service.UserService;
 import net.zjitc.service.UserTeamService;
+import net.zjitc.utils.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import java.lang.invoke.LambdaMetafactory;
@@ -35,23 +34,43 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
+import static net.zjitc.constants.SystemConstants.QiNiuUrl;
 
 /**
+ * 团队服务impl
+ *
  * @author OchiaMalu
  * @description 针对表【team(队伍)】的数据库操作Service实现
  * @createDate 2023-05-12 19:33:37
+ * @date 2023/06/23
  */
 @Service
 public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements TeamService {
+    /**
+     * 用户团队服务
+     */
     @Resource
     private UserTeamService userTeamService;
 
+    /**
+     * 用户服务
+     */
     @Resource
     private UserService userService;
 
+    /**
+     * 遵循服务
+     */
     @Resource
     private FollowService followService;
 
+    /**
+     * 加入团队
+     *
+     * @param team      团队
+     * @param loginUser 登录用户
+     * @return long
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public long addTeam(Team team, User loginUser) {
@@ -63,14 +82,14 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
-        if (team.getExpireTime()!=null){
+        if (team.getExpireTime() != null) {
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(team.getExpireTime());
             calendar.set(Calendar.HOUR_OF_DAY, 0);
             calendar.set(Calendar.MINUTE, 0);
             calendar.set(Calendar.SECOND, 0);
             team.setExpireTime(calendar.getTime());
-        }else {
+        } else {
             team.setExpireTime(null);
         }
         final long userId = loginUser.getId();
@@ -113,7 +132,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         }
         // 6. 超时时间 > 当前时间
         Date expireTime = team.getExpireTime();
-        if (expireTime!=null && new Date().after(expireTime)) {
+        if (expireTime != null && new Date().after(expireTime)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "超时时间 > 当前时间");
         }
         // 8. 插入队伍信息到队伍表
@@ -137,6 +156,14 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
 
     }
 
+    /**
+     * 团队名单
+     *
+     * @param currentPage 当前页面
+     * @param teamQuery   团队查询
+     * @param isAdmin     是管理
+     * @return {@link Page}<{@link TeamVO}>
+     */
     @Override
     public Page<TeamVO> listTeams(long currentPage, TeamQueryRequest teamQuery, boolean isAdmin) {
         QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
@@ -215,6 +242,13 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         return teamVOPage;
     }
 
+    /**
+     * 更新团队
+     *
+     * @param teamUpdateRequest 团队更新请求
+     * @param loginUser         登录用户
+     * @return boolean
+     */
     @Override
     public boolean updateTeam(TeamUpdateRequest teamUpdateRequest, User loginUser) {
         if (teamUpdateRequest == null) {
@@ -243,6 +277,13 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         return this.updateById(updateTeam);
     }
 
+    /**
+     * 加入团队
+     *
+     * @param teamJoinRequest 团队加入请求
+     * @param loginUser       登录用户
+     * @return boolean
+     */
     @Override
     public boolean joinTeam(TeamJoinRequest teamJoinRequest, User loginUser) {
         if (teamJoinRequest == null) {
@@ -294,6 +335,13 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         return userTeamService.save(userTeam);
     }
 
+    /**
+     * 退出团队
+     *
+     * @param teamQuitRequest 团队辞职请求
+     * @param loginUser       登录用户
+     * @return boolean
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean quitTeam(TeamQuitRequest teamQuitRequest, User loginUser) {
@@ -345,14 +393,22 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         return userTeamService.remove(queryWrapper);
     }
 
+    /**
+     * 删除团队
+     *
+     * @param id        id
+     * @param loginUser 登录用户
+     * @param isAdmin   是管理
+     * @return boolean
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean deleteTeam(long id, User loginUser,boolean isAdmin) {
+    public boolean deleteTeam(long id, User loginUser, boolean isAdmin) {
         // 校验队伍是否存在
         Team team = getTeamById(id);
         long teamId = team.getId();
         // 校验你是不是队伍的队长
-        if (isAdmin){
+        if (isAdmin) {
             // 移除所有加入队伍的关联信息
             QueryWrapper<UserTeam> userTeamQueryWrapper = new QueryWrapper<>();
             userTeamQueryWrapper.eq("team_id", teamId);
@@ -376,6 +432,13 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         return this.removeById(teamId);
     }
 
+    /**
+     * 得到团队
+     *
+     * @param teamId 团队id
+     * @param userId 用户id
+     * @return {@link TeamVO}
+     */
     @Override
     public TeamVO getTeam(Long teamId, Long userId) {
         Team team = this.getById(teamId);
@@ -394,11 +457,18 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         return teamVO;
     }
 
+    /**
+     * 我加入列表
+     *
+     * @param currentPage 当前页面
+     * @param teamQuery   团队查询
+     * @return {@link Page}<{@link TeamVO}>
+     */
     @Override
     public Page<TeamVO> listMyJoin(long currentPage, TeamQueryRequest teamQuery) {
         List<Long> idList = teamQuery.getIdList();
         LambdaQueryWrapper<Team> teamLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        teamLambdaQueryWrapper.in(Team::getId,idList);
+        teamLambdaQueryWrapper.in(Team::getId, idList);
         Page<Team> teamPage = this.page(new Page<>(currentPage, PAGE_SIZE), teamLambdaQueryWrapper);
         if (CollectionUtils.isEmpty(teamPage.getRecords())) {
             return new Page<>();
@@ -428,18 +498,25 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         return teamVOPage;
     }
 
+    /**
+     * 让团队成员
+     *
+     * @param teamId 团队id
+     * @param userId 用户id
+     * @return {@link List}<{@link UserVO}>
+     */
     @Override
     public List<UserVO> getTeamMember(Long teamId, Long userId) {
         Team team = this.getById(teamId);
-        if (team==null){
-            throw new BusinessException(ErrorCode.PARAMS_ERROR,"队伍不存在");
+        if (team == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "队伍不存在");
         }
         LambdaQueryWrapper<UserTeam> userTeamLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        userTeamLambdaQueryWrapper.eq(UserTeam::getTeamId,teamId);
+        userTeamLambdaQueryWrapper.eq(UserTeam::getTeamId, teamId);
         List<UserTeam> userTeamList = userTeamService.list(userTeamLambdaQueryWrapper);
-        List<Long> userIdList = userTeamList.stream().map(UserTeam::getUserId).filter(id-> !Objects.equals(id, userId)).collect(Collectors.toList());
+        List<Long> userIdList = userTeamList.stream().map(UserTeam::getUserId).filter(id -> !Objects.equals(id, userId)).collect(Collectors.toList());
         LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        userLambdaQueryWrapper.in(User::getId,userIdList);
+        userLambdaQueryWrapper.in(User::getId, userIdList);
         List<User> userList = userService.list(userLambdaQueryWrapper);
         return userList.stream().map((user) -> {
             UserVO userVO = new UserVO();
@@ -452,13 +529,19 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         }).collect(Collectors.toList());
     }
 
+    /**
+     * 列出所有我加入
+     *
+     * @param id id
+     * @return {@link List}<{@link TeamVO}>
+     */
     @Override
     public List<TeamVO> listAllMyJoin(Long id) {
         LambdaQueryWrapper<UserTeam> userTeamLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        userTeamLambdaQueryWrapper.eq(UserTeam::getUserId,id);
+        userTeamLambdaQueryWrapper.eq(UserTeam::getUserId, id);
         List<Long> teamIds = userTeamService.list(userTeamLambdaQueryWrapper).stream().map(UserTeam::getTeamId).collect(Collectors.toList());
         LambdaQueryWrapper<Team> teamLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        teamLambdaQueryWrapper.in(Team::getId,teamIds);
+        teamLambdaQueryWrapper.in(Team::getId, teamIds);
         List<Team> teamList = this.list(teamLambdaQueryWrapper);
         return teamList.stream().map((team) -> {
             TeamVO teamVO = new TeamVO();
@@ -468,12 +551,43 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         }).collect(Collectors.toList());
     }
 
+    /**
+     * 改变封面图片
+     *
+     * @param request 请求
+     * @param userId  用户id
+     * @param admin   管理
+     */
+    @Override
+    public void changeCoverImage(TeamCoverChangeRequest request, Long userId, boolean admin) {
+        MultipartFile image = request.getFile();
+        if (image == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        Long teamId = request.getId();
+        if (teamId == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        Team team = this.getById(teamId);
+        if (team == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        if (!team.getUserId().equals(userId) && !admin) {
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+        String fileName = FileUtils.uploadFile(image);
+        Team temp = new Team();
+        temp.setId(team.getId());
+        temp.setCoverImage(QiNiuUrl + fileName);
+        this.updateById(temp);
+    }
+
 
     /**
      * 根据 id 获取队伍信息
      *
-     * @param teamId
-     * @return
+     * @param teamId 团队id
+     * @return {@link Team}
      */
     private Team getTeamById(Long teamId) {
         if (teamId == null || teamId <= 0) {
@@ -489,8 +603,8 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
     /**
      * 获取某队伍当前人数
      *
-     * @param teamId
-     * @return
+     * @param teamId 团队id
+     * @return long
      */
     private long countTeamUserByTeamId(long teamId) {
         QueryWrapper<UserTeam> userTeamQueryWrapper = new QueryWrapper<>();

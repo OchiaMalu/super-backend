@@ -21,6 +21,7 @@ import net.zjitc.service.TeamService;
 import net.zjitc.service.UserService;
 import net.zjitc.service.UserTeamService;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -33,7 +34,6 @@ import java.util.stream.Collectors;
 import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 
 /**
- * 团队控制器
  * 队伍控制器
  *
  * @author 林哲好
@@ -376,5 +376,24 @@ public class TeamController {
         });
         teamVOPage.setRecords(teamList);
         return teamVOPage;
+    }
+
+
+    /**
+     * 改变封面图片
+     *
+     * @param teamCoverChangeRequest 团队包括变更请求
+     * @param request                请求
+     * @return {@link BaseResponse}<{@link String}>
+     */
+    @PutMapping("/cover")
+    public BaseResponse<String> changeCoverImage(TeamCoverChangeRequest teamCoverChangeRequest,HttpServletRequest request){
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser==null){
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        boolean admin = userService.isAdmin(loginUser);
+        teamService.changeCoverImage(teamCoverChangeRequest,loginUser.getId(),admin);
+        return ResultUtils.success("ok");
     }
 }

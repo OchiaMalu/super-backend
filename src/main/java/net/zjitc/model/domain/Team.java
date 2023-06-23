@@ -39,6 +39,12 @@ public class Team implements Serializable {
     private String description;
 
     /**
+     * 封面图片
+     */
+    @ApiModelProperty(value = "封面图片")
+    private String coverImage;
+
+    /**
      * 最大人数
      */
     @ApiModelProperty(value = "最大人数")

@@ -5,13 +5,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import net.zjitc.model.domain.Team;
 import net.zjitc.model.domain.User;
-import net.zjitc.model.request.TeamJoinRequest;
-import net.zjitc.model.request.TeamQueryRequest;
-import net.zjitc.model.request.TeamQuitRequest;
-import net.zjitc.model.request.TeamUpdateRequest;
+import net.zjitc.model.request.*;
 import net.zjitc.model.vo.TeamVO;
 import net.zjitc.model.vo.UserVO;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -43,4 +41,6 @@ public interface TeamService extends IService<Team> {
     List<UserVO> getTeamMember(Long teamId, Long userId);
 
     List<TeamVO> listAllMyJoin(Long id);
+
+    void changeCoverImage(TeamCoverChangeRequest request, Long userId, boolean admin);
 }

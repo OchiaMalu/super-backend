@@ -34,14 +34,12 @@ public class FileUtils {
         if (Strings.isEmpty(suffix)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        //设置新文件名
-        String filename = UUID.randomUUID().toString() + suffix;
         File dir = new File(System.getProperty("user.dir") + basePath);
         //如果文件夹不存在则新建文件夹
         if (!dir.exists()) {
             dir.mkdir();
         }
-        File localFile = new File(System.getProperty("user.dir") + basePath + filename);
+        File localFile = new File(System.getProperty("user.dir") + basePath + originalFilename);
         try {
             //将文件从tomcat临时目录转移到指定的目录
             file.transferTo(localFile);
@@ -49,10 +47,10 @@ public class FileUtils {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR);
         }
         byte[] imageStream = getImageStream(localFile);
-        QiNiuUtils.upload(imageStream, filename);
+        String fileName = QiNiuUtils.upload(imageStream);
         localFile.delete();
         //上传七牛云
-        return filename;
+        return fileName;
     }
 
     public static byte[] getImageStream(File imageFile) {
