@@ -1,4 +1,4 @@
-<img src="C:\Users\OchiaMalu\AppData\Roaming\Typora\typora-user-images\image-20230623213937364.png" alt="image-20230623213937364" style="zoom:50%;" />
+<img src="http://niu.ochiamalu.xyz/image-20230623213937364.png" alt="image-20230623213937364" style="zoom:50%;" />
 
 
 
@@ -144,235 +144,131 @@
 
 首次启动可执行测试类中的方法生成一定数量的随机用户模拟数据。
 
-<img src="http://niu.ochiamalu.xyz/image-20230623204203857.png" alt="image-20230623204203857" align="left" style="zoom:67%;" />
-
 ### 主页
 
 1）匹配用户：用户未登录时为随机查询，用户登录后若用户填写了标签，则将根据标签的相似度进行匹配。
 
 2）热门帖文：展示用户发布的博文，按照时间顺序，新发布的帖文在前。
 
-<img src="http://niu.ochiamalu.xyz/image-20230623204325970.png" alt="image-20230623204325970" style="zoom:50%;" align="middle"/><img src="http://niu.ochiamalu.xyz/image-20230623204334217.png" alt="image-20230623204334217" style="zoom:50%;" align="middle" />
-
 3）滚动分页查询：用户可上滑匹配用户或热门帖文，将不断查询下一页的数据，下拉超过一定高度后显示回到顶部按钮。
 
-<img src="http://niu.ochiamalu.xyz/image-20230623204408835.png" alt="image-20230623204408835" style="zoom:50%;" align="left"/>
-
 4）下拉刷新：用户可下拉匹配用户或热门帖文，将从第一页开始重新加载。
-
-<img src="http://niu.ochiamalu.xyz/image-20230623204718405.png" alt="image-20230623204718405" style="zoom:50%;" align="left" />
 
 ### 用户注册
 
 1）用户未登录时点击个人页将跳转至登录页。
 
-<img src="http://niu.ochiamalu.xyz/image-20230623204823935.png" alt="image-20230623204823935" style="zoom:50%;"  align="left"   />
-
 2）点击发送验证码后显示验证码输入框，并进入60秒倒计时，在此期间不可再次发送验证码。**注意：用户名为登录所用。**
-
-<img src="http://niu.ochiamalu.xyz/image-20230623204843663.png" alt="image-20230623204843663" style="zoom:50%;" /><img src="http://niu.ochiamalu.xyz/image-20230623204851071.png" alt="image-20230623204851071" style="zoom:50%;" /><img src="http://niu.ochiamalu.xyz/image-20230623204859299.png" alt="image-20230623204859299" style="zoom:50%;" />
 
 3）若配置正确将发送短信至手机号，若不进行配置可将验证码打印至控制台。
 
 4）注册成功后将跳转至标签编辑页，用户可选择与自己匹配的标签，也可以自定义标签。若希望以后再填写，可以点击右上角跳过。
 
-<img src="http://niu.ochiamalu.xyz/image-20230623204918588.png" alt="image-20230623204918588" style="zoom:50%;" align="left"  />
-
 ### 个人主页
 
 1）注册成功后或登陆后可以进入个人页，用户可点击修改信息修改除登录账号外的信息。
 
-<img src="http://niu.ochiamalu.xyz/image-20230623204941689.png" alt="image-20230623204941689" style="zoom:50%;" align="left"/>
-
 2）创建的队伍：用户创建的队伍信息。
-
-<img src="http://niu.ochiamalu.xyz/image-20230623205020764.png" alt="image-20230623205020764" style="zoom:50%;" align="left" />
 
 3）加入的队伍：用户加入的队伍信息。
 
-<img src="http://niu.ochiamalu.xyz/image-20230623205039781.png" alt="image-20230623205039781" style="zoom:50%;" align="left" />
-
 4）我写的帖文：用户创建的帖文信息。
 
-<img src="http://niu.ochiamalu.xyz/image-20230623205056402.png" alt="image-20230623205056402" style="zoom:50%;" align="left" />
-
 5）联系客服：用户遇到问题可联系客服。
-
-<img src="http://niu.ochiamalu.xyz/image-20230623205110383.png" alt="image-20230623205110383" style="zoom:50%;" align="left" />
 
 ### 忘记密码或账号
 
 1）忘记密码：用户可点击登录页中的忘记密码进入。
 
-<img src="http://niu.ochiamalu.xyz/image-20230623205139082.png" alt="image-20230623205139082" style="zoom:50%;" align="left" />
-
 2）输入注册时使用的手机号。
 
-<img src="http://niu.ochiamalu.xyz/image-20230623205152262.png" alt="image-20230623205152262" style="zoom:50%;" align="left" />
-
-3）此时将显示绑定的账号，若忘记密码可输入验证码。
-
-<img src="http://niu.ochiamalu.xyz/image-20230623205222855.png" alt="image-20230623205222855" style="zoom:50%;" /><img src="http://niu.ochiamalu.xyz/image-20230623205231586.png" alt="image-20230623205231586" style="zoom:50%;" />
+3）此时将显示绑定的账号，若忘记密码可输入验证码
 
 4）验证通过后即可修改新密码
-
-<img src="http://niu.ochiamalu.xyz/image-20230623205244023.png" alt="image-20230623205244023" style="zoom:50%;" align="left" />
 
 ### 修改信息
 
 1）头像修改：用户点击后可上传喜欢的头像。
 
-<img src="http://niu.ochiamalu.xyz/image-20230623205310011.png" alt="image-20230623205310011" style="zoom:50%;" align="left" />
-
 2）昵称修改：用户可修改展示的昵称。
-
-<img src="http://niu.ochiamalu.xyz/image-20230623205323058.png" alt="image-20230623205323058" style="zoom:50%;" align="left" />
 
 3）标签修改：用户可以更新自己的标签。
 
-<img src="http://niu.ochiamalu.xyz/image-20230623205336835.png" alt="image-20230623205336835" style="zoom:50%;" align="left" />
-
 4）个性签名：用户可以简略地描述自己。
-
-<img src="http://niu.ochiamalu.xyz/image-20230623205350661.png" alt="image-20230623205350661" style="zoom:50%;" align="left" />
 
 5）性别修改：用户可修改性别。
 
-<img src="http://niu.ochiamalu.xyz/image-20230623205406399.png" alt="image-20230623205406399" style="zoom:50%;" align="left" />
-
 6）电话修改：用户填写新手机号后，若配置正确，将发送验证码至手机，验证通过后将更新手机号。
 
-
-
-<img src="http://niu.ochiamalu.xyz/image-20230623205419296.png" alt="image-20230623205419296" style="zoom:50%;" /><img src="http://niu.ochiamalu.xyz/image-20230623205425580.png" alt="image-20230623205425580" style="zoom:50%;" />
-
 7）邮箱修改：用户填写新邮箱后，若配置正确，将发送验证码至邮箱，验证通过后将更新邮箱。
-
-<img src="http://niu.ochiamalu.xyz/image-20230623205439722.png" alt="image-20230623205439722" style="zoom:50%;" /><img src="http://niu.ochiamalu.xyz/image-20230623205446940.png" alt="image-20230623205446940" style="zoom:50%;" />
 
 ### 搜索用户
 
 1）标签搜索：用户可以点击右上角的搜索按钮，通过标签搜索用户。
 
-<img src="http://niu.ochiamalu.xyz/image-20230623205556893.png" alt="image-20230623205556893" style="zoom:50%;" /><img src="http://niu.ochiamalu.xyz/image-20230623205609932.png" alt="image-20230623205609932" style="zoom:50%;" />
-
 ### 用户详情
 
 1）用户详情：用户点击任意其他用户后可跳转至用户详情页。
-
-<img src="http://niu.ochiamalu.xyz/image-20230623205635961.png" alt="image-20230623205635961" style="zoom:50%;" align="left"/>
 
 ### 创建队伍
 
 1）点击队伍页右下角的加号可以跳转至创建队伍页面。
 
-<img src="http://niu.ochiamalu.xyz/image-20230623205659958.png" alt="image-20230623205659958" style="zoom:50%;" /><img src="http://niu.ochiamalu.xyz/image-20230623205707476.png" alt="image-20230623205707476" style="zoom:50%;" />
-
 2）若不填写过期时间则队伍永久有效。
 
-<img src="http://niu.ochiamalu.xyz/image-20230623205723111.png" alt="image-20230623205723111" style="zoom:50%;" align="left"/>
-
 3）公开状态所有人可加入，私有状态仅自己可见，加密状态其他用户输入正确的密码则可以加入。
-
-<img src="http://niu.ochiamalu.xyz/image-20230623205743234.png" alt="image-20230623205743234" style="zoom:50%;" align="left"/>
 
 ### 队伍详情
 
 1）在队伍页可以看到非私有队伍，队长和管理员可以更新队伍和解散队伍。加入加密队伍需要输入密码。
 
-<img src="http://niu.ochiamalu.xyz/image-20230623205802023.png" alt="image-20230623205802023" style="zoom:50%;" /><img src="http://niu.ochiamalu.xyz/image-20230623205810878.png" alt="image-20230623205810878" style="zoom:50%;" />
-
 2）搜索队伍：输入队伍名可搜索队伍。
-
-<img src="http://niu.ochiamalu.xyz/image-20230623205828614.png" alt="image-20230623205828614" style="zoom:50%;" align="left" />
 
 3）队伍详情：点击队伍后可进入队伍详情页，可以看到队伍加入的队员，队长或管理员可以修改队伍封面图片。
 
-<img src="http://niu.ochiamalu.xyz/image-20230623205841551.png" alt="image-20230623205841551" style="zoom:50%;" /><img src="http://niu.ochiamalu.xyz/image-20230623205847119.png" alt="image-20230623205847119" style="zoom:50%;" />
-
 4）队伍聊天室：队员可以进入队伍聊天室，进行实时聊天。
-
-<img src="http://niu.ochiamalu.xyz/image-20230623205939587.png" alt="image-20230623205939587" style="zoom:50%;" align="left" />
 
 ### 博文
 
 1）用户可以点击导航栏的加号新建博文。
 
-
-
-<img src="http://niu.ochiamalu.xyz/image-20230623205959418.png" alt="image-20230623205959418" style="zoom:50%;" /><img src="http://niu.ochiamalu.xyz/image-20230623210006245.png" alt="image-20230623210006245" style="zoom:50%;" />
-
 2）新博文将显示在热门帖文中。
-
-<img src="http://niu.ochiamalu.xyz/image-20230623210026024.png" alt="image-20230623210026024" style="zoom:50%;" align="left"/>
 
 3）点击博文将进入博文详情页。
 
-<img src="http://niu.ochiamalu.xyz/image-20230623210040902.png" alt="image-20230623210040902" style="zoom:50%;" /><img src="http://niu.ochiamalu.xyz/image-20230623210047396.png" alt="image-20230623210047396" style="zoom:50%;" />
-
 4）用户可以关注其他用户。
 
-<img src="http://niu.ochiamalu.xyz/image-20230623210106361.png" alt="image-20230623210106361" style="zoom:50%;" align="left"/>
-
-5）更多操作：点击右上角可显示弹框。复制链接可将博文链接复制
-
-<img src="http://niu.ochiamalu.xyz/image-20230623210126542.png" alt="image-20230623210126542" style="zoom:50%;" /><img src="http://niu.ochiamalu.xyz/image-20230623210133572.png" alt="image-20230623210133572" style="zoom:50%;" />
+5）更多操作：点击右上角可显示弹框。复制链接可将博文链接复制。
 
 编辑可以编辑当前博文，删除可以删除当前博文，举报可以举报当博文。
 
-<img src="http://niu.ochiamalu.xyz/image-20230623210216953.png" alt="image-20230623210216953" style="zoom:50%;" /><img src="http://niu.ochiamalu.xyz/image-20230623210223568.png" alt="image-20230623210223568" style="zoom:50%;" />
-
 只有博文作者或管理员可以编辑、删除博文。
 
-<img src="http://niu.ochiamalu.xyz/image-20230623210235861.png" alt="image-20230623210235861" style="zoom:50%;" align="left"/>
-
 6）点赞博文：用户可以点击右下角点赞博文。
-
-<img src="http://niu.ochiamalu.xyz/image-20230623210248034.png" alt="image-20230623210248034" style="zoom:50%;" align="left"/>
 
 ### 评论
 
 1）博文评论：用户可以在博文下评论。
 
-<img src="http://niu.ochiamalu.xyz/image-20230623210313644.png" alt="image-20230623210313644" style="zoom:50%;" align="left"/>
-
 2）点赞评论：用户可以点赞评论。
 
-<img src="http://niu.ochiamalu.xyz/image-20230623210327290.png" alt="image-20230623210327290" style="zoom:50%;" align="left"/>
-
 3）删除评论：评论作者和管理员可以删除评论。
-
-<img src="http://niu.ochiamalu.xyz/image-20230623210338823.png" alt="image-20230623210338823" style="zoom:50%;" align="left"/>
 
 ### 消息中心
 
 1）新消息提醒：用户收到新消息时将提醒用户。
 
-<img src="http://niu.ochiamalu.xyz/image-20230623210403440.png" alt="image-20230623210403440" style="zoom:50%;" align="left"/>
-
 2）我的关注：用户关注的其他用户在更新博文后将把消息推送给所有粉丝，并在粉丝的我的关注中显示。
-
-<img src="http://niu.ochiamalu.xyz/image-20230623210414948.png" alt="image-20230623210414948" style="zoom:50%;" align="left"/>
 
 3）聊天室列表：这里将展示公共聊天室和已加入的队伍聊天室。
 
-<img src="http://niu.ochiamalu.xyz/image-20230623210427646.png" alt="image-20230623210427646" style="zoom:50%;" align="left"/>
-
 4）所有评论：展示用户所有的评论。可以进行点赞和删除。
-
-<img src="http://niu.ochiamalu.xyz/image-20230623210509663.png" alt="image-20230623210509663" style="zoom:50%;" align="left"/>
 
 5）赞：当用户收到点赞后将在这里显示。
 
-<img src="http://niu.ochiamalu.xyz/image-20230623210521220.png" alt="image-20230623210521220" style="zoom:50%;" align="left"/>
-
 6）关注：展示用户关注的其他用户。
 
-<img src="http://niu.ochiamalu.xyz/image-20230623210533925.png" alt="image-20230623210533925" style="zoom:50%;" align="left"/>
-
 7）粉丝：展示用户的粉丝。
-
-<img src="http://niu.ochiamalu.xyz/image-20230623210544424.png" alt="image-20230623210544424" style="zoom:50%;" align="left"/>
 
 
 
