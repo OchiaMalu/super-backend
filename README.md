@@ -1,7 +1,6 @@
-<img src="http://niu.ochiamalu.xyz/image-20230623213937364.png" alt="image-20230623213937364" style="zoom:50%;" />
-
-
-
+<p align="center">
+<img src="doc/images/main.png" alt="image-20230623213937364" style="zoom:50%;" align="center" />
+</p>
 <p align=center>
    SUPER速配-伙伴匹配系统
 </p>
@@ -116,11 +115,11 @@
 
 ### 软件架构
 
-![image-20230623201717125](http://niu.ochiamalu.xyz/image-20230623201717125.png)
+![image-20230623201717125](doc/images/1.png)
 
 ### 数据库架构
 
-![image-20230623203721932](http://niu.ochiamalu.xyz/image-20230623203721932.png)
+![image-20230623203721932](doc/images/2.png)
 
 ## 后端部署
 
