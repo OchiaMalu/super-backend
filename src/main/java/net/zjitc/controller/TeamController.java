@@ -21,7 +21,6 @@ import net.zjitc.service.TeamService;
 import net.zjitc.service.UserService;
 import net.zjitc.service.UserTeamService;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -30,8 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 
 /**
  * 队伍控制器
@@ -335,6 +332,27 @@ public class TeamController {
     }
 
     /**
+     * 更新封面图片
+     *
+     * @param teamCoverUpdateRequest 团队包括变更请求
+     * @param request                请求
+     * @return {@link BaseResponse}<{@link String}>
+     */
+    @PutMapping("/cover")
+    @ApiOperation(value = "更新封面图片")
+    @ApiImplicitParams({@ApiImplicitParam(name = "teamCoverUpdateRequest", value = "队伍封面更新请求"),
+            @ApiImplicitParam(name = "request", value = "request请求")})
+    public BaseResponse<String> changeCoverImage(TeamCoverUpdateRequest teamCoverUpdateRequest, HttpServletRequest request){
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser==null){
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        boolean admin = userService.isAdmin(loginUser);
+        teamService.changeCoverImage(teamCoverUpdateRequest,loginUser.getId(),admin);
+        return ResultUtils.success("ok");
+    }
+
+    /**
      * 获取已加入的用户
      *
      * @param loginUser 登录用户
@@ -376,24 +394,5 @@ public class TeamController {
         });
         teamVOPage.setRecords(teamList);
         return teamVOPage;
-    }
-
-
-    /**
-     * 改变封面图片
-     *
-     * @param teamCoverChangeRequest 团队包括变更请求
-     * @param request                请求
-     * @return {@link BaseResponse}<{@link String}>
-     */
-    @PutMapping("/cover")
-    public BaseResponse<String> changeCoverImage(TeamCoverChangeRequest teamCoverChangeRequest,HttpServletRequest request){
-        User loginUser = userService.getLoginUser(request);
-        if (loginUser==null){
-            throw new BusinessException(ErrorCode.NOT_LOGIN);
-        }
-        boolean admin = userService.isAdmin(loginUser);
-        teamService.changeCoverImage(teamCoverChangeRequest,loginUser.getId(),admin);
-        return ResultUtils.success("ok");
     }
 }

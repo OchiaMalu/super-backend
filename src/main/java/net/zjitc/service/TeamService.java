@@ -9,7 +9,6 @@ import net.zjitc.model.request.*;
 import net.zjitc.model.vo.TeamVO;
 import net.zjitc.model.vo.UserVO;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -42,5 +41,5 @@ public interface TeamService extends IService<Team> {
 
     List<TeamVO> listAllMyJoin(Long id);
 
-    void changeCoverImage(TeamCoverChangeRequest request, Long userId, boolean admin);
+    void changeCoverImage(TeamCoverUpdateRequest request, Long userId, boolean admin);
 }

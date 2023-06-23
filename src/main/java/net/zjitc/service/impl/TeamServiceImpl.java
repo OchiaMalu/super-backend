@@ -29,7 +29,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
-import java.lang.invoke.LambdaMetafactory;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -559,7 +558,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
      * @param admin   管理
      */
     @Override
-    public void changeCoverImage(TeamCoverChangeRequest request, Long userId, boolean admin) {
+    public void changeCoverImage(TeamCoverUpdateRequest request, Long userId, boolean admin) {
         MultipartFile image = request.getFile();
         if (image == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
