@@ -14,6 +14,7 @@ import com.google.gson.reflect.TypeToken;
 import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import net.zjitc.common.ErrorCode;
+import net.zjitc.common.ResultUtils;
 import net.zjitc.constants.UserConstants;
 import net.zjitc.exception.BusinessException;
 import net.zjitc.mapper.UserMapper;
@@ -42,6 +43,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static net.zjitc.constants.RedisConstants.*;
+import static net.zjitc.constants.SystemConstants.DEFAULT_CACHE_PAGE;
 import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
 import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 
@@ -541,6 +543,34 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setPassword(encryptPassword);
         this.updateById(user);
         stringRedisTemplate.delete(key);
+    }
+
+    @Override
+    public Page<UserVO> preMatchUser(long currentPage, User loginUser) {
+        Gson gson = new Gson();
+        if (loginUser != null) {
+            String key = USER_RECOMMEND_KEY + loginUser.getId() + ":" + currentPage;
+            if (currentPage <= DEFAULT_CACHE_PAGE) {
+                Boolean hasKey = stringRedisTemplate.hasKey(key);
+                if (Boolean.TRUE.equals(hasKey)) {
+                    String userVOPageStr = stringRedisTemplate.opsForValue().get(key);
+                    return gson.fromJson(userVOPageStr, new TypeToken<Page<UserVO>>() {
+                    }.getType());
+                } else {
+                    Page<UserVO> userVOPage = this.matchUser(currentPage, loginUser);
+                    String userVOPageStr = gson.toJson(userVOPage);
+                    stringRedisTemplate.opsForValue().set(key, userVOPageStr);
+                    return userVOPage;
+                }
+            } else {
+                Page<UserVO> userVOPage = this.matchUser(currentPage, loginUser);
+                String userVOPageStr = gson.toJson(userVOPage);
+                stringRedisTemplate.opsForValue().set(key, userVOPageStr);
+                return userVOPage;
+            }
+        } else {
+            return this.getRandomUser();
+        }
     }
 
     @Deprecated

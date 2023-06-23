@@ -103,7 +103,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
         Page<Blog> blogPage = this.page(new Page<>(currentPage, PAGE_SIZE), blogLambdaQueryWrapper);
         Page<BlogVO> blogVOPage = new Page<>();
         BeanUtils.copyProperties(blogPage, blogVOPage);
-        //todo 设置博文首页图片，返回图片完整url
         List<BlogVO> blogVOList = blogPage.getRecords().stream().map((blog) -> {
             BlogVO blogVO = new BlogVO();
             BeanUtils.copyProperties(blog, blogVO);
@@ -162,13 +161,20 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
 
     @Override
     public Page<BlogVO> pageBlog(long currentPage, Long userId) {
-        Page<Blog> blogPage = this.page(new Page<>(currentPage, PAGE_SIZE));
+        LambdaQueryWrapper<Blog> blogLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        blogLambdaQueryWrapper.orderBy(true, false, Blog::getCreateTime);
+        Page<Blog> blogPage = this.page(new Page<>(currentPage, PAGE_SIZE), blogLambdaQueryWrapper);
         Page<BlogVO> blogVOPage = new Page<>();
         BeanUtils.copyProperties(blogPage, blogVOPage);
-        //todo 设置博文首页图片，返回图片完整url
         List<BlogVO> blogVOList = blogPage.getRecords().stream().map((blog) -> {
             BlogVO blogVO = new BlogVO();
             BeanUtils.copyProperties(blog, blogVO);
+            if (userId != null) {
+                LambdaQueryWrapper<BlogLike> blogLikeLambdaQueryWrapper = new LambdaQueryWrapper<>();
+                blogLikeLambdaQueryWrapper.eq(BlogLike::getBlogId, blog.getId()).eq(BlogLike::getUserId, userId);
+                long count = blogLikeService.count(blogLikeLambdaQueryWrapper);
+                blogVO.setIsLike(count > 0);
+            }
             return blogVO;
         }).collect(Collectors.toList());
         for (BlogVO blogVO : blogVOList) {
@@ -212,6 +218,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
         }
         String imgStr = StringUtils.join(imgStrList, ",");
         blogVO.setImages(imgStr);
+        blogVO.setCoverImage(imgStrList.get(0));
         return blogVO;
     }
 

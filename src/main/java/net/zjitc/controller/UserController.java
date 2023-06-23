@@ -481,25 +481,8 @@ public class UserController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
-        if (loginUser != null) {
-            if (currentPage <= DEFAULT_CACHE_PAGE) {
-                String key = USER_RECOMMEND_KEY + loginUser.getId() + ":" + currentPage;
-                Boolean hasKey = stringRedisTemplate.hasKey(key);
-                if (Boolean.TRUE.equals(hasKey)) {
-                    String userVOPageStr = stringRedisTemplate.opsForValue().get(key);
-                    Gson gson = new Gson();
-                    Page<UserVO> userVOPage = gson.fromJson(userVOPageStr, new TypeToken<Page<UserVO>>() {
-                    }.getType());
-                    return ResultUtils.success(userVOPage);
-                } else {
-                    return ResultUtils.success(userService.matchUser(currentPage, loginUser));
-                }
-            } else {
-                return ResultUtils.success(userService.matchUser(currentPage, loginUser));
-            }
-        } else {
-            return ResultUtils.success(userService.getRandomUser());
-        }
+        Page<UserVO> userVOPage = userService.preMatchUser(currentPage, loginUser);
+        return ResultUtils.success(userVOPage);
     }
 
     /**

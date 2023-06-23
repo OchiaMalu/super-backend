@@ -51,4 +51,6 @@ public interface UserService extends IService<User> {
     Page<UserVO> getRandomUser();
 
     void updatePassword(String phone, String code, String password, String confirmPassword);
+
+    Page<UserVO> preMatchUser(long currentPage, User loginUser);
 }
