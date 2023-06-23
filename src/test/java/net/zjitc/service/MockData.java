@@ -36,8 +36,7 @@ public class MockData {
     @Test
     void insert() {
         Random random = new Random();
-        for (int i = 0; i < 1000000; i++) {
-//            String randomUsername = getRandomUsername(random);
+        for (int i = 0; i < 1000; i++) {
             String randomUsername = getRandomString(10);
             ArrayList<String> randomTags = getRandomTags(random);
             String randomEmail = randomUsername + "@" + EMAIL_DOMAINS[random.nextInt(EMAIL_DOMAINS.length)];

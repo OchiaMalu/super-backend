@@ -95,8 +95,8 @@ public class UserController {
         Integer code = ValidateCodeUtils.generateValidateCode(6);
         String key = REGISTER_CODE_KEY + phone;
         stringRedisTemplate.opsForValue().set(key, String.valueOf(code), REGISTER_CODE_TTL, TimeUnit.MINUTES);
-//        System.out.println(code);
-        SMSUtils.sendMessage(phone, String.valueOf(code));
+        System.out.println(code);
+//        SMSUtils.sendMessage(phone, String.valueOf(code));
         return ResultUtils.success("短信发送成功");
     }
 
@@ -123,8 +123,8 @@ public class UserController {
         Integer code = ValidateCodeUtils.generateValidateCode(6);
         String key = USER_UPDATE_PHONE_KEY + phone;
         stringRedisTemplate.opsForValue().set(key, String.valueOf(code), USER_UPDATE_PHONE_TTL, TimeUnit.MINUTES);
-//        System.out.println(code);
-        SMSUtils.sendMessage(phone, String.valueOf(code));
+        System.out.println(code);
+//        SMSUtils.sendMessage(phone, String.valueOf(code));
         return ResultUtils.success("短信发送成功");
     }
 
@@ -159,7 +159,7 @@ public class UserController {
         javaMailSender.send(mimeMessage);
         String key = USER_UPDATE_EMAIL_KEY + email;
         stringRedisTemplate.opsForValue().set(key, String.valueOf(code), USER_UPDATE_EMAIl_TTL, TimeUnit.MINUTES);
-//        System.out.println(code);
+        System.out.println(code);
         return ResultUtils.success("ok");
     }
 
@@ -183,7 +183,7 @@ public class UserController {
         String password = userRegisterRequest.getUserPassword();
         String checkPassword = userRegisterRequest.getCheckPassword();
         if (StringUtils.isAnyBlank(phone, code, account, password, checkPassword)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"信息不全");
         }
         long userId = userService.userRegister(phone, code, account, password, checkPassword);
         User userInDatabase = userService.getById(userId);
@@ -263,8 +263,8 @@ public class UserController {
         } else {
             String key = USER_FORGET_PASSWORD_KEY + phone;
             Integer code = ValidateCodeUtils.generateValidateCode(4);
-            SMSUtils.sendMessage(phone, String.valueOf(code));
-//            System.out.println(code);
+//            SMSUtils.sendMessage(phone, String.valueOf(code));
+            System.out.println(code);
             stringRedisTemplate.opsForValue().set(key, String.valueOf(code), USER_FORGET_PASSWORD_TTL, TimeUnit.MINUTES);
             return ResultUtils.success(user.getUserAccount());
         }

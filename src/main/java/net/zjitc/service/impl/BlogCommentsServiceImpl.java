@@ -186,6 +186,11 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
             blogVO.setAuthor(authorVO);
 
             blogCommentsVO.setBlog(blogVO);
+
+            LambdaQueryWrapper<CommentLike> commentLikeLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            commentLikeLambdaQueryWrapper.eq(CommentLike::getUserId, id).eq(CommentLike::getCommentId, item.getId());
+            long count = commentLikeService.count(commentLikeLambdaQueryWrapper);
+            blogCommentsVO.setIsLiked(count > 0);
             return blogCommentsVO;
         }).collect(Collectors.toList());
         return commentsVOList;
