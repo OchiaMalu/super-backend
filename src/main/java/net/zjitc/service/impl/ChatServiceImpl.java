@@ -61,9 +61,9 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         }
         LambdaQueryWrapper<Chat> chatLambdaQueryWrapper = new LambdaQueryWrapper<>();
         chatLambdaQueryWrapper.
-                and(privateChat -> privateChat.eq(Chat::getFromId, loginUser.getId()).eq(Chat::getToid, toId)
+                and(privateChat -> privateChat.eq(Chat::getFromId, loginUser.getId()).eq(Chat::getToId, toId)
                         .or().
-                        eq(Chat::getToid, loginUser.getId()).eq(Chat::getFromId, toId)
+                        eq(Chat::getToId, loginUser.getId()).eq(Chat::getFromId, toId)
                 ).eq(Chat::getChatType, chatType);
         // 两方共有聊天
         List<Chat> list = this.list(chatLambdaQueryWrapper);

@@ -34,7 +34,7 @@ public class Chat implements Serializable {
      * 接收消息id
      */
     @ApiModelProperty(value = "接收消息id")
-    private Long toid;
+    private Long toId;
 
     /**
      * 正文

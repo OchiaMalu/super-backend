@@ -386,7 +386,7 @@ public class WebSocket {
         chat.setChatType(chatType);
         chat.setCreateTime(new Date());
         if (toId != null && toId > 0) {
-            chat.setToid(toId);
+            chat.setToId(toId);
         }
         if (teamId != null && teamId > 0) {
             chat.setTeamId(teamId);

@@ -316,7 +316,7 @@ public class TeamController {
      * @return {@link BaseResponse}<{@link List}<{@link UserVO}>>
      */
     @GetMapping("/member/{id}")
-    @ApiOperation(value = "获取我加入的队伍")
+    @ApiOperation(value = "获取队伍成员")
     @ApiImplicitParams({@ApiImplicitParam(name = "id", value = "队伍id"),
             @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<List<UserVO>> getTeamMemberById(@PathVariable Long id,HttpServletRequest request){
