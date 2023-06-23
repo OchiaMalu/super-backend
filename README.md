@@ -130,10 +130,8 @@
    maven install
    ```
 
-2. 修改application.xml，其中spring.mail为非必填项，不填写则无法发送邮件<img src="http://niu.ochiamalu.xyz/image-20230623203910553.png" alt="image-20230623203910553" style="zoom:80%;" />
+2. 修改application.xml，其中spring.mail为非必填项，不填写则无法发送邮件
 3. 修改SMSUtils配置，若不修改则无法发送验证码短信，可通过控制台输出的方式获取生成的验证码。
-
-<img src="http://niu.ochiamalu.xyz/image-20230623204013289.png" alt="image-20230623204013289" style="zoom:80%;" align="left" />
 
 4. 新建super数据库，并执行super.sql
 5. 运行SuperApplication
