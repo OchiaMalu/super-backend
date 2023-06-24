@@ -21,7 +21,7 @@ public interface BlogService extends IService<Blog> {
 
     void likeBlog(long blogId, Long userId);
 
-    Page<BlogVO> pageBlog(long currentPage, Long id);
+    Page<BlogVO> pageBlog(long currentPage,String title, Long id);
 
     BlogVO getBlogById(long blogId, Long userId);
 

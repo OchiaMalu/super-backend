@@ -183,7 +183,7 @@ public class UserController {
         String password = userRegisterRequest.getUserPassword();
         String checkPassword = userRegisterRequest.getCheckPassword();
         if (StringUtils.isAnyBlank(phone, code, account, password, checkPassword)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR,"信息不全");
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "信息不全");
         }
         long userId = userService.userRegister(phone, code, account, password, checkPassword);
         User userInDatabase = userService.getById(userId);
@@ -476,12 +476,12 @@ public class UserController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "currentPage", value = "当前页"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<Page<UserVO>> matchUsers(long currentPage, HttpServletRequest request) {
+    public BaseResponse<Page<UserVO>> matchUsers(long currentPage, String username, HttpServletRequest request) {
         if (currentPage <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
-        Page<UserVO> userVOPage = userService.preMatchUser(currentPage, loginUser);
+        Page<UserVO> userVOPage = userService.preMatchUser(currentPage, username,loginUser);
         return ResultUtils.success(userVOPage);
     }
 

@@ -160,8 +160,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
     }
 
     @Override
-    public Page<BlogVO> pageBlog(long currentPage, Long userId) {
+    public Page<BlogVO> pageBlog(long currentPage, String title, Long userId) {
         LambdaQueryWrapper<Blog> blogLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        blogLambdaQueryWrapper.like(StringUtils.isNotBlank(title), Blog::getTitle, title);
         blogLambdaQueryWrapper.orderBy(true, false, Blog::getCreateTime);
         Page<Blog> blogPage = this.page(new Page<>(currentPage, PAGE_SIZE), blogLambdaQueryWrapper);
         Page<BlogVO> blogVOPage = new Page<>();

@@ -546,10 +546,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public Page<UserVO> preMatchUser(long currentPage, User loginUser) {
+    public Page<UserVO> preMatchUser(long currentPage, String username, User loginUser) {
         Gson gson = new Gson();
         if (loginUser != null) {
             String key = USER_RECOMMEND_KEY + loginUser.getId() + ":" + currentPage;
+            if (StringUtils.isNotBlank(username)) {
+                LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
+                userLambdaQueryWrapper.like(User::getUsername, username);
+                Page<User> userPage = this.page(new Page<>(currentPage, PAGE_SIZE), userLambdaQueryWrapper);
+                Page<UserVO> userVOPage = new Page<>();
+                BeanUtils.copyProperties(userPage, userVOPage);
+                List<UserVO> userVOList = userPage.getRecords().stream().map((user) -> this.getUserById(user.getId(), loginUser.getId())).collect(Collectors.toList());
+                userVOPage.setRecords(userVOList);
+                return userVOPage;
+            }
             if (currentPage <= DEFAULT_CACHE_PAGE) {
                 Boolean hasKey = stringRedisTemplate.hasKey(key);
                 if (Boolean.TRUE.equals(hasKey)) {
@@ -563,6 +573,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                     return userVOPage;
                 }
             } else {
+                if (StringUtils.isNotBlank(username)) {
+                    throw new BusinessException(ErrorCode.NOT_LOGIN);
+                }
                 Page<UserVO> userVOPage = this.matchUser(currentPage, loginUser);
                 String userVOPageStr = gson.toJson(userVOPage);
                 stringRedisTemplate.opsForValue().set(key, userVOPageStr);

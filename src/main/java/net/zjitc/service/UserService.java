@@ -16,7 +16,7 @@ import java.util.List;
  * @createDate 2023-05-07 19:56:01
  */
 public interface UserService extends IService<User> {
-    long userRegister(String phone, String code,String userAccount, String userPassword, String checkPassword);
+    long userRegister(String phone, String code, String userAccount, String userPassword, String checkPassword);
 
     String userLogin(String userAccount, String userPassword, HttpServletRequest request);
 
@@ -24,7 +24,7 @@ public interface UserService extends IService<User> {
 
     int userLogout(HttpServletRequest request);
 
-    Page<User> searchUsersByTags(List<String> tagNameList,long currentPage);
+    Page<User> searchUsersByTags(List<String> tagNameList, long currentPage);
 
     boolean isAdmin(User loginUser);
 
@@ -46,11 +46,11 @@ public interface UserService extends IService<User> {
 
     void updateTags(List<String> tags, Long userId);
 
-    void updateUserWithCode(UserUpdateRequest updateRequest,Long userId);
+    void updateUserWithCode(UserUpdateRequest updateRequest, Long userId);
 
     Page<UserVO> getRandomUser();
 
     void updatePassword(String phone, String code, String password, String confirmPassword);
 
-    Page<UserVO> preMatchUser(long currentPage, User loginUser);
+    Page<UserVO> preMatchUser(long currentPage, String username, User loginUser);
 }

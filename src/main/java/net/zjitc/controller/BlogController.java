@@ -57,12 +57,12 @@ public class BlogController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "currentPage", value = "当前页"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<Page<BlogVO>> listBlogPage(long currentPage, HttpServletRequest request) {
+    public BaseResponse<Page<BlogVO>> listBlogPage(long currentPage, String title, HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
-            return ResultUtils.success(blogService.pageBlog(currentPage, null));
+            return ResultUtils.success(blogService.pageBlog(currentPage, title, null));
         } else {
-            return ResultUtils.success(blogService.pageBlog(currentPage, loginUser.getId()));
+            return ResultUtils.success(blogService.pageBlog(currentPage, title, loginUser.getId()));
         }
     }
 
@@ -192,13 +192,13 @@ public class BlogController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "blogUpdateRequest", value = "博文更新请求"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<String> updateBlog(BlogUpdateRequest blogUpdateRequest,HttpServletRequest request){
+    public BaseResponse<String> updateBlog(BlogUpdateRequest blogUpdateRequest, HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
         boolean admin = userService.isAdmin(loginUser);
-        blogService.updateBlog(blogUpdateRequest,loginUser.getId(),admin);
+        blogService.updateBlog(blogUpdateRequest, loginUser.getId(), admin);
         return ResultUtils.success("更新成功");
     }
 }
