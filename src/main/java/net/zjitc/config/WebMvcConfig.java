@@ -15,6 +15,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         JacksonObjectMapper objectMapper = new JacksonObjectMapper();
+        //重写日期格式
         SimpleDateFormat smt = new SimpleDateFormat("yyyy-MM-dd");
         objectMapper.setDateFormat(smt);
         converter.setObjectMapper(objectMapper);

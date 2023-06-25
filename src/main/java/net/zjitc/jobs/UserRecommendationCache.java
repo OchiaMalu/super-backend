@@ -53,6 +53,8 @@ public class UserRecommendationCache extends QuartzJobBean {
         RLock lock = redissonClient.getLock(USER_RECOMMEND_LOCK);
         try {
             if (lock.tryLock(0, -1, TimeUnit.MICROSECONDS)) {
+                System.out.println("开始用户缓存");
+                long begin = System.currentTimeMillis();
                 userList = userService.list();
                 for (User user : userList) {
                     for (int i = 1; i <= DEFAULT_CACHE_PAGE; i++) {
@@ -63,6 +65,8 @@ public class UserRecommendationCache extends QuartzJobBean {
                         stringRedisTemplate.opsForValue().set(key, userVOPageStr);
                     }
                 }
+                long end = System.currentTimeMillis();
+                System.out.println("用户缓存结束，耗时" + (end - begin));
             }
         } catch (InterruptedException e) {
             throw new RuntimeException(e);

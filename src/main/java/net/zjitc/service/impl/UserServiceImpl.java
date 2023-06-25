@@ -573,15 +573,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                     return userVOPage;
                 }
             } else {
-                if (StringUtils.isNotBlank(username)) {
-                    throw new BusinessException(ErrorCode.NOT_LOGIN);
-                }
                 Page<UserVO> userVOPage = this.matchUser(currentPage, loginUser);
                 String userVOPageStr = gson.toJson(userVOPage);
                 stringRedisTemplate.opsForValue().set(key, userVOPageStr);
                 return userVOPage;
             }
         } else {
+            if (StringUtils.isNotBlank(username)) {
+                throw new BusinessException(ErrorCode.NOT_LOGIN);
+            }
             return this.getRandomUser();
         }
     }
