@@ -1,5 +1,6 @@
 package net.zjitc.controller;
 
+import cn.hutool.bloomfilter.BloomFilter;
 import cn.hutool.core.lang.UUID;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -42,6 +43,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static net.zjitc.constants.BloomFilterConstants.TEAM_BLOOM_PREFIX;
+import static net.zjitc.constants.BloomFilterConstants.USER_BLOOM_PREFIX;
 import static net.zjitc.constants.RedisConstants.*;
 import static net.zjitc.constants.SystemConstants.DEFAULT_CACHE_PAGE;
 import static net.zjitc.constants.SystemConstants.EMAIL_FROM;
@@ -77,6 +80,12 @@ public class UserController {
      */
     @Resource
     private JavaMailSender javaMailSender;
+
+//    /**
+//     * 布隆过滤器
+//     */
+//    @Resource
+//    private BloomFilter bloomFilter;
 
     /**
      * 发送消息
@@ -195,6 +204,7 @@ public class UserController {
         request.getSession().setMaxInactiveInterval(900);
         stringRedisTemplate.opsForValue().set(LOGIN_USER_KEY + token, userStr);
         stringRedisTemplate.expire(LOGIN_USER_KEY + token, Duration.ofMinutes(15));
+//        bloomFilter.add(USER_BLOOM_PREFIX + userId);
         return ResultUtils.success(token);
     }
 
@@ -481,7 +491,7 @@ public class UserController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
-        Page<UserVO> userVOPage = userService.preMatchUser(currentPage, username,loginUser);
+        Page<UserVO> userVOPage = userService.preMatchUser(currentPage, username, loginUser);
         return ResultUtils.success(userVOPage);
     }
 
@@ -498,6 +508,10 @@ public class UserController {
             {@ApiImplicitParam(name = "id", value = "用户id"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<UserVO> getUserById(@PathVariable Long id, HttpServletRequest request) {
+//        boolean contains = bloomFilter.contains(USER_BLOOM_PREFIX + id);
+//        if (!contains) {
+//            return ResultUtils.success(null);
+//        }
         User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);

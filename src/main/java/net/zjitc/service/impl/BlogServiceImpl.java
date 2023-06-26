@@ -54,7 +54,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
     private StringRedisTemplate stringRedisTemplate;
 
     @Override
-    public Boolean addBlog(BlogAddRequest blogAddRequest, User loginUser) {
+    public Long addBlog(BlogAddRequest blogAddRequest, User loginUser) {
         Blog blog = new Blog();
         ArrayList<String> imageNameList = new ArrayList<>();
         try {
@@ -90,7 +90,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
                 }
             }
         }
-        return true;
+        return blog.getId();
     }
 
     @Override

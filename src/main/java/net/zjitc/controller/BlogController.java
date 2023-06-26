@@ -1,5 +1,6 @@
 package net.zjitc.controller;
 
+import cn.hutool.bloomfilter.BloomFilter;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
+import static net.zjitc.constants.BloomFilterConstants.BLOG_BLOOM_PREFIX;
 import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 
 /**
@@ -44,6 +46,12 @@ public class BlogController {
      */
     @Resource
     private UserService userService;
+
+//    /**
+//     * 布隆过滤器
+//     */
+//    @Resource
+//    private BloomFilter bloomFilter;
 
     /**
      * 博客列表页面
@@ -86,7 +94,8 @@ public class BlogController {
         if (StringUtils.isAnyBlank(blogAddRequest.getTitle(), blogAddRequest.getContent())) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        blogService.addBlog(blogAddRequest, loginUser);
+        Long blogId = blogService.addBlog(blogAddRequest, loginUser);
+//        bloomFilter.add(BLOG_BLOOM_PREFIX + blogId);
         return ResultUtils.success("添加成功");
     }
 
@@ -149,6 +158,10 @@ public class BlogController {
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
+//        boolean contains = bloomFilter.contains(BLOG_BLOOM_PREFIX + id);
+//        if (!contains){
+//            return ResultUtils.success(null);
+//        }
         if (id == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }

@@ -15,7 +15,7 @@ import net.zjitc.model.vo.BlogVO;
 */
 public interface BlogService extends IService<Blog> {
 
-    Boolean addBlog(BlogAddRequest blogAddRequest, User loginUser);
+    Long addBlog(BlogAddRequest blogAddRequest, User loginUser);
 
     Page<BlogVO> listMyBlogs(long currentPage, Long id);
 

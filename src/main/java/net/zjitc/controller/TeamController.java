@@ -1,5 +1,6 @@
 package net.zjitc.controller;
 
+import cn.hutool.bloomfilter.BloomFilter;
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -30,6 +31,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static net.zjitc.constants.BloomFilterConstants.TEAM_BLOOM_PREFIX;
+
 /**
  * 队伍控制器
  *
@@ -58,6 +61,12 @@ public class TeamController {
     @Resource
     private UserTeamService userTeamService;
 
+//    /**
+//     * 布隆过滤器
+//     */
+//    @Resource
+//    private BloomFilter bloomFilter;
+
 
     /**
      * 加入团队
@@ -76,12 +85,14 @@ public class TeamController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
-        if (loginUser==null){
+        if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
         Team team = new Team();
         BeanUtil.copyProperties(teamAddRequest, team);
-        return ResultUtils.success(teamService.addTeam(team, loginUser));
+        long teamId = teamService.addTeam(team, loginUser);
+//        bloomFilter.add(TEAM_BLOOM_PREFIX + teamId);
+        return ResultUtils.success(teamId);
     }
 
     /**
@@ -100,7 +111,7 @@ public class TeamController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
-        if (loginUser==null){
+        if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
         boolean result = teamService.updateTeam(teamUpdateRequest, loginUser);
@@ -121,15 +132,19 @@ public class TeamController {
     @GetMapping("/{id}")
     @ApiOperation(value = "根据id查询队伍")
     @ApiImplicitParams({@ApiImplicitParam(name = "id", value = "队伍id")})
-    public BaseResponse<TeamVO> getTeamById(@PathVariable Long id,HttpServletRequest request) {
+    public BaseResponse<TeamVO> getTeamById(@PathVariable Long id, HttpServletRequest request) {
         if (id == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
+//        boolean contains = bloomFilter.contains(String.valueOf(id));
+//        if (!contains) {
+//            return ResultUtils.success(null);
+//        }
         User loginUser = userService.getLoginUser(request);
-        if (loginUser==null){
+        if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
-        return ResultUtils.success(teamService.getTeam(id,loginUser.getId()));
+        return ResultUtils.success(teamService.getTeam(id, loginUser.getId()));
     }
 
     /**
@@ -144,10 +159,14 @@ public class TeamController {
     @ApiOperation(value = "获取队伍列表")
     @ApiImplicitParams({@ApiImplicitParam(name = "teamQueryRequest", value = "队伍查询请求参数"),
             @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<Page<TeamVO>> listTeams(long currentPage,TeamQueryRequest teamQueryRequest, HttpServletRequest request) {
+    public BaseResponse<Page<TeamVO>> listTeams(long currentPage, TeamQueryRequest teamQueryRequest, HttpServletRequest request) {
         if (teamQueryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
+//        boolean contains = bloomFilter.contains(String.valueOf(teamQueryRequest.getId()));
+//        if (!contains) {
+//            return ResultUtils.success(null);
+//        }
         User loginUser = userService.getLoginUser(request);
         Page<TeamVO> teamVOPage = teamService.listTeams(currentPage, teamQueryRequest, userService.isAdmin(loginUser));
         Page<TeamVO> finalPage = getTeamHasJoinNum(teamVOPage);
@@ -170,7 +189,7 @@ public class TeamController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
-        if (loginUser==null){
+        if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
         boolean result = teamService.joinTeam(teamJoinRequest, loginUser);
@@ -193,7 +212,7 @@ public class TeamController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
-        if (loginUser==null){
+        if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
         boolean result = teamService.quitTeam(teamQuitRequest, loginUser);
@@ -217,11 +236,11 @@ public class TeamController {
         }
         long id = deleteRequest.getId();
         User loginUser = userService.getLoginUser(request);
-        if (loginUser==null){
+        if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
         boolean isAdmin = userService.isAdmin(loginUser);
-        boolean result = teamService.deleteTeam(id, loginUser,isAdmin);
+        boolean result = teamService.deleteTeam(id, loginUser, isAdmin);
         if (!result) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "删除失败");
         }
@@ -240,12 +259,12 @@ public class TeamController {
     @ApiOperation(value = "获取我创建的队伍")
     @ApiImplicitParams({@ApiImplicitParam(name = "teamQuery", value = "获取队伍请求参数"),
             @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<Page<TeamVO>> listMyCreateTeams(long currentPage,TeamQueryRequest teamQuery, HttpServletRequest request) {
+    public BaseResponse<Page<TeamVO>> listMyCreateTeams(long currentPage, TeamQueryRequest teamQuery, HttpServletRequest request) {
         if (teamQuery == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
-        if (loginUser==null){
+        if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
         teamQuery.setUserId(loginUser.getId());
@@ -266,21 +285,21 @@ public class TeamController {
     @ApiOperation(value = "获取我加入的队伍")
     @ApiImplicitParams({@ApiImplicitParam(name = "teamQuery", value = "获取队伍请求参数"),
             @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<Page<TeamVO>> listMyJoinTeams(long currentPage,TeamQueryRequest teamQuery, HttpServletRequest request) {
+    public BaseResponse<Page<TeamVO>> listMyJoinTeams(long currentPage, TeamQueryRequest teamQuery, HttpServletRequest request) {
         if (teamQuery == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
-        if (loginUser==null){
+        if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
         LambdaQueryWrapper<UserTeam> userTeamLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        userTeamLambdaQueryWrapper.eq(UserTeam::getUserId,loginUser.getId());
+        userTeamLambdaQueryWrapper.eq(UserTeam::getUserId, loginUser.getId());
         List<UserTeam> userTeamList = userTeamService.list(userTeamLambdaQueryWrapper);
         Map<Long, List<UserTeam>> listMap = userTeamList.stream()
                 .collect(Collectors.groupingBy(UserTeam::getTeamId));
         List<Long> idList = new ArrayList<>(listMap.keySet());
-        if (idList.isEmpty()){
+        if (idList.isEmpty()) {
             return ResultUtils.success(new Page<TeamVO>());
         }
         teamQuery.setIdList(idList);
@@ -301,7 +320,7 @@ public class TeamController {
             @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<List<TeamVO>> listAllMyJoinTeams(HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
-        if (loginUser==null){
+        if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
         List<TeamVO> teamVOList = teamService.listAllMyJoin(loginUser.getId());
@@ -319,12 +338,12 @@ public class TeamController {
     @ApiOperation(value = "获取队伍成员")
     @ApiImplicitParams({@ApiImplicitParam(name = "id", value = "队伍id"),
             @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<List<UserVO>> getTeamMemberById(@PathVariable Long id,HttpServletRequest request){
+    public BaseResponse<List<UserVO>> getTeamMemberById(@PathVariable Long id, HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
-        if (loginUser==null){
+        if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
-        if (id==null || id<0){
+        if (id == null || id < 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         List<UserVO> teamMember = teamService.getTeamMember(id, loginUser.getId());
@@ -342,13 +361,13 @@ public class TeamController {
     @ApiOperation(value = "更新封面图片")
     @ApiImplicitParams({@ApiImplicitParam(name = "teamCoverUpdateRequest", value = "队伍封面更新请求"),
             @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<String> changeCoverImage(TeamCoverUpdateRequest teamCoverUpdateRequest, HttpServletRequest request){
+    public BaseResponse<String> changeCoverImage(TeamCoverUpdateRequest teamCoverUpdateRequest, HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
-        if (loginUser==null){
+        if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
         boolean admin = userService.isAdmin(loginUser);
-        teamService.changeCoverImage(teamCoverUpdateRequest,loginUser.getId(),admin);
+        teamService.changeCoverImage(teamCoverUpdateRequest, loginUser.getId(), admin);
         return ResultUtils.success("ok");
     }
 
