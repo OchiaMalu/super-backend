@@ -373,7 +373,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.select("id", "tags");
-        queryWrapper.isNotNull("tags");
         List<User> userList = this.list(queryWrapper);
         Gson gson = new Gson();
         List<String> tagList = gson.fromJson(tags, new TypeToken<List<String>>() {

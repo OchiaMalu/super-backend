@@ -302,7 +302,7 @@ public class WebSocket {
         String toJson = new Gson().toJson(ChatMessageVO);
         try {
             broadcast(String.valueOf(team.getId()), toJson);
-            savaChat(user.getId(), null, text, team.getId(), chatType);
+            saveChat(user.getId(), null, text, team.getId(), chatType);
             chatService.deleteKey(CACHE_CHAT_TEAM, String.valueOf(team.getId()));
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -333,7 +333,7 @@ public class WebSocket {
         }
         String toJson = new Gson().toJson(ChatMessageVO);
         sendAllMessage(toJson);
-        savaChat(user.getId(), null, text, null, chatType);
+        saveChat(user.getId(), null, text, null, chatType);
         chatService.deleteKey(CACHE_CHAT_HALL, String.valueOf(user.getId()));
     }
 
@@ -355,7 +355,7 @@ public class WebSocket {
             }
             String toJson = new Gson().toJson(ChatMessageVO);
             sendOneMessage(toId.toString(), toJson);
-            savaChat(user.getId(), toId, text, null, chatType);
+            saveChat(user.getId(), toId, text, null, chatType);
         } else {
         }
         chatService.deleteKey(CACHE_CHAT_PRIVATE, user.getId() + "" + toId);
@@ -371,7 +371,7 @@ public class WebSocket {
      * @param teamId   团队id
      * @param chatType 聊天类型
      */
-    private void savaChat(Long userId, Long toId, String text, Long teamId, Integer chatType) {
+    private void saveChat(Long userId, Long toId, String text, Long teamId, Integer chatType) {
         if (chatType == PRIVATE_CHAT) {
             User user = userService.getById(userId);
             Set<Long> userIds = stringJsonListToLongSet(user.getFriendIds());
