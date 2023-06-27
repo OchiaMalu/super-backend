@@ -346,18 +346,14 @@ public class WebSocket {
      * @param chatType 聊天类型
      */
     private void privateChat(User user, Long toId, String text, Integer chatType) {
-        Session toSession = SESSION_POOL.get(toId.toString());
-        if (toSession != null) {
-            ChatMessageVO ChatMessageVO = chatService.chatResult(user.getId(), toId, text, chatType, DateUtil.date(System.currentTimeMillis()));
-            User loginUser = (User) this.httpSession.getAttribute(USER_LOGIN_STATE);
-            if (loginUser.getId() == user.getId()) {
-                ChatMessageVO.setIsMy(true);
-            }
-            String toJson = new Gson().toJson(ChatMessageVO);
-            sendOneMessage(toId.toString(), toJson);
-            saveChat(user.getId(), toId, text, null, chatType);
-        } else {
+        ChatMessageVO ChatMessageVO = chatService.chatResult(user.getId(), toId, text, chatType, DateUtil.date(System.currentTimeMillis()));
+        User loginUser = (User) this.httpSession.getAttribute(USER_LOGIN_STATE);
+        if (loginUser.getId() == user.getId()) {
+            ChatMessageVO.setIsMy(true);
         }
+        String toJson = new Gson().toJson(ChatMessageVO);
+        sendOneMessage(toId.toString(), toJson);
+        saveChat(user.getId(), toId, text, null, chatType);
         chatService.deleteKey(CACHE_CHAT_PRIVATE, user.getId() + "" + toId);
         chatService.deleteKey(CACHE_CHAT_PRIVATE, toId + "" + user.getId());
     }
@@ -372,14 +368,14 @@ public class WebSocket {
      * @param chatType 聊天类型
      */
     private void saveChat(Long userId, Long toId, String text, Long teamId, Integer chatType) {
-        if (chatType == PRIVATE_CHAT) {
-            User user = userService.getById(userId);
-            Set<Long> userIds = stringJsonListToLongSet(user.getFriendIds());
-            if (!userIds.contains(toId)) {
-                sendError(String.valueOf(userId), "该用户不是你的好友");
-                return;
-            }
-        }
+//        if (chatType == PRIVATE_CHAT) {
+//            User user = userService.getById(userId);
+//            Set<Long> userIds = stringJsonListToLongSet(user.getFriendIds());
+//            if (!userIds.contains(toId)) {
+//                sendError(String.valueOf(userId), "该用户不是你的好友");
+//                return;
+//            }
+//        }
         Chat chat = new Chat();
         chat.setFromId(userId);
         chat.setText(String.valueOf(text));

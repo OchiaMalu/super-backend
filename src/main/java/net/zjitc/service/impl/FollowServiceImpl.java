@@ -10,6 +10,7 @@ import net.zjitc.mapper.FollowMapper;
 import net.zjitc.service.UserService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -30,6 +31,8 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow>
     @Resource
     @Lazy
     private UserService userService;
+
+
 
     @Override
     public void followUser(Long followUserId, Long userId) {
