@@ -562,4 +562,5 @@ public class UserController {
         userService.updateTags(tags, loginUser.getId());
         return ResultUtils.success("ok");
     }
+
 }

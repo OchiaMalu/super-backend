@@ -42,4 +42,8 @@ public interface TeamService extends IService<Team> {
     List<TeamVO> listAllMyJoin(Long id);
 
     void changeCoverImage(TeamCoverUpdateRequest request, Long userId, boolean admin);
+
+    void kickOut(Long teamId, Long userId, Long loginUserId,boolean admin);
+
+    Page<TeamVO> listMyCreate(long currentPage, Long userId);
 }

@@ -1,9 +1,6 @@
 package net.zjitc.service.impl;
 
 
-import cn.hutool.bloomfilter.BloomFilterUtil;
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.bean.copier.CopyOptions;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -15,7 +12,6 @@ import com.google.gson.reflect.TypeToken;
 import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import net.zjitc.common.ErrorCode;
-import net.zjitc.common.ResultUtils;
 import net.zjitc.constants.UserConstants;
 import net.zjitc.exception.BusinessException;
 import net.zjitc.mapper.UserMapper;

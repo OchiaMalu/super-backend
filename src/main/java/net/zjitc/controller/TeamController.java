@@ -4,6 +4,7 @@ import cn.hutool.bloomfilter.BloomFilter;
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.mchange.lang.LongUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -268,7 +269,7 @@ public class TeamController {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
         teamQuery.setUserId(loginUser.getId());
-        Page<TeamVO> teamVOPage = teamService.listTeams(currentPage, teamQuery, true);
+        Page<TeamVO> teamVOPage = teamService.listMyCreate(currentPage, loginUser.getId());
         Page<TeamVO> finalPage = getTeamHasJoinNum(teamVOPage);
         return getUserJoinedList(loginUser, finalPage);
     }
@@ -368,6 +369,35 @@ public class TeamController {
         }
         boolean admin = userService.isAdmin(loginUser);
         teamService.changeCoverImage(teamCoverUpdateRequest, loginUser.getId(), admin);
+        return ResultUtils.success("ok");
+    }
+
+    /**
+     * 踢出队员
+     *
+     * @param teamKickOutRequest 踢出队员请求
+     * @param request                请求
+     * @return {@link BaseResponse}<{@link String}>
+     */
+    @PostMapping("/kick")
+    @ApiOperation(value = "踢出队员")
+    @ApiImplicitParams({@ApiImplicitParam(name = "teamKickOutRequest", value = "踢出队员请求"),
+            @ApiImplicitParam(name = "request", value = "request请求")})
+    public BaseResponse<String> kickOut(@RequestBody TeamKickOutRequest teamKickOutRequest, HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        Long teamId = teamKickOutRequest.getTeamId();
+        Long userId = teamKickOutRequest.getUserId();
+        if (teamId == null || teamId <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        if (userId == null || userId <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        boolean admin = userService.isAdmin(loginUser);
+        teamService.kickOut(teamId, userId, loginUser.getId(), admin);
         return ResultUtils.success("ok");
     }
 

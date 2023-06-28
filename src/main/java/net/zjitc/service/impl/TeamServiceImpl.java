@@ -514,7 +514,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         userTeamLambdaQueryWrapper.eq(UserTeam::getTeamId, teamId);
         List<UserTeam> userTeamList = userTeamService.list(userTeamLambdaQueryWrapper);
         List<Long> userIdList = userTeamList.stream().map(UserTeam::getUserId).filter(id -> !Objects.equals(id, userId)).collect(Collectors.toList());
-        if (userIdList.isEmpty()){
+        if (userIdList.isEmpty()) {
             return new ArrayList<>();
         }
         LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
@@ -582,6 +582,35 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         temp.setId(team.getId());
         temp.setCoverImage(QiNiuUrl + fileName);
         this.updateById(temp);
+    }
+
+    @Override
+    public void kickOut(Long teamId, Long userId, Long loginUserId, boolean admin) {
+        if (userId.equals(loginUserId)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "不能将自己踢出");
+        }
+        Team team = this.getById(teamId);
+        if (team == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "队伍不存在");
+        }
+        if (!team.getUserId().equals(loginUserId) && !admin) {
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+        LambdaQueryWrapper<UserTeam> userTeamLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        userTeamLambdaQueryWrapper.eq(UserTeam::getTeamId, teamId).eq(UserTeam::getUserId, userId);
+        userTeamService.remove(userTeamLambdaQueryWrapper);
+    }
+
+    @Override
+    public Page<TeamVO> listMyCreate(long currentPage, Long userId) {
+        LambdaQueryWrapper<Team> teamLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        teamLambdaQueryWrapper.eq(Team::getUserId,userId);
+        Page<Team> teamPage = this.page(new Page<>(currentPage, PAGE_SIZE), teamLambdaQueryWrapper);
+        List<TeamVO> teamVOList = teamPage.getRecords().stream().map((team) -> this.getTeam(team.getId(), userId)).collect(Collectors.toList());
+        Page<TeamVO> teamVOPage = new Page<>();
+        BeanUtils.copyProperties(teamPage,teamVOPage);
+        teamVOPage.setRecords(teamVOList);
+        return teamVOPage;
     }
 
 
