@@ -415,7 +415,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
             if (!result) {
                 throw new BusinessException(ErrorCode.SYSTEM_ERROR, "删除队伍关联信息失败");
             }
-            this.removeById(teamId);
+            return this.removeById(teamId);
         }
         if (!team.getUserId().equals(loginUser.getId())) {
             throw new BusinessException(ErrorCode.NO_AUTH, "无访问权限");
