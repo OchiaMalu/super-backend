@@ -126,7 +126,7 @@ https://gitee.com/ochiamaluo/super-backend
 
 ### 数据库架构
 
-![image-20230623203721932](doc/images/2.png)
+![image-20230623203721932](doc/images/2.jpg)
 
 ## 后端部署
 
