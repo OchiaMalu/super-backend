@@ -32,6 +32,7 @@ import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -362,7 +363,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 //    }
 
     @Override
-    public Page<UserVO> matchUser(long currentPage, User loginUser) {
+    public Page<UserVO> matchUser(long currentPage, User loginUser) throws IOException {
         String tags = loginUser.getTags();
         if (tags == null) {
             return this.userPage(currentPage);
@@ -386,7 +387,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             List<String> userTagList = gson.fromJson(userTags, new TypeToken<List<String>>() {
             }.getType());
             // 计算分数
-            long distance = AlgorithmUtil.minDistance(tagList, userTagList);
+            long distance = (long) AlgorithmUtil.minDistance(tagList, userTagList);
             list.add(new Pair<>(user, distance));
         }
         // 按编辑距离由小到大排序
@@ -542,7 +543,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
-    public Page<UserVO> preMatchUser(long currentPage, String username, User loginUser) {
+    public Page<UserVO> preMatchUser(long currentPage, String username, User loginUser) throws IOException {
         Gson gson = new Gson();
         if (loginUser != null) {
             String key = USER_RECOMMEND_KEY + loginUser.getId() + ":" + currentPage;

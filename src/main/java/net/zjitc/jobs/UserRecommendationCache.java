@@ -22,6 +22,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -68,7 +69,7 @@ public class UserRecommendationCache extends QuartzJobBean {
                 long end = System.currentTimeMillis();
                 System.out.println("用户缓存结束，耗时" + (end - begin));
             }
-        } catch (InterruptedException e) {
+        } catch (InterruptedException | IOException e) {
             throw new RuntimeException(e);
         } finally {
             if (lock.isHeldByCurrentThread()) {
@@ -79,7 +80,7 @@ public class UserRecommendationCache extends QuartzJobBean {
 
     }
 
-    private Page<UserVO> matchUser(long currentPage, User loginUser) {
+    private Page<UserVO> matchUser(long currentPage, User loginUser) throws IOException {
         String tags = loginUser.getTags();
         if (tags == null) {
             return userService.userPage(currentPage);
@@ -103,7 +104,7 @@ public class UserRecommendationCache extends QuartzJobBean {
             List<String> userTagList = gson.fromJson(userTags, new TypeToken<List<String>>() {
             }.getType());
             // 计算分数
-            long distance = AlgorithmUtil.minDistance(tagList, userTagList);
+            long distance = (long) AlgorithmUtil.minDistance(tagList, userTagList);
             list.add(new Pair<>(user, distance));
         }
         // 按编辑距离由小到大排序

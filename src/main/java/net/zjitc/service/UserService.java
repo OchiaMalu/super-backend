@@ -8,6 +8,7 @@ import net.zjitc.model.request.UserUpdateRequest;
 import net.zjitc.model.vo.UserVO;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -38,7 +39,7 @@ public interface UserService extends IService<User> {
 
     Boolean isLogin(HttpServletRequest request);
 
-    Page<UserVO> matchUser(long currentPage, User loginUser);
+    Page<UserVO> matchUser(long currentPage, User loginUser) throws IOException;
 
     UserVO getUserById(Long userId, Long loginUserId);
 
@@ -52,5 +53,5 @@ public interface UserService extends IService<User> {
 
     void updatePassword(String phone, String code, String password, String confirmPassword);
 
-    Page<UserVO> preMatchUser(long currentPage, String username, User loginUser);
+    Page<UserVO> preMatchUser(long currentPage, String username, User loginUser) throws IOException;
 }

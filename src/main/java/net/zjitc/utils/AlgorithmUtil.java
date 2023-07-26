@@ -1,41 +1,73 @@
 package net.zjitc.utils;
 
+
+import net.zjitc.model.enums.ListTypeEnum;
+
+import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
+import java.util.stream.Collectors;
+
+import static net.zjitc.model.enums.ListTypeEnum.ENGLISH;
+import static net.zjitc.model.enums.ListTypeEnum.MIX;
 
 /**
- * 最短编辑距离算法
+ * 算法工具
  *
  * @author OchiaMalu
- * @date 2023/06/22
+ * @date 2023/07/26
  */
 public class AlgorithmUtil {
-    public static int minDistance(List<String> tagList1, List<String> tagList2) {
-        int n = tagList1.size();
-        int m = tagList2.size();
 
-        if (n * m == 0)
-            return n + m;
-
-        int[][] d = new int[n + 1][m + 1];
-        for (int i = 0; i < n + 1; i++) {
-            d[i][0] = i;
+    /**
+     * 距离
+     *
+     * @param list1 list1
+     * @param list2 用于
+     * @return double
+     * @throws IOException ioexception
+     */
+    public static double minDistance(List<String> list1, List<String> list2) throws IOException {
+        List<String> resultList1 = list1.stream().map(String::toLowerCase).collect(Collectors.toList());
+        List<String> resultList2 = list2.stream().map(String::toLowerCase).collect(Collectors.toList());
+        int strType = AllUtils.getStrType(resultList1);
+        int type = AllUtils.getStrType(resultList2);
+        ListTypeEnum enumByValue = ListTypeEnum.getEnumByValue(strType);
+        ListTypeEnum enumByValue1 = ListTypeEnum.getEnumByValue(type);
+        if (enumByValue == MIX) {
+            resultList1 = AllUtils.tokenize(resultList1);
         }
-
-        for (int j = 0; j < m + 1; j++) {
-            d[0][j] = j;
+        if (enumByValue1 == MIX) {
+            resultList2 = AllUtils.tokenize(resultList2);
         }
-
-        for (int i = 1; i < n + 1; i++) {
-            for (int j = 1; j < m + 1; j++) {
-                int left = d[i - 1][j] + 1;
-                int down = d[i][j - 1] + 1;
-                int leftDown = d[i - 1][j - 1];
-                if (!Objects.equals(tagList1.get(i - 1), tagList2.get(j - 1)))
-                    leftDown += 1;
-                d[i][j] = Math.min(left, Math.min(down, leftDown));
-            }
+        double ikSorce = 0;
+        if (enumByValue != ENGLISH && enumByValue1 != ENGLISH) {
+            List<String> resultList3 = list1.stream().map(String::toLowerCase).collect(Collectors.toList());
+            List<String> resultList4 = list2.stream().map(String::toLowerCase).collect(Collectors.toList());
+            List<String> quotedList1 = resultList3.stream()
+                    .map(str -> "\"" + str + "\"")
+                    .collect(Collectors.toList());
+            List<String> quotedList2 = resultList4.stream()
+                    .map(str -> "\"" + str + "\"")
+                    .collect(Collectors.toList());
+            String tags1 = AllUtils.collectChineseChars(quotedList1);
+            List<String> Ls = AllUtils.analyzeText(tags1);
+            String tags2 = AllUtils.collectChineseChars(quotedList2);
+            List<String> Ls2 = AllUtils.analyzeText(tags2);
+            ikSorce = AllUtils.calculateJaccardSimilarity(Ls, Ls2);
         }
-        return d[n][m];
+        int EditDistanceScore = AllUtils.calculateEditDistance(resultList1, resultList2);
+        double maxEditDistance = Math.max(resultList1.size(), resultList2.size());
+        double EditDistance = 1 - EditDistanceScore / maxEditDistance;
+        double JaccardScore = AllUtils.calculateJaccardSimilarity(resultList1, resultList2);
+        double similarityScore = AllUtils.cosineSimilarity(resultList1, resultList2);
+        
+        /**
+         * 编辑距离 权重为0.5
+         * Jaccard相似度算法（ik分词后使用Jaccard相似度算法） 权重为0.3
+         *  余弦相似度 权重为0.2
+         *
+         */
+        double totalScore = EditDistance * 0.5 + JaccardScore * 0.3 + similarityScore * 0.2 + ikSorce * 0.3;
+        return totalScore;
     }
 }
