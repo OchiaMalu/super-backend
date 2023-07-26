@@ -40,7 +40,7 @@ import static net.zjitc.utils.StringUtils.stringJsonListToLongSet;
 /**
  * WebSocket服务
  *
- * @author 林哲好
+ * @author OchiaMalu
  * @date 2023/06/22
  */
 @Component

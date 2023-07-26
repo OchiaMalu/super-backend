@@ -37,7 +37,7 @@ import static net.zjitc.constants.BloomFilterConstants.TEAM_BLOOM_PREFIX;
 /**
  * 队伍控制器
  *
- * @author 林哲好
+ * @author OchiaMalu
  * @date 2023/06/11
  */
 @RestController

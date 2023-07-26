@@ -25,7 +25,7 @@ import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 /**
  * 聊天控制器
  *
- * @author 林哲好
+ * @author OchiaMalu
  * @date 2023/06/19
  */
 @RestController

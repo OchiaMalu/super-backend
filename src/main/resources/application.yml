@@ -45,7 +45,7 @@ knife4j:
     description: "用户匹配系统"
     email: linzhehao1108@126.com
     version: v2.0.0
-    concat: 林哲好
+    concat: OchiaMalu
     group:
       super:
         group-name: super

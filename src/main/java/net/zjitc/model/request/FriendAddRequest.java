@@ -9,7 +9,7 @@ import java.io.Serializable;
 /**
  * 好友添加请求
  *
- * @author 林哲好
+ * @author OchiaMalu
  * @date 2023/06/22
  */
 @Data

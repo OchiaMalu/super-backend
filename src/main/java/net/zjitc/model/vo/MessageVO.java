@@ -8,7 +8,7 @@ import net.zjitc.model.domain.Message;
 /**
  * 消息vo
  *
- * @author 林哲好
+ * @author OchiaMalu
  * @date 2023/06/22
  */
 @Data

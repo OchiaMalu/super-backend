@@ -32,7 +32,7 @@ import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
  * 博客评论控制器
  * 博文评论控制器
  *
- * @author 林哲好
+ * @author OchiaMalu
  * @date 2023/06/11
  */
 @RestController

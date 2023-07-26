@@ -10,7 +10,7 @@ import java.io.Serializable;
 /**
  * 博客评论vo
  *
- * @author 林哲好
+ * @author OchiaMalu
  * @date 2023/06/22
  */
 @Data

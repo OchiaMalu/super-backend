@@ -17,7 +17,7 @@ import java.io.ByteArrayInputStream;
 /**
  * 七牛云工具
  *
- * @author 林哲好
+ * @author OchiaMalu
  * @date 2023/06/22
  */
 public class QiNiuUtils {

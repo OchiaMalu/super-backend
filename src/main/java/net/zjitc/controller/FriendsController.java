@@ -25,7 +25,7 @@ import java.util.Set;
 /**
  * 好友控制器
  *
- * @author 林哲好
+ * @author OchiaMalu
  * @date 2023/06/19
  */
 @RestController

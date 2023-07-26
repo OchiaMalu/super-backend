@@ -6,7 +6,7 @@ import java.util.Objects;
 /**
  * 最短编辑距离算法
  *
- * @author 林哲好
+ * @author OchiaMalu
  * @date 2023/06/22
  */
 public class AlgorithmUtil {

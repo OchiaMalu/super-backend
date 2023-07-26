@@ -3,7 +3,7 @@ package net.zjitc.constants;
 /**
  * 系统常量
  *
- * @author 林哲好
+ * @author OchiaMalu
  * @date 2023/06/22
  */
 public interface SystemConstants {

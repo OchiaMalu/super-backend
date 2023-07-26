@@ -27,7 +27,7 @@ import static net.zjitc.constants.SystemConstants.QiNiuUrl;
 /**
  * 文件控制器
  *
- * @author 林哲好
+ * @author OchiaMalu
  * @date 2023/06/11
  */
 @RestController

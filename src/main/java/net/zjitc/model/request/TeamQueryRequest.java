@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * 团队查询请求
  *
- * @author 林哲好
+ * @author OchiaMalu
  * @date 2023/06/22
  */
 @Data

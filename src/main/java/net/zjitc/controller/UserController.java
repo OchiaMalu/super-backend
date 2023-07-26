@@ -54,7 +54,7 @@ import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 /**
  * 用户控制器
  *
- * @author 林哲好
+ * @author OchiaMalu
  * @date 2023/05/15
  */
 @RestController

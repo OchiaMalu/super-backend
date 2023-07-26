@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * 博客添加请求
  *
- * @author 林哲好
+ * @author OchiaMalu
  * @date 2023/06/22
  */
 @Data

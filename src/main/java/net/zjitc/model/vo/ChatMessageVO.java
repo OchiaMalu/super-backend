@@ -9,7 +9,7 @@ import java.io.Serializable;
 /**
  * 聊天信息vo
  *
- * @author 林哲好
+ * @author OchiaMalu
  * @date 2023/06/19
  */
 @Data

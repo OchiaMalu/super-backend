@@ -3,7 +3,7 @@ package net.zjitc.model.enums;
 /**
  * 团队状态枚举
  *
- * @author 林哲好
+ * @author OchiaMalu
  * @date 2023/06/22
  */
 public enum TeamStatusEnum {

@@ -11,7 +11,7 @@ import com.aliyuncs.profile.IClientProfile;
 /**
  * 短信发送工具
  *
- * @author 林哲好
+ * @author OchiaMalu
  * @date 2023/06/22
  */
 public class SMSUtils {
