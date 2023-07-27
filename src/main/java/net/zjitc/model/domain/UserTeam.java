@@ -1,7 +1,8 @@
 package net.zjitc.model.domain;
 
-import com.baomidou.mybatisplus.annotation.*;
-import io.swagger.annotations.Api;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -11,7 +12,10 @@ import java.util.Date;
 
 /**
  * 用户队伍关系
+ *
+ * @author OchiaMalu
  * @TableName user_team
+ * @date 2023/07/28
  */
 @TableName(value ="user_team")
 @Data

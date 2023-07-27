@@ -54,9 +54,9 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         if (toId == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        List<ChatMessageVO> chatRecords = getCache(CACHE_CHAT_PRIVATE, loginUser.getId() + "" + toId);
+        List<ChatMessageVO> chatRecords = getCache(CACHE_CHAT_PRIVATE, loginUser.getId() + String.valueOf(toId));
         if (chatRecords != null) {
-            saveCache(CACHE_CHAT_PRIVATE, loginUser.getId() + "" + toId, chatRecords);
+            saveCache(CACHE_CHAT_PRIVATE, loginUser.getId() + String.valueOf(toId), chatRecords);
             return chatRecords;
         }
         LambdaQueryWrapper<Chat> chatLambdaQueryWrapper = new LambdaQueryWrapper<>();
@@ -74,7 +74,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
             }
             return ChatMessageVO;
         }).collect(Collectors.toList());
-        saveCache(CACHE_CHAT_PRIVATE, loginUser.getId() + "" + toId, chatMessageVOList);
+        saveCache(CACHE_CHAT_PRIVATE, loginUser.getId() + String.valueOf(toId), chatMessageVOList);
         return chatMessageVOList;
     }
 

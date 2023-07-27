@@ -4,8 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import net.zjitc.common.ErrorCode;
-import net.zjitc.common.ResultUtils;
 import net.zjitc.exception.BusinessException;
+import net.zjitc.mapper.MessageMapper;
 import net.zjitc.model.domain.Message;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.enums.MessageTypeEnum;
@@ -16,7 +16,6 @@ import net.zjitc.model.vo.UserVO;
 import net.zjitc.service.BlogCommentsService;
 import net.zjitc.service.BlogService;
 import net.zjitc.service.MessageService;
-import net.zjitc.mapper.MessageMapper;
 import net.zjitc.service.UserService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Lazy;
@@ -27,6 +26,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -80,15 +80,15 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message>
     public List<MessageVO> getLike(Long userId) {
         LambdaQueryWrapper<Message> messageLambdaQueryWrapper = new LambdaQueryWrapper<>();
         messageLambdaQueryWrapper.eq(Message::getToId, userId)
-                .and(wp -> {
-                    wp.eq(Message::getType, 0).or().eq(Message::getType, 1);
-                }).orderBy(true, false, Message::getCreateTime);
+                .and(wp -> wp.eq(Message::getType, 0).or().eq(Message::getType, 1))
+                .orderBy(true, false, Message::getCreateTime);
         List<Message> messageList = this.list(messageLambdaQueryWrapper);
         if (messageList.isEmpty()) {
             return new ArrayList<>();
         }
         LambdaUpdateWrapper<Message> messageLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
-        messageLambdaUpdateWrapper.eq(Message::getToId, userId).eq(Message::getType, 0).or().eq(Message::getType, 1).set(Message::getIsRead, 1);
+        messageLambdaUpdateWrapper.eq(Message::getToId, userId).eq(Message::getType, 0)
+                .or().eq(Message::getType, 1).set(Message::getIsRead, 1);
         this.update(messageLambdaUpdateWrapper);
         String likeNumKey = MESSAGE_LIKE_NUM_KEY + userId;
         Boolean hasLike = stringRedisTemplate.hasKey(likeNumKey);
@@ -120,13 +120,14 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message>
     @Override
     public List<BlogVO> getUserBlog(Long userId) {
         String key = BLOG_FEED_KEY + userId;
-        Set<ZSetOperations.TypedTuple<String>> typedTuples = stringRedisTemplate.opsForZSet().reverseRangeByScoreWithScores(key, 0, System.currentTimeMillis(), 0, 10);
+        Set<ZSetOperations.TypedTuple<String>> typedTuples = stringRedisTemplate.opsForZSet()
+                .reverseRangeByScoreWithScores(key, 0, System.currentTimeMillis(), 0, 10);
         if (typedTuples == null || typedTuples.size() == 0) {
             return new ArrayList<>();
         }
         ArrayList<BlogVO> blogVOList = new ArrayList<>(typedTuples.size());
         for (ZSetOperations.TypedTuple<String> tuple : typedTuples) {
-            Long blogId = Long.valueOf(tuple.getValue());
+            long blogId = Long.parseLong(Objects.requireNonNull(tuple.getValue()));
             BlogVO blogVO = blogService.getBlogById(blogId, userId);
             blogVOList.add(blogVO);
         }
@@ -154,9 +155,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message>
         if (Boolean.TRUE.equals(hasBlog)) {
             String blogNum = stringRedisTemplate.opsForValue().get(blogNumKey);
             assert blogNum != null;
-            if (Long.parseLong(blogNum) > 0) {
-                return true;
-            }
+            return Long.parseLong(blogNum) > 0;
         }
         return false;
     }

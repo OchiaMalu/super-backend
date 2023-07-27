@@ -1,6 +1,5 @@
 package net.zjitc.controller;
 
-import cn.hutool.bloomfilter.BloomFilter;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -21,9 +20,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-
-import static net.zjitc.constants.BloomFilterConstants.BLOG_BLOOM_PREFIX;
-import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 
 /**
  * 博客控制器
@@ -94,7 +90,7 @@ public class BlogController {
         if (StringUtils.isAnyBlank(blogAddRequest.getTitle(), blogAddRequest.getContent())) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        Long blogId = blogService.addBlog(blogAddRequest, loginUser);
+        blogService.addBlog(blogAddRequest, loginUser);
 //        bloomFilter.add(BLOG_BLOOM_PREFIX + blogId);
         return ResultUtils.success("添加成功");
     }

@@ -9,8 +9,11 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
+ * 用户
  *
+ * @author OchiaMalu
  * @TableName user
+ * @date 2023/07/28
  */
 @TableName(value ="user")
 @Data

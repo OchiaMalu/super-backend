@@ -101,8 +101,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
         LambdaQueryWrapper<Blog> blogLambdaQueryWrapper = new LambdaQueryWrapper<>();
         blogLambdaQueryWrapper.eq(Blog::getUserId, id);
         Page<Blog> blogPage = this.page(new Page<>(currentPage, PAGE_SIZE), blogLambdaQueryWrapper);
-        Page<BlogVO> blogVOPage = new Page<>();
-        BeanUtils.copyProperties(blogPage, blogVOPage);
+        Page<BlogVO> blogVoPage = new Page<>();
+        BeanUtils.copyProperties(blogPage, blogVoPage);
         List<BlogVO> blogVOList = blogPage.getRecords().stream().map((blog) -> {
             BlogVO blogVO = new BlogVO();
             BeanUtils.copyProperties(blog, blogVO);
@@ -113,11 +113,11 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
             if (images == null) {
                 continue;
             }
-            String[] imgStrs = images.split(",");
-            blogVO.setCoverImage(QiNiuUrl + imgStrs[0]);
+            String[] imgStr = images.split(",");
+            blogVO.setCoverImage(QiNiuUrl + imgStr[0]);
         }
-        blogVOPage.setRecords(blogVOList);
-        return blogVOPage;
+        blogVoPage.setRecords(blogVOList);
+        return blogVoPage;
     }
 
     @Override
@@ -165,8 +165,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
         blogLambdaQueryWrapper.like(StringUtils.isNotBlank(title), Blog::getTitle, title);
         blogLambdaQueryWrapper.orderBy(true, false, Blog::getCreateTime);
         Page<Blog> blogPage = this.page(new Page<>(currentPage, PAGE_SIZE), blogLambdaQueryWrapper);
-        Page<BlogVO> blogVOPage = new Page<>();
-        BeanUtils.copyProperties(blogPage, blogVOPage);
+        Page<BlogVO> blogVoPage = new Page<>();
+        BeanUtils.copyProperties(blogPage, blogVoPage);
         List<BlogVO> blogVOList = blogPage.getRecords().stream().map((blog) -> {
             BlogVO blogVO = new BlogVO();
             BeanUtils.copyProperties(blog, blogVO);
@@ -186,8 +186,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
             String[] imgStrs = images.split(",");
             blogVO.setCoverImage(QiNiuUrl + imgStrs[0]);
         }
-        blogVOPage.setRecords(blogVOList);
-        return blogVOPage;
+        blogVoPage.setRecords(blogVOList);
+        return blogVoPage;
     }
 
     @Override

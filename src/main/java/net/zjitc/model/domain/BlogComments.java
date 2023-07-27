@@ -12,8 +12,11 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 /**
- * 
+ * 博客评论
+ *
+ * @author OchiaMalu
  * @TableName blog_comments
+ * @date 2023/07/28
  */
 @TableName(value ="blog_comments")
 @Data

@@ -10,11 +10,11 @@ public enum MessageTypeEnum {
     /**
      * 博客就像
      */
-    BLOG_LIKE(0,"博文点赞"),
+    BLOG_LIKE(0, "博文点赞"),
     /**
      * 博客评论等
      */
-    BLOG_COMMENT_LIKE(1,"博文评论点赞");
+    BLOG_COMMENT_LIKE(1, "博文评论点赞");
 
     /**
      * 价值

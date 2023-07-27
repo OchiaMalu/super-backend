@@ -1,10 +1,8 @@
 package net.zjitc.controller;
 
-import cn.hutool.bloomfilter.BloomFilter;
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.mchange.lang.LongUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -31,8 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static net.zjitc.constants.BloomFilterConstants.TEAM_BLOOM_PREFIX;
 
 /**
  * 队伍控制器

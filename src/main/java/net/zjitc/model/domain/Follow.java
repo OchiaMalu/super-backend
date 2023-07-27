@@ -12,8 +12,11 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 /**
- * 
+ * 关注
+ *
+ * @author OchiaMalu
  * @TableName follow
+ * @date 2023/07/28
  */
 @TableName(value ="follow")
 @Data

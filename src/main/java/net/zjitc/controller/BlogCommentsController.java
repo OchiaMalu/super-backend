@@ -1,6 +1,5 @@
 package net.zjitc.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -9,27 +8,19 @@ import net.zjitc.common.BaseResponse;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.common.ResultUtils;
 import net.zjitc.exception.BusinessException;
-import net.zjitc.model.domain.BlogComments;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.request.AddCommentRequest;
 import net.zjitc.model.vo.BlogCommentsVO;
-import net.zjitc.model.vo.UserVO;
 import net.zjitc.service.BlogCommentsService;
 import net.zjitc.service.UserService;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ibatis.annotations.Delete;
-import org.springframework.beans.BeanUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 
 /**
- * 博客评论控制器
  * 博文评论控制器
  *
  * @author OchiaMalu

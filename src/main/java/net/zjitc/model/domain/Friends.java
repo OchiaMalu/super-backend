@@ -12,8 +12,11 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 /**
- * 好友申请管理表
+ * 好友
+ *
+ * @author OchiaMalu
  * @TableName friends
+ * @date 2023/07/28
  */
 @TableName(value ="friends")
 @Data

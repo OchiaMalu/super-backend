@@ -1,6 +1,5 @@
 package net.zjitc.utils;
 
-import cn.hutool.core.lang.UUID;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.exception.BusinessException;
 import org.apache.logging.log4j.util.Strings;

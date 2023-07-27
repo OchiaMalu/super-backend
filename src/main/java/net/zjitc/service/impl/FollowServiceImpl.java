@@ -2,15 +2,14 @@ package net.zjitc.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import net.zjitc.mapper.FollowMapper;
 import net.zjitc.model.domain.Follow;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.vo.UserVO;
 import net.zjitc.service.FollowService;
-import net.zjitc.mapper.FollowMapper;
 import net.zjitc.service.UserService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;

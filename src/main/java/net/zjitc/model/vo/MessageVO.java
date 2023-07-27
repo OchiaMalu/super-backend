@@ -3,6 +3,7 @@ package net.zjitc.model.vo;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.zjitc.model.domain.Message;
 
 /**
@@ -11,6 +12,7 @@ import net.zjitc.model.domain.Message;
  * @author OchiaMalu
  * @date 2023/06/22
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 @ApiModel(value = "消息返回")
 public class MessageVO extends Message {

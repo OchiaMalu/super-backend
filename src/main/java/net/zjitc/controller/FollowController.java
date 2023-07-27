@@ -18,8 +18,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
-import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
-
 /**
  * 关注控制器
  *

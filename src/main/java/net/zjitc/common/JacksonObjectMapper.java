@@ -17,11 +17,29 @@ import java.time.format.DateTimeFormatter;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 
+/**
+ * Jackson对象映射器
+ *
+ * @author OchiaMalu
+ * @date 2023/07/28
+ */
 public class JacksonObjectMapper extends ObjectMapper {
+    /**
+     * 默认日期格式
+     */
     public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
+    /**
+     * 默认日期时间格式
+     */
     public static final String DEFAULT_DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    /**
+     * 默认时间格式
+     */
     public static final String DEFAULT_TIME_FORMAT = "HH:mm:ss";
 
+    /**
+     * Jackson对象映射器
+     */
     public JacksonObjectMapper() {
         super();
         //收到未知属性时不报异常

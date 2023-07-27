@@ -9,6 +9,7 @@ import net.zjitc.common.ErrorCode;
  * @date 2023/06/22
  */
 public class BusinessException extends RuntimeException {
+    private static final long serialVersionUID = 4946461703861202476L;
     /**
      * 代码
      */

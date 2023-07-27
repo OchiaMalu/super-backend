@@ -3,6 +3,7 @@ package net.zjitc.model.vo;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import net.zjitc.model.domain.BlogComments;
 
 import java.io.Serializable;
@@ -13,6 +14,7 @@ import java.io.Serializable;
  * @author OchiaMalu
  * @date 2023/06/22
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 @ApiModel(value = "博文评论返回")
 public class BlogCommentsVO extends BlogComments implements Serializable {

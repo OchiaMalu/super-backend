@@ -9,8 +9,20 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
+
+/**
+ * web mvc配置
+ *
+ * @author OchiaMalu
+ * @date 2023/07/28
+ */
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
+    /**
+     * 扩展消息转换器
+     *
+     * @param converters 转换器
+     */
     @Override
     public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
@@ -22,6 +34,11 @@ public class WebMvcConfig implements WebMvcConfigurer {
         converters.add(0, converter);
     }
 
+    /**
+     * 添加歌珥映射
+     *
+     * @param registry 注册表
+     */
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")

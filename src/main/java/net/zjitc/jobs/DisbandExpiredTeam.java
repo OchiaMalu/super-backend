@@ -3,13 +3,12 @@ package net.zjitc.jobs;
 import net.zjitc.model.domain.Team;
 import net.zjitc.service.TeamService;
 import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.scheduling.quartz.QuartzJobBean;
+import reactor.util.annotation.NonNull;
 
 import javax.annotation.Resource;
-
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -19,15 +18,32 @@ import java.util.concurrent.TimeUnit;
 
 import static net.zjitc.constants.RedissonConstant.DISBAND_EXPIRED_TEAM_LOCK;
 
+/**
+ * 解散过期团队
+ *
+ * @author OchiaMalu
+ * @date 2023/07/28
+ */
 public class DisbandExpiredTeam extends QuartzJobBean {
+    /**
+     * redisson客户
+     */
     @Resource
     private RedissonClient redissonClient;
 
+    /**
+     * 团队服务
+     */
     @Resource
     private TeamService teamService;
 
+    /**
+     * 执行内部
+     *
+     * @param context 上下文
+     */
     @Override
-    protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
+    protected void executeInternal(@NonNull JobExecutionContext context) {
         RLock lock = redissonClient.getLock(DISBAND_EXPIRED_TEAM_LOCK);
         try {
             if (lock.tryLock(0, -1, TimeUnit.MICROSECONDS)) {

@@ -6,8 +6,19 @@ import org.redisson.config.Config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * RedisConfig
+ *
+ * @author OchiaMalu
+ * @date 2023/07/28
+ */
 @Configuration
 public class RedisConfig {
+    /**
+     * redisson客户
+     *
+     * @return {@link RedissonClient}
+     */
     @Bean
     public RedissonClient redissonClient(){
         Config config = new Config();

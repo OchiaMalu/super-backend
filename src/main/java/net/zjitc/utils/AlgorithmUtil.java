@@ -14,9 +14,9 @@ public class AlgorithmUtil {
         int n = tagList1.size();
         int m = tagList2.size();
 
-        if (n * m == 0)
+        if (n * m == 0) {
             return n + m;
-
+        }
         int[][] d = new int[n + 1][m + 1];
         for (int i = 0; i < n + 1; i++) {
             d[i][0] = i;
@@ -31,8 +31,9 @@ public class AlgorithmUtil {
                 int left = d[i - 1][j] + 1;
                 int down = d[i][j - 1] + 1;
                 int leftDown = d[i - 1][j - 1];
-                if (!Objects.equals(tagList1.get(i - 1), tagList2.get(j - 1)))
+                if (!Objects.equals(tagList1.get(i - 1), tagList2.get(j - 1))) {
                     leftDown += 1;
+                }
                 d[i][j] = Math.min(left, Math.min(down, leftDown));
             }
         }

@@ -10,8 +10,11 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 /**
- * 聊天消息表
+ * 聊天
+ *
+ * @author OchiaMalu
  * @TableName chat
+ * @date 2023/07/28
  */
 @TableName(value ="chat")
 @Data

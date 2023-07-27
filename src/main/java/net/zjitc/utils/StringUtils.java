@@ -17,7 +17,7 @@ public class StringUtils {
     /**
      * 字符串json数组转Long类型set集合
      *
-     * @param jsonList
+     * @param jsonList jsonList
      * @return Set<Long>
      */
     public static Set<Long> stringJsonListToLongSet(String jsonList) {

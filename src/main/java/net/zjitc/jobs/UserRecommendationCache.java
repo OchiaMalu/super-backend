@@ -20,6 +20,7 @@ import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.quartz.QuartzJobBean;
+import reactor.util.annotation.NonNull;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -33,23 +34,50 @@ import static net.zjitc.constants.RedissonConstant.USER_RECOMMEND_LOCK;
 import static net.zjitc.constants.SystemConstants.DEFAULT_CACHE_PAGE;
 import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
 
+/**
+ * 用户推荐缓存
+ *
+ * @author OchiaMalu
+ * @date 2023/07/28
+ */
 public class UserRecommendationCache extends QuartzJobBean {
+    /**
+     * redisson客户
+     */
     @Resource
     private RedissonClient redissonClient;
 
+    /**
+     * 用户服务
+     */
     @Resource
     private UserService userService;
 
+    /**
+     * 字符串复述,模板
+     */
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
+    /**
+     * 遵循服务
+     */
     @Resource
     private FollowService followService;
 
+    /**
+     * 用户列表
+     */
     private List<User> userList = new ArrayList<>();
 
+    /**
+     * 执行内部
+     *
+     * @param context 上下文
+     * @throws JobExecutionException 作业执行异常
+     */
     @Override
-    protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
+    protected void executeInternal(@NonNull JobExecutionContext context) throws JobExecutionException {
         RLock lock = redissonClient.getLock(USER_RECOMMEND_LOCK);
         try {
             if (lock.tryLock(0, -1, TimeUnit.MICROSECONDS)) {
@@ -58,11 +86,11 @@ public class UserRecommendationCache extends QuartzJobBean {
                 userList = userService.list();
                 for (User user : userList) {
                     for (int i = 1; i <= DEFAULT_CACHE_PAGE; i++) {
-                        Page<UserVO> userVOPage = this.matchUser(i, user);
+                        Page<UserVO> userVoPage = this.matchUser(i, user);
                         Gson gson = new Gson();
-                        String userVOPageStr = gson.toJson(userVOPage);
+                        String userVoPageStr = gson.toJson(userVoPage);
                         String key = USER_RECOMMEND_KEY + user.getId() + ":" + i;
-                        stringRedisTemplate.opsForValue().set(key, userVOPageStr);
+                        stringRedisTemplate.opsForValue().set(key, userVoPageStr);
                     }
                 }
                 long end = System.currentTimeMillis();
@@ -79,6 +107,13 @@ public class UserRecommendationCache extends QuartzJobBean {
 
     }
 
+    /**
+     * 匹配用户
+     *
+     * @param currentPage 当前页面
+     * @param loginUser   登录用户
+     * @return {@link Page}<{@link UserVO}>
+     */
     private Page<UserVO> matchUser(long currentPage, User loginUser) {
         String tags = loginUser.getTags();
         if (tags == null) {
@@ -145,11 +180,11 @@ public class UserRecommendationCache extends QuartzJobBean {
                     return userVO;
                 })
                 .collect(Collectors.toList());
-        Page<UserVO> userVOPage = new Page<>();
-        userVOPage.setRecords(userVOList);
-        userVOPage.setCurrent(currentPage);
-        userVOPage.setSize(userVOList.size());
-        userVOPage.setTotal(userVOList.size());
-        return userVOPage;
+        Page<UserVO> userVoPage = new Page<>();
+        userVoPage.setRecords(userVOList);
+        userVoPage.setCurrent(currentPage);
+        userVoPage.setSize(userVOList.size());
+        userVoPage.setTotal(userVOList.size());
+        return userVoPage;
     }
 }

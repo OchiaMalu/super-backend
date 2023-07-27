@@ -8,7 +8,9 @@ import net.zjitc.common.BaseResponse;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.common.ResultUtils;
 import net.zjitc.exception.BusinessException;
+import net.zjitc.model.domain.User;
 import net.zjitc.model.request.ChatRequest;
+import net.zjitc.model.vo.ChatMessageVO;
 import net.zjitc.service.ChatService;
 import net.zjitc.service.UserService;
 import org.springframework.web.bind.annotation.*;
@@ -16,11 +18,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-import net.zjitc.model.domain.User;
-import net.zjitc.model.vo.ChatMessageVO;
 
 import static net.zjitc.constants.ChatConstant.*;
-import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 
 /**
  * 聊天控制器

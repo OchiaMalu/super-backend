@@ -23,7 +23,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 import static net.zjitc.constants.RedisConstants.MESSAGE_BLOG_NUM_KEY;
-import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 
 /**
  * 消息控制器

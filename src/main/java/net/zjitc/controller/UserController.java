@@ -1,12 +1,10 @@
 package net.zjitc.controller;
 
-import cn.hutool.bloomfilter.BloomFilter;
 import cn.hutool.core.lang.UUID;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -23,7 +21,6 @@ import net.zjitc.model.request.UserRegisterRequest;
 import net.zjitc.model.request.UserUpdateRequest;
 import net.zjitc.model.vo.UserVO;
 import net.zjitc.service.UserService;
-import net.zjitc.utils.SMSUtils;
 import net.zjitc.utils.ValidateCodeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -43,10 +40,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static net.zjitc.constants.BloomFilterConstants.TEAM_BLOOM_PREFIX;
-import static net.zjitc.constants.BloomFilterConstants.USER_BLOOM_PREFIX;
 import static net.zjitc.constants.RedisConstants.*;
-import static net.zjitc.constants.SystemConstants.DEFAULT_CACHE_PAGE;
 import static net.zjitc.constants.SystemConstants.EMAIL_FROM;
 import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 

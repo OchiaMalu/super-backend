@@ -1,13 +1,10 @@
 package net.zjitc.service.impl;
 
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.exception.BusinessException;
+import net.zjitc.mapper.BlogCommentsMapper;
 import net.zjitc.model.domain.*;
 import net.zjitc.model.enums.MessageTypeEnum;
 import net.zjitc.model.request.AddCommentRequest;
@@ -15,13 +12,14 @@ import net.zjitc.model.vo.BlogCommentsVO;
 import net.zjitc.model.vo.BlogVO;
 import net.zjitc.model.vo.UserVO;
 import net.zjitc.service.*;
-import net.zjitc.mapper.BlogCommentsMapper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static net.zjitc.constants.RedisConstants.MESSAGE_LIKE_NUM_KEY;
 import static net.zjitc.constants.SystemConstants.QiNiuUrl;
@@ -160,7 +158,7 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
         LambdaQueryWrapper<BlogComments> blogCommentsLambdaQueryWrapper = new LambdaQueryWrapper<>();
         blogCommentsLambdaQueryWrapper.eq(BlogComments::getUserId, id);
         List<BlogComments> blogCommentsList = this.list(blogCommentsLambdaQueryWrapper);
-        List<BlogCommentsVO> commentsVOList = blogCommentsList.stream().map((item) -> {
+        return blogCommentsList.stream().map((item) -> {
             BlogCommentsVO blogCommentsVO = new BlogCommentsVO();
             BeanUtils.copyProperties(item, blogCommentsVO);
             User user = userService.getById(item.getUserId());
@@ -176,8 +174,8 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
             if (images == null) {
                 blogVO.setCoverImage(null);
             } else {
-                String[] imgStrs = images.split(",");
-                blogVO.setCoverImage(QiNiuUrl + imgStrs[0]);
+                String[] imgStr = images.split(",");
+                blogVO.setCoverImage(QiNiuUrl + imgStr[0]);
             }
             Long authorId = blogVO.getUserId();
             User author = userService.getById(authorId);
@@ -193,7 +191,6 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
             blogCommentsVO.setIsLiked(count > 0);
             return blogCommentsVO;
         }).collect(Collectors.toList());
-        return commentsVOList;
     }
 }
 

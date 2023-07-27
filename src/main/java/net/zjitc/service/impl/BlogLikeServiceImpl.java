@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 */
 @Service
 public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike>
-    implements BlogLikeService{
+    implements BlogLikeService {
 
 }
 
