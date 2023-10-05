@@ -1,5 +1,6 @@
 package net.zjitc.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import net.zjitc.model.domain.Follow;
 import com.baomidou.mybatisplus.extension.service.IService;
 import net.zjitc.model.domain.User;
@@ -19,4 +20,8 @@ public interface FollowService extends IService<Follow> {
     List<UserVO> listFans(Long userId);
 
     List<UserVO> listMyFollow(Long userId);
+
+    Page<UserVO> pageMyFollow(Long userId,String currentPage);
+
+    Page<UserVO> pageFans(Long userId, String currentPage);
 }

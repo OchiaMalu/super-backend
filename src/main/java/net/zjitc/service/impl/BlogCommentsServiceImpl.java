@@ -2,6 +2,7 @@ package net.zjitc.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.exception.BusinessException;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 
 import static net.zjitc.constants.RedisConstants.MESSAGE_LIKE_NUM_KEY;
 import static net.zjitc.constants.RedissonConstant.COMMENTS_LIKE_LOCK;
+import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
 import static net.zjitc.constants.SystemConstants.QiNiuUrl;
 
 /**
@@ -227,6 +229,53 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
             blogCommentsVO.setIsLiked(count > 0);
             return blogCommentsVO;
         }).collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<BlogCommentsVO> pageMyComments(Long id, Long currentPage) {
+        LambdaQueryWrapper<BlogComments> blogCommentsLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        blogCommentsLambdaQueryWrapper.eq(BlogComments::getUserId, id);
+        Page<BlogComments> blogCommentsPage = this.page(new Page<>(currentPage, PAGE_SIZE), blogCommentsLambdaQueryWrapper);
+        if (blogCommentsPage==null || blogCommentsPage.getSize()==0){
+            return new Page<>();
+        }
+        Page<BlogCommentsVO> blogCommentsVOPage = new Page<>();
+        BeanUtils.copyProperties(blogCommentsPage,blogCommentsVOPage);
+        List<BlogCommentsVO> blogCommentsVOList = blogCommentsPage.getRecords().stream().map((item) -> {
+            BlogCommentsVO blogCommentsVO = new BlogCommentsVO();
+            BeanUtils.copyProperties(item, blogCommentsVO);
+            User user = userService.getById(item.getUserId());
+            UserVO userVO = new UserVO();
+            BeanUtils.copyProperties(user, userVO);
+            blogCommentsVO.setCommentUser(userVO);
+
+            Long blogId = blogCommentsVO.getBlogId();
+            Blog blog = blogService.getById(blogId);
+            BlogVO blogVO = new BlogVO();
+            BeanUtils.copyProperties(blog, blogVO);
+            String images = blogVO.getImages();
+            if (images == null) {
+                blogVO.setCoverImage(null);
+            } else {
+                String[] imgStr = images.split(",");
+                blogVO.setCoverImage(QiNiuUrl + imgStr[0]);
+            }
+            Long authorId = blogVO.getUserId();
+            User author = userService.getById(authorId);
+            UserVO authorVO = new UserVO();
+            BeanUtils.copyProperties(author, authorVO);
+            blogVO.setAuthor(authorVO);
+
+            blogCommentsVO.setBlog(blogVO);
+
+            LambdaQueryWrapper<CommentLike> commentLikeLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            commentLikeLambdaQueryWrapper.eq(CommentLike::getUserId, id).eq(CommentLike::getCommentId, item.getId());
+            long count = commentLikeService.count(commentLikeLambdaQueryWrapper);
+            blogCommentsVO.setIsLiked(count > 0);
+            return blogCommentsVO;
+        }).collect(Collectors.toList());
+        blogCommentsVOPage.setRecords(blogCommentsVOList);
+        return blogCommentsVOPage;
     }
 }
 

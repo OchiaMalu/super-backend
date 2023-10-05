@@ -1,5 +1,6 @@
 package net.zjitc.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import net.zjitc.model.domain.Message;
 import com.baomidou.mybatisplus.extension.service.IService;
 import net.zjitc.model.vo.BlogVO;
@@ -23,4 +24,6 @@ public interface MessageService extends IService<Message> {
     List<BlogVO> getUserBlog(Long userId);
 
     Boolean hasNewMessage(Long userId);
+
+    Page<MessageVO> pageLike(Long userId,Long currentPage);
 }

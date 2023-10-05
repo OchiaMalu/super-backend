@@ -1,5 +1,6 @@
 package net.zjitc.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -161,12 +162,12 @@ public class BlogCommentsController {
     @ApiOperation(value = "获取我的评论")
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<List<BlogCommentsVO>> listMyBlogComments(HttpServletRequest request) {
+    public BaseResponse<Page<BlogCommentsVO>> listMyBlogComments(HttpServletRequest request,Long currentPage) {
         User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
-        List<BlogCommentsVO> commentsVOList = blogCommentsService.listMyComments(loginUser.getId());
-        return ResultUtils.success(commentsVOList);
+        Page<BlogCommentsVO> blogCommentsVOPage = blogCommentsService.pageMyComments(loginUser.getId(), currentPage);
+        return ResultUtils.success(blogCommentsVOPage);
     }
 }

@@ -2,6 +2,7 @@ package net.zjitc.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.exception.BusinessException;
@@ -31,6 +32,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static net.zjitc.constants.RedisConstants.*;
+import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
 
 /**
  * @author OchiaMalu
@@ -158,6 +160,51 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message>
             return Long.parseLong(blogNum) > 0;
         }
         return false;
+    }
+
+    @Override
+    public Page<MessageVO> pageLike(Long userId, Long currentPage) {
+        LambdaQueryWrapper<Message> messageLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        messageLambdaQueryWrapper.eq(Message::getToId, userId)
+                .and(wp -> wp.eq(Message::getType, 0).or().eq(Message::getType, 1))
+                .orderBy(true, false, Message::getCreateTime);
+        Page<Message> messagePage = this.page(new Page<>(currentPage, PAGE_SIZE), messageLambdaQueryWrapper);
+        if (messagePage.getSize() == 0) {
+            return new Page<>();
+        }
+        Page<MessageVO> messageVOPage = new Page<>();
+        BeanUtils.copyProperties(messagePage, messageVOPage);
+        LambdaUpdateWrapper<Message> messageLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+        messageLambdaUpdateWrapper.eq(Message::getToId, userId).eq(Message::getType, 0)
+                .or().eq(Message::getType, 1).set(Message::getIsRead, 1);
+        this.update(messageLambdaUpdateWrapper);
+        String likeNumKey = MESSAGE_LIKE_NUM_KEY + userId;
+        Boolean hasLike = stringRedisTemplate.hasKey(likeNumKey);
+        if (Boolean.TRUE.equals(hasLike)) {
+            stringRedisTemplate.opsForValue().set(likeNumKey, "0");
+        }
+        List<MessageVO> messageVOList = messagePage.getRecords().stream().map((item) -> {
+            MessageVO messageVO = new MessageVO();
+            BeanUtils.copyProperties(item, messageVO);
+            User user = userService.getById(messageVO.getFromId());
+            if (user == null) {
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "发送人不存在");
+            }
+            UserVO userVO = new UserVO();
+            BeanUtils.copyProperties(user, userVO);
+            messageVO.setFromUser(userVO);
+            if (item.getType() == MessageTypeEnum.BLOG_COMMENT_LIKE.getValue()) {
+                BlogCommentsVO commentsVO = blogCommentsService.getComment(Long.parseLong(item.getData()), userId);
+                messageVO.setComment(commentsVO);
+            }
+            if (item.getType() == MessageTypeEnum.BLOG_LIKE.getValue()) {
+                BlogVO blogVO = blogService.getBlogById(Long.parseLong(item.getData()), userId);
+                messageVO.setBlog(blogVO);
+            }
+            return messageVO;
+        }).collect(Collectors.toList());
+        messageVOPage.setRecords(messageVOList);
+        return messageVOPage;
     }
 }
 

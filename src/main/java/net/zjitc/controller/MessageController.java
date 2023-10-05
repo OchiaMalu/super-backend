@@ -1,5 +1,6 @@
 package net.zjitc.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -117,13 +118,13 @@ public class MessageController {
     @ApiOperation(value = "获取用户点赞消息")
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<List<MessageVO>> getUserLikeMessage(HttpServletRequest request) {
+    public BaseResponse<Page<MessageVO>> getUserLikeMessage(HttpServletRequest request,Long currentPage) {
         User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
-        List<MessageVO> messageVOList = messageService.getLike(loginUser.getId());
-        return ResultUtils.success(messageVOList);
+        Page<MessageVO> messageVOPage = messageService.pageLike(loginUser.getId(), currentPage);
+        return ResultUtils.success(messageVOPage);
     }
 
     /**

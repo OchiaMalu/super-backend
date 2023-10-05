@@ -1,5 +1,6 @@
 package net.zjitc.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -68,13 +69,13 @@ public class FollowController {
     @ApiOperation(value = "获取粉丝")
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<List<UserVO>> listFans(HttpServletRequest request){
+    public BaseResponse<Page<UserVO>> listFans(HttpServletRequest request, String currentPage){
         User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
-        List<UserVO> userVOList = followService.listFans(loginUser.getId());
-        return ResultUtils.success(userVOList);
+        Page<UserVO> userVOPage = followService.pageFans(loginUser.getId(), currentPage);
+        return ResultUtils.success(userVOPage);
     }
 
     /**
@@ -87,12 +88,12 @@ public class FollowController {
     @ApiOperation(value = "获取我关注的用户")
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<List<UserVO>> listMyFollow(HttpServletRequest request){
+    public BaseResponse<Page<UserVO>> listMyFollow(HttpServletRequest request, String currentPage){
         User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
-        List<UserVO> userVOList = followService.listMyFollow(loginUser.getId());
-        return ResultUtils.success(userVOList);
+        Page<UserVO> userVoPage = followService.pageMyFollow(loginUser.getId(),currentPage);
+        return ResultUtils.success(userVoPage);
     }
 }

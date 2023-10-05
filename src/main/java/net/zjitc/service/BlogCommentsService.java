@@ -1,5 +1,6 @@
 package net.zjitc.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import net.zjitc.model.domain.BlogComments;
 import com.baomidou.mybatisplus.extension.service.IService;
 import net.zjitc.model.request.AddCommentRequest;
@@ -25,4 +26,6 @@ public interface BlogCommentsService extends IService<BlogComments> {
     void deleteComment(Long id, Long userId, boolean isAdmin);
 
     List<BlogCommentsVO> listMyComments(Long id);
+
+    Page<BlogCommentsVO> pageMyComments(Long id,Long currentPage);
 }

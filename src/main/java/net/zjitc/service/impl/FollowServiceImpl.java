@@ -1,6 +1,7 @@
 package net.zjitc.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import net.zjitc.mapper.FollowMapper;
 import net.zjitc.model.domain.Follow;
@@ -17,6 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
 
 /**
  * @author OchiaMalu
@@ -53,7 +56,7 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow>
         LambdaQueryWrapper<Follow> followLambdaQueryWrapper = new LambdaQueryWrapper<>();
         followLambdaQueryWrapper.eq(Follow::getFollowUserId, userId);
         List<Follow> list = this.list(followLambdaQueryWrapper);
-        if (list == null || list.size() == 0) {
+        if (list == null || list.isEmpty()) {
             return new ArrayList<>();
         }
         List<User> userList = list.stream().map((follow -> userService.getById(follow.getUserId()))).filter(Objects::nonNull).collect(Collectors.toList());
@@ -68,6 +71,7 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow>
         }).collect(Collectors.toList());
     }
 
+
     @Override
     public List<UserVO> listMyFollow(Long userId) {
         LambdaQueryWrapper<Follow> followLambdaQueryWrapper = new LambdaQueryWrapper<>();
@@ -80,6 +84,49 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow>
             userVO.setIsFollow(true);
             return userVO;
         }).collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<UserVO> pageMyFollow(Long userId, String currentPage) {
+        LambdaQueryWrapper<Follow> followLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        followLambdaQueryWrapper.eq(Follow::getUserId, userId);
+        Page<Follow> followPage = this.page(new Page<>(Long.parseLong(currentPage), PAGE_SIZE), followLambdaQueryWrapper);
+        if (followPage==null || followPage.getSize()==0){
+            return new Page<>();
+        }
+        Page<UserVO> userVOPage = new Page<>();
+        List<User> userList = followPage.getRecords().stream().map((follow -> userService.getById(follow.getFollowUserId()))).collect(Collectors.toList());
+        List<UserVO> userVOList = userList.stream().map((user) -> {
+            UserVO userVO = new UserVO();
+            BeanUtils.copyProperties(user, userVO);
+            userVO.setIsFollow(true);
+            return userVO;
+        }).collect(Collectors.toList());
+        return userVOPage.setRecords(userVOList);
+    }
+
+    @Override
+    public Page<UserVO> pageFans(Long userId, String currentPage) {
+        LambdaQueryWrapper<Follow> followLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        followLambdaQueryWrapper.eq(Follow::getFollowUserId, userId);
+        Page<Follow> followPage = this.page(new Page<>(Long.parseLong(currentPage), PAGE_SIZE), followLambdaQueryWrapper);
+        if (followPage == null || followPage.getSize() == 0) {
+            return new Page<>();
+        }
+        Page<UserVO> userVoPage = new Page<>();
+        BeanUtils.copyProperties(followPage,userVoPage);
+        List<User> userList = followPage.getRecords().stream().map((follow -> userService.getById(follow.getUserId()))).filter(Objects::nonNull).collect(Collectors.toList());
+        List<UserVO> userVOList = userList.stream().map((item) -> {
+            UserVO userVO = new UserVO();
+            BeanUtils.copyProperties(item, userVO);
+            LambdaQueryWrapper<Follow> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+            lambdaQueryWrapper.eq(Follow::getUserId, userId).eq(Follow::getFollowUserId, item.getId());
+            long count = this.count(lambdaQueryWrapper);
+            userVO.setIsFollow(count > 0);
+            return userVO;
+        }).collect(Collectors.toList());
+        userVoPage.setRecords(userVOList);
+        return userVoPage;
     }
 }
 
