@@ -1,5 +1,6 @@
 package net.zjitc.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import net.zjitc.common.ErrorCode;
@@ -12,6 +13,8 @@ import net.zjitc.model.vo.BlogCommentsVO;
 import net.zjitc.model.vo.BlogVO;
 import net.zjitc.model.vo.UserVO;
 import net.zjitc.service.*;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -19,9 +22,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static net.zjitc.constants.RedisConstants.MESSAGE_LIKE_NUM_KEY;
+import static net.zjitc.constants.RedissonConstant.COMMENTS_LIKE_LOCK;
 import static net.zjitc.constants.SystemConstants.QiNiuUrl;
 
 /**
@@ -47,6 +52,9 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+
+    @Resource
+    private RedissonClient redissonClient;
 
     @Override
     @Transactional
@@ -98,38 +106,66 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
     @Override
     @Transactional
     public void likeComment(long commentId, Long userId) {
-        LambdaQueryWrapper<CommentLike> commentLikeLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        commentLikeLambdaQueryWrapper.eq(CommentLike::getCommentId, commentId).eq(CommentLike::getUserId, userId);
-        long count = commentLikeService.count(commentLikeLambdaQueryWrapper);
-        if (count == 0) {
-            CommentLike commentLike = new CommentLike();
-            commentLike.setCommentId(commentId);
-            commentLike.setUserId(userId);
-            commentLikeService.save(commentLike);
-            BlogComments blogComments = this.getById(commentId);
-            this.update().eq("id", commentId)
-                    .set("liked_num", blogComments.getLikedNum() + 1)
-                    .update();
-            String likeNumKey = MESSAGE_LIKE_NUM_KEY + blogComments.getUserId();
-            Boolean hasKey = stringRedisTemplate.hasKey(likeNumKey);
-            if (Boolean.TRUE.equals(hasKey)) {
-                stringRedisTemplate.opsForValue().increment(likeNumKey);
-            } else {
-                stringRedisTemplate.opsForValue().set(likeNumKey, "1");
+        RLock lock = redissonClient.getLock(COMMENTS_LIKE_LOCK + commentId + ":" + userId);
+        try {
+            if (lock.tryLock(0, -1, TimeUnit.MILLISECONDS)){
+                BlogComments comments = this.getById(commentId);
+                if (comments==null){
+                    throw new BusinessException(ErrorCode.PARAMS_ERROR,"评论不存在");
+                }
+                LambdaQueryWrapper<CommentLike> commentLikeLambdaQueryWrapper = new LambdaQueryWrapper<>();
+                commentLikeLambdaQueryWrapper.eq(CommentLike::getCommentId, commentId).eq(CommentLike::getUserId, userId);
+                long count = commentLikeService.count(commentLikeLambdaQueryWrapper);
+                if (count == 0) {
+                    CommentLike commentLike = new CommentLike();
+                    commentLike.setCommentId(commentId);
+                    commentLike.setUserId(userId);
+                    commentLikeService.save(commentLike);
+                    BlogComments blogComments = this.getById(commentId);
+                    this.update().eq("id", commentId)
+                            .set("liked_num", blogComments.getLikedNum() + 1)
+                            .update();
+                    String likeNumKey = MESSAGE_LIKE_NUM_KEY + blogComments.getUserId();
+                    Boolean hasKey = stringRedisTemplate.hasKey(likeNumKey);
+                    if (Boolean.TRUE.equals(hasKey)) {
+                        stringRedisTemplate.opsForValue().increment(likeNumKey);
+                    } else {
+                        stringRedisTemplate.opsForValue().set(likeNumKey, "1");
+                    }
+                    Message message = new Message();
+                    message.setType(MessageTypeEnum.BLOG_COMMENT_LIKE.getValue());
+                    message.setFromId(userId);
+                    message.setToId(blogComments.getUserId());
+                    message.setData(String.valueOf(blogComments.getId()));
+                    messageService.save(message);
+                } else {
+                    commentLikeService.remove(commentLikeLambdaQueryWrapper);
+                    BlogComments blogComments = this.getById(commentId);
+                    this.update().eq("id", commentId)
+                            .set("liked_num", blogComments.getLikedNum() - 1)
+                            .update();
+                    LambdaQueryWrapper<Message> messageQueryWrapper = new LambdaQueryWrapper<>();
+                    messageQueryWrapper
+                            .eq(Message::getType, MessageTypeEnum.BLOG_COMMENT_LIKE.getValue())
+                            .eq(Message::getFromId, userId)
+                            .eq(Message::getToId, blogComments.getUserId())
+                            .eq(Message::getData, String.valueOf(blogComments.getId()));
+                    messageService.remove(messageQueryWrapper);
+                    String likeNumKey = MESSAGE_LIKE_NUM_KEY + blogComments.getUserId();
+                    String upNumStr = stringRedisTemplate.opsForValue().get(likeNumKey);
+                    if (!StrUtil.isNullOrUndefined(upNumStr) && Long.parseLong(upNumStr) != 0) {
+                        stringRedisTemplate.opsForValue().decrement(likeNumKey);
+                    }
+                }
             }
-            Message message = new Message();
-            message.setType(MessageTypeEnum.BLOG_COMMENT_LIKE.getValue());
-            message.setFromId(userId);
-            message.setToId(blogComments.getUserId());
-            message.setData(String.valueOf(blogComments.getId()));
-            messageService.save(message);
-        } else {
-            commentLikeService.remove(commentLikeLambdaQueryWrapper);
-            BlogComments blogComments = this.getById(commentId);
-            this.update().eq("id", commentId)
-                    .set("liked_num", blogComments.getLikedNum() - 1)
-                    .update();
+        }catch (Exception e){
+            log.error("LikeBlog error", e);
+        }finally {
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
         }
+
     }
 
     @Override

@@ -1,5 +1,6 @@
 package net.zjitc.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -15,6 +16,8 @@ import net.zjitc.model.vo.UserVO;
 import net.zjitc.service.*;
 import net.zjitc.utils.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -23,9 +26,11 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static net.zjitc.constants.RedisConstants.*;
+import static net.zjitc.constants.RedissonConstant.BLOG_LIKE_LOCK;
 import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
 import static net.zjitc.constants.SystemConstants.QiNiuUrl;
 
@@ -52,6 +57,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+
+    @Resource
+    private RedissonClient redissonClient;
 
     @Override
     public Long addBlog(BlogAddRequest blogAddRequest, User loginUser) {
@@ -122,39 +130,60 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
 
     @Override
     public void likeBlog(long blogId, Long userId) {
-        //todo redis实现
-        //todo 分布式锁
-        Blog blog = this.getById(blogId);
-        if (blog == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "博文不存在");
-        }
-        LambdaQueryWrapper<BlogLike> blogLikeLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        blogLikeLambdaQueryWrapper.eq(BlogLike::getBlogId, blogId);
-        blogLikeLambdaQueryWrapper.eq(BlogLike::getUserId, userId);
-        long isLike = blogLikeService.count(blogLikeLambdaQueryWrapper);
-        if (isLike > 0) {
-            blogLikeService.remove(blogLikeLambdaQueryWrapper);
-            int newNum = blog.getLikedNum() - 1;
-            this.update().eq("id", blogId).set("liked_num", newNum).update();
-        } else {
-            BlogLike blogLike = new BlogLike();
-            blogLike.setBlogId(blogId);
-            blogLike.setUserId(userId);
-            blogLikeService.save(blogLike);
-            int newNum = blog.getLikedNum() + 1;
-            this.update().eq("id", blogId).set("liked_num", newNum).update();
-            Message message = new Message();
-            message.setType(MessageTypeEnum.BLOG_LIKE.getValue());
-            message.setFromId(userId);
-            message.setToId(blog.getUserId());
-            message.setData(String.valueOf(blog.getId()));
-            messageService.save(message);
-            String likeNumKey = MESSAGE_LIKE_NUM_KEY + blog.getUserId();
-            Boolean hasKey = stringRedisTemplate.hasKey(likeNumKey);
-            if (Boolean.TRUE.equals(hasKey)) {
-                stringRedisTemplate.opsForValue().increment(likeNumKey);
-            } else {
-                stringRedisTemplate.opsForValue().set(likeNumKey, "1");
+        RLock lock = redissonClient.getLock(BLOG_LIKE_LOCK + blogId + ":" + userId);
+        try {
+            if (lock.tryLock(0, -1, TimeUnit.MILLISECONDS)) {
+                Blog blog = this.getById(blogId);
+                if (blog == null) {
+                    throw new BusinessException(ErrorCode.PARAMS_ERROR, "博文不存在");
+                }
+                LambdaQueryWrapper<BlogLike> blogLikeLambdaQueryWrapper = new LambdaQueryWrapper<>();
+                blogLikeLambdaQueryWrapper.eq(BlogLike::getBlogId, blogId);
+                blogLikeLambdaQueryWrapper.eq(BlogLike::getUserId, userId);
+                long isLike = blogLikeService.count(blogLikeLambdaQueryWrapper);
+                if (isLike > 0) {
+                    blogLikeService.remove(blogLikeLambdaQueryWrapper);
+                    int newNum = blog.getLikedNum() - 1;
+                    this.update().eq("id", blogId).set("liked_num", newNum).update();
+                    LambdaQueryWrapper<Message> messageQueryWrapper = new LambdaQueryWrapper<>();
+                    messageQueryWrapper
+                            .eq(Message::getType, MessageTypeEnum.BLOG_LIKE.getValue())
+                            .eq(Message::getFromId, userId)
+                            .eq(Message::getToId, blog.getUserId())
+                            .eq(Message::getData, String.valueOf(blog.getId()));
+                    messageService.remove(messageQueryWrapper);
+                    String likeNumKey = MESSAGE_LIKE_NUM_KEY + blog.getUserId();
+                    String upNumStr = stringRedisTemplate.opsForValue().get(likeNumKey);
+                    if (!StrUtil.isNullOrUndefined(upNumStr) && Long.parseLong(upNumStr) != 0) {
+                        stringRedisTemplate.opsForValue().decrement(likeNumKey);
+                    }
+                } else {
+                    BlogLike blogLike = new BlogLike();
+                    blogLike.setBlogId(blogId);
+                    blogLike.setUserId(userId);
+                    blogLikeService.save(blogLike);
+                    int newNum = blog.getLikedNum() + 1;
+                    this.update().eq("id", blogId).set("liked_num", newNum).update();
+                    Message message = new Message();
+                    message.setType(MessageTypeEnum.BLOG_LIKE.getValue());
+                    message.setFromId(userId);
+                    message.setToId(blog.getUserId());
+                    message.setData(String.valueOf(blog.getId()));
+                    messageService.save(message);
+                    String likeNumKey = MESSAGE_LIKE_NUM_KEY + blog.getUserId();
+                    Boolean hasKey = stringRedisTemplate.hasKey(likeNumKey);
+                    if (Boolean.TRUE.equals(hasKey)) {
+                        stringRedisTemplate.opsForValue().increment(likeNumKey);
+                    } else {
+                        stringRedisTemplate.opsForValue().set(likeNumKey, "1");
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("LikeBlog error", e);
+        } finally {
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
             }
         }
     }
