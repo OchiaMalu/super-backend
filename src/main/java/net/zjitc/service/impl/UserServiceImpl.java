@@ -513,7 +513,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             BeanUtils.copyProperties(item, userVO);
             return userVO;
         }).collect(Collectors.toList());
-        BeanUtils.copyProperties(randomUser, userVOList);
         Page<UserVO> userVOPage = new Page<>();
         userVOPage.setRecords(userVOList);
         return userVOPage;
@@ -577,6 +576,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         } else {
             if (StringUtils.isNotBlank(username)) {
                 throw new BusinessException(ErrorCode.NOT_LOGIN);
+            }
+            long userNum = this.count();
+            if (userNum <= 10) {
+                List<User> userList = this.list();
+                List<UserVO> userVOList = userList.stream().map((user) -> {
+                    UserVO userVO = new UserVO();
+                    BeanUtils.copyProperties(user, userVO);
+                    return userVO;
+                }).collect(Collectors.toList());
+                Page<UserVO> userVOPage = new Page<>();
+                userVOPage.setRecords(userVOList);
+                return userVOPage;
             }
             return this.getRandomUser();
         }
