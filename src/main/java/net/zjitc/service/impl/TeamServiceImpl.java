@@ -542,6 +542,9 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         LambdaQueryWrapper<UserTeam> userTeamLambdaQueryWrapper = new LambdaQueryWrapper<>();
         userTeamLambdaQueryWrapper.eq(UserTeam::getUserId, id);
         List<Long> teamIds = userTeamService.list(userTeamLambdaQueryWrapper).stream().map(UserTeam::getTeamId).collect(Collectors.toList());
+        if (teamIds.isEmpty()) {
+            return new ArrayList<>();
+        }
         LambdaQueryWrapper<Team> teamLambdaQueryWrapper = new LambdaQueryWrapper<>();
         teamLambdaQueryWrapper.in(Team::getId, teamIds);
         List<Team> teamList = this.list(teamLambdaQueryWrapper);
@@ -604,11 +607,11 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
     @Override
     public Page<TeamVO> listMyCreate(long currentPage, Long userId) {
         LambdaQueryWrapper<Team> teamLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        teamLambdaQueryWrapper.eq(Team::getUserId,userId);
+        teamLambdaQueryWrapper.eq(Team::getUserId, userId);
         Page<Team> teamPage = this.page(new Page<>(currentPage, PAGE_SIZE), teamLambdaQueryWrapper);
         List<TeamVO> teamVOList = teamPage.getRecords().stream().map((team) -> this.getTeam(team.getId(), userId)).collect(Collectors.toList());
         Page<TeamVO> teamVOPage = new Page<>();
-        BeanUtils.copyProperties(teamPage,teamVOPage);
+        BeanUtils.copyProperties(teamPage, teamVOPage);
         teamVOPage.setRecords(teamVOList);
         return teamVOPage;
     }
