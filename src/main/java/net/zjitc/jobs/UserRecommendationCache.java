@@ -1,11 +1,11 @@
 package net.zjitc.jobs;
 
+import cn.hutool.core.lang.Pair;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import javafx.util.Pair;
 import net.zjitc.model.domain.Follow;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.vo.UserVO;

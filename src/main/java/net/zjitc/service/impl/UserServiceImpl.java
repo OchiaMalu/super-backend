@@ -1,6 +1,7 @@
 package net.zjitc.service.impl;
 
 
+import cn.hutool.core.lang.Pair;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -9,7 +10,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.constants.UserConstants;
