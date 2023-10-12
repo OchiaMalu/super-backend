@@ -17,6 +17,7 @@ import net.zjitc.exception.BusinessException;
 import net.zjitc.mapper.UserMapper;
 import net.zjitc.model.domain.Follow;
 import net.zjitc.model.domain.User;
+import net.zjitc.model.request.UserRegisterRequest;
 import net.zjitc.model.request.UserUpdateRequest;
 import net.zjitc.model.vo.UserVO;
 import net.zjitc.service.FollowService;
@@ -80,73 +81,24 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
+
+
     @Override
-    public long userRegister(String phone, String code, String userAccount, String userPassword, String checkPassword) {
-        // 1. 校验
-        if (StringUtils.isAnyBlank(phone, code, userAccount, userPassword, checkPassword)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
-        }
-        if (userAccount.length() < 4) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户账号过短");
-        }
-        if (userPassword.length() < 8 || checkPassword.length() < 8) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户密码过短");
-        }
-        LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        userLambdaQueryWrapper.eq(User::getPhone, phone);
-        long phoneNum = this.count(userLambdaQueryWrapper);
-        if (phoneNum >= 1) {
-            throw new BusinessException(ErrorCode.FORBIDDEN, "该手机号已注册");
-        }
+    public String userRegister(UserRegisterRequest userRegisterRequest, HttpServletRequest request) {
+        String phone = userRegisterRequest.getPhone();
+        String code = userRegisterRequest.getCode();
+        String account = userRegisterRequest.getUserAccount();
+        String password = userRegisterRequest.getUserPassword();
+        String checkPassword = userRegisterRequest.getCheckPassword();
+        checkRegisterRequest(phone, code, account, password, checkPassword);
+        checkAccountValid(account);
+        checkAccountRepetition(account);
+        checkHasRegistered(phone);
         String key = REGISTER_CODE_KEY + phone;
-        Boolean hasKey = stringRedisTemplate.hasKey(key);
-        if (Boolean.FALSE.equals(hasKey)) {
-            throw new BusinessException(ErrorCode.FORBIDDEN, "请先获取验证码");
-        }
-        String correctCode = stringRedisTemplate.opsForValue().get(key);
-        if (correctCode == null) {
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
-        }
-        if (!correctCode.equals(code)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "验证码错误");
-        }
-        // 账户不能包含特殊字符
-        String validPattern = "[`~!@#$%^&*()+=|{}':;',\\\\[\\\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]";
-        Matcher matcher = Pattern.compile(validPattern).matcher(userAccount);
-        if (matcher.find()) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户名包含特殊字符");
-        }
-        // 密码和校验密码相同
-        if (!userPassword.equals(checkPassword)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "两次输入的密码不一致");
-        }
-        // 账户不能重复
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_account", userAccount);
-        long count = userMapper.selectCount(queryWrapper);
-        if (count > 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号重复");
-        }
-        // 2. 加密
-        String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
-        // 3. 插入数据
-        User user = new User();
-        Random random = new Random();
-        user.setAvatarUrl(avatarUrls[random.nextInt(avatarUrls.length)]);
-        user.setPhone(phone);
-        user.setUsername(userAccount);
-        user.setUserAccount(userAccount);
-        user.setPassword(encryptPassword);
-        ArrayList<String> tag = new ArrayList<>();
-        Gson gson = new Gson();
-        String jsonTag = gson.toJson(tag);
-        user.setTags(jsonTag);
-        boolean saveResult = this.save(user);
-        if (!saveResult) {
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
-        }
-        stringRedisTemplate.delete(key);
-        return user.getId();
+        checkCode(code, key);
+        checkPassword(password, checkPassword);
+        long userId = insetUser(phone, account, password);
+        return afterInsertUser(key, userId, request);
     }
 
     @Override
@@ -591,6 +543,105 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             }
             return this.getRandomUser();
         }
+    }
+
+    private void checkRegisterRequest(String phone, String code, String account, String password, String checkPassword) {
+        if (StringUtils.isAnyBlank(phone, code, account, password, checkPassword)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "信息不全");
+        }
+        if (StringUtils.isAnyBlank(phone, code, account, password, checkPassword)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
+        }
+        if (account.length() < 4) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户账号过短");
+        }
+        if (password.length() < 8 || checkPassword.length() < 8) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户密码过短");
+        }
+    }
+
+    private void checkHasRegistered(String phone) {
+        LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        userLambdaQueryWrapper.eq(User::getPhone, phone);
+        long phoneNum = this.count(userLambdaQueryWrapper);
+        if (phoneNum >= 1) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "该手机号已注册");
+        }
+    }
+
+    private void checkCode(String code, String key) {
+        Boolean hasKey = stringRedisTemplate.hasKey(key);
+        if (Boolean.FALSE.equals(hasKey)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "请先获取验证码");
+        }
+        String correctCode = stringRedisTemplate.opsForValue().get(key);
+        if (correctCode == null) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
+        }
+        if (!correctCode.equals(code)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "验证码错误");
+        }
+    }
+
+    private void checkAccountValid(String account) {
+        String validPattern = "[`~!@#$%^&*()+=|{}':;',\\\\[\\\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]";
+        Matcher matcher = Pattern.compile(validPattern).matcher(account);
+        if (matcher.find()) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户名包含特殊字符");
+        }
+    }
+
+    private void checkPassword(String password, String checkPassword) {
+        if (!password.equals(checkPassword)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "两次输入的密码不一致");
+        }
+    }
+
+    private void checkAccountRepetition(String account) {
+        LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        userLambdaQueryWrapper.eq(User::getUserAccount, account);
+        long count = this.count(userLambdaQueryWrapper);
+        if (count > 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号重复");
+        }
+    }
+
+    private long insetUser(String phone, String account, String password) {
+        // 2. 加密
+        String encryptPassword = DigestUtils.md5DigestAsHex((SALT + password).getBytes());
+        // 3. 插入数据
+        User user = new User();
+        Random random = new Random();
+        user.setAvatarUrl(avatarUrls[random.nextInt(avatarUrls.length)]);
+        user.setPhone(phone);
+        user.setUsername(account);
+        user.setUserAccount(account);
+        user.setPassword(encryptPassword);
+        ArrayList<String> tag = new ArrayList<>();
+        Gson gson = new Gson();
+        String jsonTag = gson.toJson(tag);
+        user.setTags(jsonTag);
+        boolean saveResult = this.save(user);
+        if (!saveResult) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
+        }
+        return user.getId();
+    }
+
+    private String afterInsertUser(String key, long userId, HttpServletRequest request) {
+        stringRedisTemplate.delete(key);
+        User userInDatabase = this.getById(userId);
+        User safetyUser = this.getSafetyUser(userInDatabase);
+        String token = UUID.randomUUID().toString(true);
+        Gson gson = new Gson();
+        String userStr = gson.toJson(safetyUser);
+        request.getSession().setAttribute(USER_LOGIN_STATE, safetyUser);
+        request.getSession().setMaxInactiveInterval(900);
+        stringRedisTemplate.opsForValue().set(LOGIN_USER_KEY + token, userStr);
+        stringRedisTemplate.expire(LOGIN_USER_KEY + token, Duration.ofMinutes(15));
+        //todo 使用 aop 实现 bloomFilter 开关
+//        bloomFilter.add(USER_BLOOM_PREFIX + userId);
+        return token;
     }
 
     @Deprecated

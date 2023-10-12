@@ -4,6 +4,7 @@ package net.zjitc.service;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import net.zjitc.model.domain.User;
+import net.zjitc.model.request.UserRegisterRequest;
 import net.zjitc.model.request.UserUpdateRequest;
 import net.zjitc.model.vo.UserVO;
 
@@ -16,7 +17,7 @@ import java.util.List;
  * @createDate 2023-05-07 19:56:01
  */
 public interface UserService extends IService<User> {
-    long userRegister(String phone, String code, String userAccount, String userPassword, String checkPassword);
+    String userRegister(UserRegisterRequest userRegisterRequest,HttpServletRequest request);
 
     String userLogin(String userAccount, String userPassword, HttpServletRequest request);
 

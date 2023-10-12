@@ -180,25 +180,7 @@ public class UserController {
         if (userRegisterRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        String phone = userRegisterRequest.getPhone();
-        String code = userRegisterRequest.getCode();
-        String account = userRegisterRequest.getUserAccount();
-        String password = userRegisterRequest.getUserPassword();
-        String checkPassword = userRegisterRequest.getCheckPassword();
-        if (StringUtils.isAnyBlank(phone, code, account, password, checkPassword)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "信息不全");
-        }
-        long userId = userService.userRegister(phone, code, account, password, checkPassword);
-        User userInDatabase = userService.getById(userId);
-        User safetyUser = userService.getSafetyUser(userInDatabase);
-        String token = UUID.randomUUID().toString(true);
-        Gson gson = new Gson();
-        String userStr = gson.toJson(safetyUser);
-        request.getSession().setAttribute(USER_LOGIN_STATE, safetyUser);
-        request.getSession().setMaxInactiveInterval(900);
-        stringRedisTemplate.opsForValue().set(LOGIN_USER_KEY + token, userStr);
-        stringRedisTemplate.expire(LOGIN_USER_KEY + token, Duration.ofMinutes(15));
-//        bloomFilter.add(USER_BLOOM_PREFIX + userId);
+        String token = userService.userRegister(userRegisterRequest, request);
         return ResultUtils.success(token);
     }
 
