@@ -1,0 +1,17 @@
+{
+  "hints": [
+    {
+      "name": "super.enable-bloom-filter",
+      "values": [
+        {
+          "value": true,
+          "description": "启用"
+        },
+        {
+          "value": false,
+          "description": "禁用"
+        }
+      ]
+    }
+  ]
+}

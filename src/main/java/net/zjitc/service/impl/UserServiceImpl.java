@@ -628,7 +628,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return user.getId();
     }
 
-    private String afterInsertUser(String key, long userId, HttpServletRequest request) {
+    @Override
+    public String afterInsertUser(String key, long userId, HttpServletRequest request) {
         stringRedisTemplate.delete(key);
         User userInDatabase = this.getById(userId);
         User safetyUser = this.getSafetyUser(userInDatabase);
@@ -639,8 +640,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         request.getSession().setMaxInactiveInterval(900);
         stringRedisTemplate.opsForValue().set(LOGIN_USER_KEY + token, userStr);
         stringRedisTemplate.expire(LOGIN_USER_KEY + token, Duration.ofMinutes(15));
-        //todo 使用 aop 实现 bloomFilter 开关
-//        bloomFilter.add(USER_BLOOM_PREFIX + userId);
         return token;
     }
 

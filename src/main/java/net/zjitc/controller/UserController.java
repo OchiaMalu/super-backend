@@ -1,10 +1,9 @@
 package net.zjitc.controller;
 
-import cn.hutool.core.lang.UUID;
+import cn.hutool.bloomfilter.BloomFilter;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.google.gson.Gson;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -13,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.zjitc.common.BaseResponse;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.common.ResultUtils;
+import net.zjitc.properties.SuperProperties;
 import net.zjitc.exception.BusinessException;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.request.UpdatePasswordRequest;
@@ -35,14 +35,13 @@ import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
-import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static net.zjitc.constants.BloomFilterConstants.USER_BLOOM_PREFIX;
 import static net.zjitc.constants.RedisConstants.*;
 import static net.zjitc.constants.SystemConstants.EMAIL_FROM;
-import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 
 
 /**
@@ -75,11 +74,14 @@ public class UserController {
     @Resource
     private JavaMailSender javaMailSender;
 
-//    /**
-//     * 布隆过滤器
-//     */
-//    @Resource
-//    private BloomFilter bloomFilter;
+    /**
+     * 布隆过滤器
+     */
+    @Resource
+    private BloomFilter bloomFilter;
+
+    @Resource
+    private SuperProperties superProperties;
 
     /**
      * 发送消息
@@ -484,16 +486,19 @@ public class UserController {
             {@ApiImplicitParam(name = "id", value = "用户id"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<UserVO> getUserById(@PathVariable Long id, HttpServletRequest request) {
-//        boolean contains = bloomFilter.contains(USER_BLOOM_PREFIX + id);
-//        if (!contains) {
-//            return ResultUtils.success(null);
-//        }
         User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
         if (id == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        if (superProperties.isEnableBloomFilter()) {
+            boolean contains = bloomFilter.contains(USER_BLOOM_PREFIX + id);
+            if (!contains) {
+                log.error("没有在 BloomFilter 中找到该 userId");
+                return ResultUtils.success(null);
+            }
         }
         UserVO userVO = userService.getUserById(id, loginUser.getId());
         return ResultUtils.success(userVO);

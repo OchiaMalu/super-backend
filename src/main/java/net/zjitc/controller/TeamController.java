@@ -1,5 +1,6 @@
 package net.zjitc.controller;
 
+import cn.hutool.bloomfilter.BloomFilter;
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -7,9 +8,11 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.log4j.Log4j2;
 import net.zjitc.common.BaseResponse;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.common.ResultUtils;
+import net.zjitc.properties.SuperProperties;
 import net.zjitc.exception.BusinessException;
 import net.zjitc.model.domain.Team;
 import net.zjitc.model.domain.User;
@@ -30,6 +33,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static net.zjitc.constants.BloomFilterConstants.TEAM_BLOOM_PREFIX;
+
 /**
  * 队伍控制器
  *
@@ -39,6 +44,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/team")
 @Api(tags = "队伍管理模块")
+@Log4j2
 public class TeamController {
     /**
      * 团队服务
@@ -58,12 +64,14 @@ public class TeamController {
     @Resource
     private UserTeamService userTeamService;
 
-//    /**
-//     * 布隆过滤器
-//     */
-//    @Resource
-//    private BloomFilter bloomFilter;
+    /**
+     * 布隆过滤器
+     */
+    @Resource
+    private BloomFilter bloomFilter;
 
+    @Resource
+    private SuperProperties superProperties;
 
     /**
      * 加入团队
@@ -88,7 +96,6 @@ public class TeamController {
         Team team = new Team();
         BeanUtil.copyProperties(teamAddRequest, team);
         long teamId = teamService.addTeam(team, loginUser);
-//        bloomFilter.add(TEAM_BLOOM_PREFIX + teamId);
         return ResultUtils.success(teamId);
     }
 
@@ -133,10 +140,13 @@ public class TeamController {
         if (id == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-//        boolean contains = bloomFilter.contains(String.valueOf(id));
-//        if (!contains) {
-//            return ResultUtils.success(null);
-//        }
+        if (superProperties.isEnableBloomFilter()){
+            boolean contains = bloomFilter.contains(TEAM_BLOOM_PREFIX + id);
+            if (!contains){
+                log.error("没有在 BloomFilter 中找到该 teamId");
+                return ResultUtils.success(null);
+            }
+        }
         User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
