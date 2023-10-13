@@ -531,8 +531,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             }
             long userNum = this.count();
             if (userNum <= 10) {
-                List<User> userList = this.list();
-                List<UserVO> userVOList = userList.stream().map((user) -> {
+                Page<User> userPage = this.page(new Page<>(currentPage, PAGE_SIZE));
+                List<UserVO> userVOList = userPage.getRecords().stream().map((user) -> {
                     UserVO userVO = new UserVO();
                     BeanUtils.copyProperties(user, userVO);
                     return userVO;
