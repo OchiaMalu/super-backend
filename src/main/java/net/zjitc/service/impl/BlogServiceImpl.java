@@ -222,6 +222,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
     @Override
     public BlogVO getBlogById(long blogId, Long userId) {
         Blog blog = this.getById(blogId);
+        if (blog == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "无法找到该博文");
+        }
         BlogVO blogVO = new BlogVO();
         BeanUtils.copyProperties(blog, blogVO);
         LambdaQueryWrapper<BlogLike> blogLikeLambdaQueryWrapper = new LambdaQueryWrapper<>();
@@ -230,6 +233,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
         long isLike = blogLikeService.count(blogLikeLambdaQueryWrapper);
         blogVO.setIsLike(isLike > 0);
         User author = userService.getById(blog.getUserId());
+        if (author == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "无法找到该博文作者");
+        }
         UserVO authorVO = new UserVO();
         BeanUtils.copyProperties(author, authorVO);
         LambdaQueryWrapper<Follow> followLambdaQueryWrapper = new LambdaQueryWrapper<>();
@@ -296,7 +302,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
                 imageNameList.add(filename);
             }
         }
-        if (imageNameList.size() > 0) {
+        if (!imageNameList.isEmpty()) {
             String imageStr = StringUtils.join(imageNameList, ",");
             blog.setImages(imageStr);
         }

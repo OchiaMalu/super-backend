@@ -441,6 +441,9 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
     @Override
     public TeamVO getTeam(Long teamId, Long userId) {
         Team team = this.getById(teamId);
+        if (team == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "队伍不存在");
+        }
         TeamVO teamVO = new TeamVO();
         BeanUtils.copyProperties(team, teamVO);
         LambdaQueryWrapper<UserTeam> userTeamLambdaQueryWrapper = new LambdaQueryWrapper<>();
