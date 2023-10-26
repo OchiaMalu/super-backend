@@ -1,6 +1,5 @@
 package net.zjitc.controller;
 
-import cn.hutool.bloomfilter.BloomFilter;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -10,7 +9,6 @@ import lombok.extern.log4j.Log4j2;
 import net.zjitc.common.BaseResponse;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.common.ResultUtils;
-import net.zjitc.properties.SuperProperties;
 import net.zjitc.exception.BusinessException;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.request.BlogAddRequest;
@@ -23,8 +21,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-
-import static net.zjitc.constants.BloomFilterConstants.BLOG_BLOOM_PREFIX;
 
 /**
  * 博客控制器
@@ -48,15 +44,6 @@ public class BlogController {
      */
     @Resource
     private UserService userService;
-
-    /**
-     * 布隆过滤器
-     */
-    @Resource
-    private BloomFilter bloomFilter;
-
-    @Resource
-    private SuperProperties superProperties;
 
     /**
      * 博客列表页面
@@ -164,13 +151,6 @@ public class BlogController {
         }
         if (id == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        if (superProperties.isEnableBloomFilter()){
-            boolean contains = bloomFilter.contains(BLOG_BLOOM_PREFIX + id);
-            if (!contains){
-                log.error("没有在 BloomFilter 中找到该 blogId");
-                return ResultUtils.success(null);
-            }
         }
         return ResultUtils.success(blogService.getBlogById(id, loginUser.getId()));
     }

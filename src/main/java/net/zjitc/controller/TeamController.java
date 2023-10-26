@@ -1,6 +1,5 @@
 package net.zjitc.controller;
 
-import cn.hutool.bloomfilter.BloomFilter;
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -12,7 +11,6 @@ import lombok.extern.log4j.Log4j2;
 import net.zjitc.common.BaseResponse;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.common.ResultUtils;
-import net.zjitc.properties.SuperProperties;
 import net.zjitc.exception.BusinessException;
 import net.zjitc.model.domain.Team;
 import net.zjitc.model.domain.User;
@@ -32,8 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static net.zjitc.constants.BloomFilterConstants.TEAM_BLOOM_PREFIX;
 
 /**
  * 队伍控制器
@@ -63,15 +59,6 @@ public class TeamController {
      */
     @Resource
     private UserTeamService userTeamService;
-
-    /**
-     * 布隆过滤器
-     */
-    @Resource
-    private BloomFilter bloomFilter;
-
-    @Resource
-    private SuperProperties superProperties;
 
     /**
      * 加入团队
@@ -140,13 +127,6 @@ public class TeamController {
         if (id == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        if (superProperties.isEnableBloomFilter()){
-            boolean contains = bloomFilter.contains(TEAM_BLOOM_PREFIX + id);
-            if (!contains){
-                log.error("没有在 BloomFilter 中找到该 teamId");
-                return ResultUtils.success(null);
-            }
-        }
         User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
@@ -170,10 +150,6 @@ public class TeamController {
         if (teamQueryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-//        boolean contains = bloomFilter.contains(String.valueOf(teamQueryRequest.getId()));
-//        if (!contains) {
-//            return ResultUtils.success(null);
-//        }
         User loginUser = userService.getLoginUser(request);
         Page<TeamVO> teamVOPage = teamService.listTeams(currentPage, teamQueryRequest, userService.isAdmin(loginUser));
         Page<TeamVO> finalPage = getTeamHasJoinNum(teamVOPage);

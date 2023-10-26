@@ -63,6 +63,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
     @Resource
     private FollowService followService;
 
+
     /**
      * 加入团队
      *
@@ -558,6 +559,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
             return teamVO;
         }).collect(Collectors.toList());
     }
+
 
     /**
      * 改变封面图片

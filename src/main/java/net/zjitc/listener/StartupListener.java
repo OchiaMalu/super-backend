@@ -40,11 +40,11 @@ public class StartupListener implements CommandLineRunner {
     public void run(String... args) {
         if (superProperties.isEnableBloomFilter()) {
             long begin = System.currentTimeMillis();
-            System.out.println("start init BloomFilter......");
+            log.info("Starting init BloomFilter......");
             this.initBloomFilter();
             long end = System.currentTimeMillis();
-            String cost = String.valueOf(end - begin) + " ms";
-            System.out.println("BloomFilter initialed in " + cost);
+            String cost = end - begin + " ms";
+            log.info("BloomFilter initialed in " + cost);
         }
     }
 
