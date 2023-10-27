@@ -38,7 +38,7 @@ public class FileController {
 
     /**
      * 基本路径
-     *///图片保存路径
+     */
     @Value("${super.img}")
     private String basePath;
 
@@ -47,6 +47,7 @@ public class FileController {
      */
     @Resource
     private UserService userService;
+
 
     /**
      * 上传

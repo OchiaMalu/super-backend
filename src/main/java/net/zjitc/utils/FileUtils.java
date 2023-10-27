@@ -4,8 +4,11 @@ import net.zjitc.common.ErrorCode;
 import net.zjitc.exception.BusinessException;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Resource;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -17,9 +20,9 @@ import java.io.IOException;
  * @author OchiaMalu
  * @date 2023/06/22
  */
+@Component
 public class FileUtils {
 
-    @Value("${super.img}")
     private static String basePath;
 
     public static String uploadFile(MultipartFile file) {
@@ -70,5 +73,10 @@ public class FileUtils {
             e.printStackTrace();
         }
         return buffer;
+    }
+
+    @Value("${super.img}")
+    public void initBasePath(String b){
+        basePath=b;
     }
 }
