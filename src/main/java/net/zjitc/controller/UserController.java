@@ -19,6 +19,7 @@ import net.zjitc.model.request.UserRegisterRequest;
 import net.zjitc.model.request.UserUpdateRequest;
 import net.zjitc.model.vo.UserVO;
 import net.zjitc.service.UserService;
+import net.zjitc.utils.MessageUtils;
 import net.zjitc.utils.ValidateCodeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -88,8 +89,7 @@ public class UserController {
         Integer code = ValidateCodeUtils.generateValidateCode(6);
         String key = REGISTER_CODE_KEY + phone;
         stringRedisTemplate.opsForValue().set(key, String.valueOf(code), REGISTER_CODE_TTL, TimeUnit.MINUTES);
-        System.out.println(code);
-//        SMSUtils.sendMessage(phone, String.valueOf(code));
+        MessageUtils.sendMessage(phone, String.valueOf(code));
         return ResultUtils.success("短信发送成功");
     }
 
@@ -116,8 +116,7 @@ public class UserController {
         Integer code = ValidateCodeUtils.generateValidateCode(6);
         String key = USER_UPDATE_PHONE_KEY + phone;
         stringRedisTemplate.opsForValue().set(key, String.valueOf(code), USER_UPDATE_PHONE_TTL, TimeUnit.MINUTES);
-        System.out.println(code);
-//        SMSUtils.sendMessage(phone, String.valueOf(code));
+        MessageUtils.sendMessage(phone, String.valueOf(code));
         return ResultUtils.success("短信发送成功");
     }
 
@@ -239,8 +238,7 @@ public class UserController {
         } else {
             String key = USER_FORGET_PASSWORD_KEY + phone;
             Integer code = ValidateCodeUtils.generateValidateCode(4);
-//            SMSUtils.sendMessage(phone, String.valueOf(code));
-            System.out.println(code);
+            MessageUtils.sendMessage(phone, String.valueOf(code));
             stringRedisTemplate.opsForValue().set(key, String.valueOf(code), USER_FORGET_PASSWORD_TTL, TimeUnit.MINUTES);
             return ResultUtils.success(user.getUserAccount());
         }

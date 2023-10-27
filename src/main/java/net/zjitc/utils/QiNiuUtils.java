@@ -11,9 +11,12 @@ import com.qiniu.storage.model.DefaultPutRet;
 import com.qiniu.util.Auth;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.exception.BusinessException;
+import net.zjitc.properties.QiNiuProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.io.ByteArrayInputStream;
 
 /**
@@ -26,19 +29,18 @@ import java.io.ByteArrayInputStream;
 @Component
 public class QiNiuUtils {
 
-    private static String accessKey;
+    private static QiNiuProperties qiNiuProperties;
 
-    private static String secretKey;
-
-    private static String bucket;
+    @Resource
+    private QiNiuProperties tempProperties;
 
     public static String upload(byte[] uploadBytes) {
         Configuration cfg = new Configuration(Region.region0());
         UploadManager uploadManager = new UploadManager(cfg);
 
         ByteArrayInputStream byteInputStream = new ByteArrayInputStream(uploadBytes);
-        Auth auth = Auth.create(accessKey, secretKey);
-        String upToken = auth.uploadToken(bucket);
+        Auth auth = Auth.create(qiNiuProperties.getAccessKey(), qiNiuProperties.getSecretKey());
+        String upToken = auth.uploadToken(qiNiuProperties.getBucket());
         try {
             Response response = uploadManager.put(byteInputStream, null, upToken, null, null);
             DefaultPutRet putRet = new Gson().fromJson(response.bodyString(), DefaultPutRet.class);
@@ -48,18 +50,8 @@ public class QiNiuUtils {
         }
     }
 
-    @Value("${super.qiniu.access-key}")
-    public void initAccessKey(String k){
-        accessKey = k;
-    }
-
-    @Value("${super.qiniu.secret-key}")
-    public void initSecretKey(String k){
-        secretKey = k;
-    }
-
-    @Value("${super.qiniu.bucket}")
-    public void initBucket(String k){
-        bucket = k;
+    @PostConstruct
+    public void initProperties() {
+        qiNiuProperties = tempProperties;
     }
 }

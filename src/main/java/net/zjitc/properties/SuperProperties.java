@@ -26,4 +26,6 @@ public class SuperProperties {
      * 启用布隆过滤器
      */
     private boolean enableBloomFilter = false;
+
+    private boolean useShortMessagingService = false;
 }
