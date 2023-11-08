@@ -35,7 +35,7 @@ public class QiNiuUtils {
     private QiNiuProperties tempProperties;
 
     public static String upload(byte[] uploadBytes) {
-        Configuration cfg = new Configuration(Region.region0());
+        Configuration cfg = new Configuration(Region.autoRegion());
         UploadManager uploadManager = new UploadManager(cfg);
 
         ByteArrayInputStream byteInputStream = new ByteArrayInputStream(uploadBytes);
