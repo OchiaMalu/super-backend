@@ -1,5 +1,7 @@
 package net.zjitc.constants;
 
+import org.springframework.beans.factory.annotation.Value;
+
 /**
  * 系统常量
  *
@@ -11,10 +13,12 @@ public interface SystemConstants {
      * 页面大小
      */
     long PAGE_SIZE = 8;
+
     /**
      * 七牛云图片url前缀
      */
-    String QiNiuUrl = "http://niu.ochiamalu.xyz/";
+    @Value("${super.qiniu.url}")
+    String QiNiuUrl = null;
 
     /**
      * 电子邮件发送邮箱

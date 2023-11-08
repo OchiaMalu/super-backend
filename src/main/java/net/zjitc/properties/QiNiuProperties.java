@@ -17,4 +17,6 @@ public class QiNiuProperties {
     private String secretKey;
 
     private String bucket;
+
+    private String url;
 }
