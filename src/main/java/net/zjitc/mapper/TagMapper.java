@@ -2,6 +2,7 @@ package net.zjitc.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import net.zjitc.model.domain.Tag;
+import org.apache.ibatis.annotations.Mapper;
 
 
 /**
@@ -10,6 +11,7 @@ import net.zjitc.model.domain.Tag;
  * @author OchiaMalu
  * @date 2023/07/28
  */
+@Mapper
 public interface TagMapper extends BaseMapper<Tag> {
 
 }

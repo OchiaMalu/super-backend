@@ -2,6 +2,7 @@ package net.zjitc.mapper;
 
 import net.zjitc.model.domain.Message;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
 * @author OchiaMalu
@@ -9,6 +10,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 * @createDate 2023-06-21 17:39:30
 * @Entity net.zjitc.model.domain.Message
 */
+@Mapper
 public interface MessageMapper extends BaseMapper<Message> {
 
 }

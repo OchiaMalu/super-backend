@@ -2,6 +2,7 @@ package net.zjitc.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import net.zjitc.model.domain.User;
+import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
 
@@ -11,6 +12,7 @@ import java.util.List;
 * @createDate 2023-05-07 19:56:01
 * @Entity generator.domain.User
 */
+@Mapper
 public interface UserMapper extends BaseMapper<User> {
 
     List<User> getRandomUser();
