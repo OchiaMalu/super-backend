@@ -17,6 +17,7 @@ import net.zjitc.service.*;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +30,6 @@ import java.util.stream.Collectors;
 import static net.zjitc.constants.RedisConstants.MESSAGE_LIKE_NUM_KEY;
 import static net.zjitc.constants.RedissonConstant.COMMENTS_LIKE_LOCK;
 import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
-import static net.zjitc.constants.SystemConstants.QiNiuUrl;
 
 /**
  * @author OchiaMalu
@@ -57,6 +57,9 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
 
     @Resource
     private RedissonClient redissonClient;
+
+    @Value("${super.qiniu.url}")
+    private String QINIU_URL;
 
     @Override
     @Transactional
@@ -213,7 +216,7 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
                 blogVO.setCoverImage(null);
             } else {
                 String[] imgStr = images.split(",");
-                blogVO.setCoverImage(QiNiuUrl + imgStr[0]);
+                blogVO.setCoverImage(QINIU_URL + imgStr[0]);
             }
             Long authorId = blogVO.getUserId();
             User author = userService.getById(authorId);
@@ -258,7 +261,7 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
                 blogVO.setCoverImage(null);
             } else {
                 String[] imgStr = images.split(",");
-                blogVO.setCoverImage(QiNiuUrl + imgStr[0]);
+                blogVO.setCoverImage(QINIU_URL + imgStr[0]);
             }
             Long authorId = blogVO.getUserId();
             User author = userService.getById(authorId);

@@ -22,7 +22,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileInputStream;
 
-import static net.zjitc.constants.SystemConstants.QiNiuUrl;
 
 /**
  * 文件控制器
@@ -48,6 +47,8 @@ public class FileController {
     @Resource
     private UserService userService;
 
+    @Value("${super.qiniu.url}")
+    private String QINIU_URL;
 
     /**
      * 上传
@@ -70,7 +71,7 @@ public class FileController {
             throw new BusinessException(ErrorCode.NOT_LOGIN, "请登录");
         }
         String filename = FileUtils.uploadFile(file);
-        String fileUrl = QiNiuUrl + filename;
+        String fileUrl = QINIU_URL + filename;
         User user = new User();
         user.setId(loginUser.getId());
         user.setAvatarUrl(fileUrl);

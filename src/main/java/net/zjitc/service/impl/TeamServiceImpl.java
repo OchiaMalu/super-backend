@@ -24,6 +24,7 @@ import net.zjitc.service.UserTeamService;
 import net.zjitc.utils.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,7 +34,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
-import static net.zjitc.constants.SystemConstants.QiNiuUrl;
 
 /**
  * 团队服务impl
@@ -63,6 +63,8 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
     @Resource
     private FollowService followService;
 
+    @Value("${super.qiniu.url}")
+    private String QINIU_URL;
 
     /**
      * 加入团队
@@ -588,7 +590,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         String fileName = FileUtils.uploadFile(image);
         Team temp = new Team();
         temp.setId(team.getId());
-        temp.setCoverImage(QiNiuUrl + fileName);
+        temp.setCoverImage(QINIU_URL + fileName);
         this.updateById(temp);
     }
 

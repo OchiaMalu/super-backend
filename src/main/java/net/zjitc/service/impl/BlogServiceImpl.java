@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,7 +33,6 @@ import java.util.stream.Collectors;
 import static net.zjitc.constants.RedisConstants.*;
 import static net.zjitc.constants.RedissonConstant.BLOG_LIKE_LOCK;
 import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
-import static net.zjitc.constants.SystemConstants.QiNiuUrl;
 
 /**
  * @author OchiaMalu
@@ -60,6 +60,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
 
     @Resource
     private RedissonClient redissonClient;
+
+    @Value("${super.qiniu.url}")
+    private String QINIU_URL;
 
     @Override
     public Long addBlog(BlogAddRequest blogAddRequest, User loginUser) {
@@ -122,7 +125,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
                 continue;
             }
             String[] imgStr = images.split(",");
-            blogVO.setCoverImage(QiNiuUrl + imgStr[0]);
+            blogVO.setCoverImage(QINIU_URL + imgStr[0]);
         }
         blogVoPage.setRecords(blogVOList);
         return blogVoPage;
@@ -213,7 +216,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
                 continue;
             }
             String[] imgStrs = images.split(",");
-            blogVO.setCoverImage(QiNiuUrl + imgStrs[0]);
+            blogVO.setCoverImage(QINIU_URL + imgStrs[0]);
         }
         blogVoPage.setRecords(blogVOList);
         return blogVoPage;
@@ -250,7 +253,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
         String[] imgStrs = images.split(",");
         ArrayList<String> imgStrList = new ArrayList<>();
         for (String imgStr : imgStrs) {
-            imgStrList.add(QiNiuUrl + imgStr);
+            imgStrList.add(QINIU_URL + imgStr);
         }
         String imgStr = StringUtils.join(imgStrList, ",");
         blogVO.setImages(imgStr);

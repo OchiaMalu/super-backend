@@ -15,12 +15,6 @@ public interface SystemConstants {
     long PAGE_SIZE = 8;
 
     /**
-     * 七牛云图片url前缀
-     */
-    @Value("${super.qiniu.url}")
-    String QiNiuUrl = null;
-
-    /**
      * 电子邮件发送邮箱
      */
     String EMAIL_FROM = "linzhehao1108@126.com";
