@@ -23,6 +23,7 @@ import net.zjitc.utils.MessageUtils;
 import net.zjitc.utils.ValidateCodeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -39,7 +40,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static net.zjitc.constants.RedisConstants.*;
-import static net.zjitc.constants.SystemConstants.EMAIL_FROM;
 
 
 /**
@@ -71,6 +71,9 @@ public class UserController {
      */
     @Resource
     private JavaMailSender javaMailSender;
+
+    @Value("${spring.mail.username}")
+    private String EMAIL_FROM;
 
     /**
      * 发送消息
