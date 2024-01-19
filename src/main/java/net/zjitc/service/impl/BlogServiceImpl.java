@@ -61,7 +61,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
     @Resource
     private RedissonClient redissonClient;
 
-    @Value("${super.qiniu.url}")
+    @Value("${super.qiniu.url:null}")
     private String QINIU_URL;
 
     @Override

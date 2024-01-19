@@ -63,7 +63,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
     @Resource
     private FollowService followService;
 
-    @Value("${super.qiniu.url}")
+    @Value("${super.qiniu.url:null}")
     private String QINIU_URL;
 
     /**

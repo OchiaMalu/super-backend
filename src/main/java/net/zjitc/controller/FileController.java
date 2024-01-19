@@ -47,7 +47,7 @@ public class FileController {
     @Resource
     private UserService userService;
 
-    @Value("${super.qiniu.url}")
+    @Value("${super.qiniu.url:null}")
     private String QINIU_URL;
 
     /**
