@@ -99,6 +99,9 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
     @Override
     public BlogCommentsVO getComment(long commentId, Long userId) {
         BlogComments comments = this.getById(commentId);
+        if (comments==null){
+            return null;
+        }
         BlogCommentsVO blogCommentsVO = new BlogCommentsVO();
         BeanUtils.copyProperties(comments, blogCommentsVO);
         LambdaQueryWrapper<CommentLike> commentLikeLambdaQueryWrapper = new LambdaQueryWrapper<>();

@@ -195,7 +195,13 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message>
             messageVO.setFromUser(userVO);
             if (item.getType() == MessageTypeEnum.BLOG_COMMENT_LIKE.getValue()) {
                 BlogCommentsVO commentsVO = blogCommentsService.getComment(Long.parseLong(item.getData()), userId);
-                messageVO.setComment(commentsVO);
+                if (commentsVO==null){
+                    BlogCommentsVO tempCommon = new BlogCommentsVO();
+                    tempCommon.setContent("该评论已被删除");
+                    messageVO.setComment(tempCommon);
+                }else {
+                    messageVO.setComment(commentsVO);
+                }
             }
             if (item.getType() == MessageTypeEnum.BLOG_LIKE.getValue()) {
                 BlogVO blogVO = blogService.getBlogById(Long.parseLong(item.getData()), userId);
