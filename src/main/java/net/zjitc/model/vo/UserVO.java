@@ -69,7 +69,7 @@ public class UserVO implements Serializable {
      * 状态 0 - 正常
      */
     @ApiModelProperty(value = "状态")
-    private Integer userStatus;
+    private Integer status;
 
     /**
      * 创建时间
@@ -89,7 +89,7 @@ public class UserVO implements Serializable {
      * 用户角色 0 - 普通用户 1 - 管理员
      */
     @ApiModelProperty(value = "用户角色")
-    private Integer userRole;
+    private Integer role;
 
     /**
      * 是否关注
