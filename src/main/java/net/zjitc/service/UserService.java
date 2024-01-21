@@ -56,4 +56,6 @@ public interface UserService extends IService<User> {
     Page<UserVO> preMatchUser(long currentPage, String username, User loginUser);
 
     String afterInsertUser(String key, long userId, HttpServletRequest request);
+
+    Long adminRegister(UserRegisterRequest userRegisterRequest, HttpServletRequest request);
 }

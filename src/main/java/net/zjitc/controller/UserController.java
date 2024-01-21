@@ -40,6 +40,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static net.zjitc.constants.RedisConstants.*;
+import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
+import static net.zjitc.constants.UserConstants.ADMIN_ROLE;
 
 
 /**
@@ -174,6 +176,22 @@ public class UserController {
         }
         String token = userService.userRegister(userRegisterRequest, request);
         return ResultUtils.success(token);
+    }
+
+    /**
+     * 管理员新增用户
+     *
+     * @param userRegisterRequest 用户注册请求
+     * @return {@link BaseResponse}<{@link Long}>
+     */
+    @PostMapping("/admin/register")
+    @ApiOperation(value = "管理员新增用户")
+    public BaseResponse<Long> adminRegister(@RequestBody UserRegisterRequest userRegisterRequest, HttpServletRequest request) {
+        if (userRegisterRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        Long flag = userService.adminRegister(userRegisterRequest, request);
+        return ResultUtils.success(flag);
     }
 
     /**
@@ -370,21 +388,19 @@ public class UserController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "username", value = "用户名"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<List<User>> searchUsersByUserName(String username, HttpServletRequest request) {
+    public BaseResponse<Page<User>> searchUsersByUserName(String username, Long currentPage,HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
-        }
-        if (!userService.isAdmin(loginUser)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         if (StringUtils.isNotBlank(username)) {
             queryWrapper.like("username", username);
         }
-        List<User> userList = userService.list(queryWrapper);
-        List<User> list = userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
-        return ResultUtils.success(list);
+        Page<User> userPage = userService.page(new Page<>(currentPage, PAGE_SIZE), queryWrapper);
+        List<User> safetyUserList = userPage.getRecords().stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
+        userPage.setRecords(safetyUserList);
+        return ResultUtils.success(userPage);
     }
 
     /**
@@ -418,6 +434,39 @@ public class UserController {
         User user = new User();
         BeanUtils.copyProperties(updateRequest, user);
         boolean success = userService.updateUser(user, request);
+        if (success) {
+            return ResultUtils.success("ok");
+        } else {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
+        }
+    }
+
+    /**
+     * 管理员更新用户
+     *
+     * @param updateRequest 更新请求
+     * @param request       请求
+     * @return {@link BaseResponse}<{@link String}>
+     */
+    @PutMapping("/admin/update")
+    @ApiOperation(value = "管理员更新用户")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "user", value = "用户更新请求参数"),
+                    @ApiImplicitParam(name = "request", value = "request请求")})
+    public BaseResponse<String> adminUpdateUser(@RequestBody UserUpdateRequest updateRequest, HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        if (updateRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        if (!loginUser.getRole().equals(ADMIN_ROLE)){
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+        User user = new User();
+        BeanUtils.copyProperties(updateRequest, user);
+        boolean success = userService.updateById(user);
         if (success) {
             return ResultUtils.success("ok");
         } else {

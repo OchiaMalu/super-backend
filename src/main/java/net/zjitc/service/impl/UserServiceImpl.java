@@ -43,6 +43,7 @@ import java.util.stream.Collectors;
 import static net.zjitc.constants.RedisConstants.*;
 import static net.zjitc.constants.SystemConstants.DEFAULT_CACHE_PAGE;
 import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
+import static net.zjitc.constants.UserConstants.ADMIN_ROLE;
 import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 
 /**
@@ -99,6 +100,24 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         checkPassword(password, checkPassword);
         long userId = insetUser(phone, account, password);
         return afterInsertUser(key, userId, request);
+    }
+
+    @Override
+    public Long adminRegister(UserRegisterRequest userRegisterRequest, HttpServletRequest request) {
+        User loginUser = getLoginUser(request);
+        if (loginUser==null){
+            throw new BusinessException(ErrorCode.NOT_LOGIN, "未登录");
+        }
+        Integer role = loginUser.getRole();
+        if (!role.equals(ADMIN_ROLE)){
+            throw new BusinessException(ErrorCode.NO_AUTH, "无权限");
+        }
+        String phone = userRegisterRequest.getPhone();
+        String account = userRegisterRequest.getUserAccount();
+        String password = userRegisterRequest.getUserPassword();
+        checkAccountValid(account);
+        checkAccountRepetition(account);
+        return insetUser(phone, account, password);
     }
 
     @Override
@@ -214,7 +233,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     @Override
     public boolean isAdmin(User loginUser) {
-        return loginUser != null && loginUser.getRole() == UserConstants.ADMIN_ROLE;
+        return loginUser != null && loginUser.getRole() == ADMIN_ROLE;
     }
 
 
@@ -642,6 +661,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         stringRedisTemplate.expire(LOGIN_USER_KEY + token, Duration.ofMinutes(15));
         return token;
     }
+
+
 
     @Deprecated
     private List<User> searchByMemory(List<String> tagNameList) {
