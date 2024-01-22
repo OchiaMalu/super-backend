@@ -31,6 +31,10 @@ https://gitee.com/ochiamaluo/super-frontend
 
 https://gitee.com/ochiamaluo/super-backend
 
+#### 后台管理系统及介绍请见：
+
+https://gitee.com/ochiamaluo/super-frontend/tree/master/super-admin
+
 ## 在线体验
 
 演示地址: http://ochiamalu.xyz
