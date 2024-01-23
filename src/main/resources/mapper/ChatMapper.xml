@@ -5,15 +5,15 @@
 <mapper namespace="net.zjitc.mapper.ChatMapper">
 
     <resultMap id="BaseResultMap" type="net.zjitc.model.domain.Chat">
-            <id property="id" column="id" jdbcType="BIGINT"/>
-            <result property="fromId" column="from_id" jdbcType="BIGINT"/>
-            <result property="toid" column="toId" jdbcType="BIGINT"/>
-            <result property="text" column="text" jdbcType="VARCHAR"/>
-            <result property="chatType" column="chat_type" jdbcType="TINYINT"/>
-            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
-            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
-            <result property="teamId" column="team_id" jdbcType="BIGINT"/>
-            <result property="isDelete" column="is_delete" jdbcType="TINYINT"/>
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="fromId" column="from_id" jdbcType="BIGINT"/>
+        <result property="toid" column="toId" jdbcType="BIGINT"/>
+        <result property="text" column="text" jdbcType="VARCHAR"/>
+        <result property="chatType" column="chat_type" jdbcType="TINYINT"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="teamId" column="team_id" jdbcType="BIGINT"/>
+        <result property="isDelete" column="is_delete" jdbcType="TINYINT"/>
     </resultMap>
 
     <sql id="Base_Column_List">

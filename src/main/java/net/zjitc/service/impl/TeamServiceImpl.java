@@ -14,7 +14,11 @@ import net.zjitc.model.domain.Team;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.domain.UserTeam;
 import net.zjitc.model.enums.TeamStatusEnum;
-import net.zjitc.model.request.*;
+import net.zjitc.model.request.TeamCoverUpdateRequest;
+import net.zjitc.model.request.TeamJoinRequest;
+import net.zjitc.model.request.TeamQueryRequest;
+import net.zjitc.model.request.TeamQuitRequest;
+import net.zjitc.model.request.TeamUpdateRequest;
 import net.zjitc.model.vo.TeamVO;
 import net.zjitc.model.vo.UserVO;
 import net.zjitc.service.FollowService;
@@ -30,7 +34,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static net.zjitc.constants.SystemConstants.PAGE_SIZE;

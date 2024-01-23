@@ -7,12 +7,12 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.Gson;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.exception.BusinessException;
+import net.zjitc.mapper.FriendsMapper;
 import net.zjitc.model.domain.Friends;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.request.FriendAddRequest;
 import net.zjitc.model.vo.FriendsRecordVO;
 import net.zjitc.service.FriendsService;
-import net.zjitc.mapper.FriendsMapper;
 import net.zjitc.service.UserService;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -23,12 +23,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import static net.zjitc.constants.FriendConstant.*;
+import static net.zjitc.constants.FriendConstant.AGREE_STATUS;
+import static net.zjitc.constants.FriendConstant.DEFAULT_STATUS;
+import static net.zjitc.constants.FriendConstant.EXPIRED_STATUS;
+import static net.zjitc.constants.FriendConstant.NOT_READ;
+import static net.zjitc.constants.FriendConstant.READ;
+import static net.zjitc.constants.FriendConstant.REVOKE_STATUS;
 import static net.zjitc.constants.RedissonConstant.APPLY_LOCK;
 import static net.zjitc.utils.StringUtils.stringJsonListToLongSet;
 
