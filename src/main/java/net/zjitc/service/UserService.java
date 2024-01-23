@@ -21,6 +21,8 @@ public interface UserService extends IService<User> {
 
     String userLogin(String userAccount, String userPassword, HttpServletRequest request);
 
+    String adminLogin(String userAccount, String userPassword, HttpServletRequest request);
+
     User getSafetyUser(User originUser);
 
     int userLogout(HttpServletRequest request);
@@ -58,4 +60,6 @@ public interface UserService extends IService<User> {
     String afterInsertUser(String key, long userId, HttpServletRequest request);
 
     Long adminRegister(UserRegisterRequest userRegisterRequest, HttpServletRequest request);
+
+    void changeUserStatus(Long id);
 }

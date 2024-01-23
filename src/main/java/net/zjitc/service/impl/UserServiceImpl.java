@@ -6,6 +6,7 @@ import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.Gson;
@@ -121,6 +122,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    public void changeUserStatus(Long id) {
+        User user = this.getById(id);
+        LambdaUpdateWrapper<User> userLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+        if (user.getStatus().equals(0)){
+            userLambdaUpdateWrapper.eq(User::getId,id).set(User::getStatus,1);
+        }else {
+            userLambdaUpdateWrapper.eq(User::getId,id).set(User::getStatus,0);
+        }
+        try {
+            this.update(userLambdaUpdateWrapper);
+        } catch (Exception e) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR,"系统错误");
+        }
+    }
+
+    @Override
     public String userLogin(String userAccount, String userPassword, HttpServletRequest request) {
         // 1. 校验
         if (StringUtils.isAnyBlank(userAccount, userPassword)) {
@@ -149,6 +166,58 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         if (!userInDatabase.getPassword().equals(encryptPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码错误");
+        }
+        if (!userInDatabase.getStatus().equals(0)){
+            throw new BusinessException(ErrorCode.FORBIDDEN,"该用户已被封禁");
+        }
+        // 3. 用户脱敏
+        User safetyUser = getSafetyUser(userInDatabase);
+        // 4. 记录用户的登录态
+        request.getSession().setAttribute(USER_LOGIN_STATE, safetyUser);
+        request.getSession().setMaxInactiveInterval(900);
+        String token = UUID.randomUUID().toString(true);
+        Gson gson = new Gson();
+        String userStr = gson.toJson(safetyUser);
+        stringRedisTemplate.opsForValue().set(LOGIN_USER_KEY + token, userStr);
+        stringRedisTemplate.expire(LOGIN_USER_KEY + token, Duration.ofMinutes(15));
+        return token;
+    }
+
+    @Override
+    public String adminLogin(String userAccount, String userPassword, HttpServletRequest request) {
+        // 1. 校验
+        if (StringUtils.isAnyBlank(userAccount, userPassword)) {
+            return null;
+        }
+        if (userAccount.length() < 4) {
+            return null;
+        }
+        if (userPassword.length() < 8) {
+            return null;
+        }
+        // 账户不能包含特殊字符
+        String validPattern = "[`~!@#$%^&*()+=|{}':;',\\\\[\\\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]";
+        Matcher matcher = Pattern.compile(validPattern).matcher(userAccount);
+        if (matcher.find()) {
+            return null;
+        }
+        // 2. 加密
+        String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
+        // 查询用户是否存在
+        LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        userLambdaQueryWrapper.eq(User::getUserAccount, userAccount);
+        User userInDatabase = this.getOne(userLambdaQueryWrapper);
+        if (userInDatabase == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户不存在");
+        }
+        if (!userInDatabase.getPassword().equals(encryptPassword)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码错误");
+        }
+        if (!userInDatabase.getStatus().equals(0)){
+            throw new BusinessException(ErrorCode.FORBIDDEN,"该用户已被封禁");
+        }
+        if (!userInDatabase.getRole().equals(1)){
+            throw new BusinessException(ErrorCode.NO_AUTH,"非管理员禁止登录");
         }
         // 3. 用户脱敏
         User safetyUser = getSafetyUser(userInDatabase);

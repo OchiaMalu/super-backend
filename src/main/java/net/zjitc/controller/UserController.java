@@ -2,6 +2,7 @@ package net.zjitc.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -22,6 +23,7 @@ import net.zjitc.service.UserService;
 import net.zjitc.utils.MessageUtils;
 import net.zjitc.utils.ValidateCodeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.annotations.Delete;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -220,6 +222,32 @@ public class UserController {
     }
 
     /**
+     * 管理员登录
+     *
+     * @param userLoginRequest 用户登录请求
+     * @param request          请求
+     * @return {@link BaseResponse}<{@link User}>
+     */
+    @PostMapping("/admin/login")
+    @ApiOperation(value = "用户登录")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "userLoginRequest", value = "用户登录请求参数"),
+                    @ApiImplicitParam(name = "request", value = "request请求")})
+    public BaseResponse<String> adminLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
+        if (userLoginRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        String userAccount = userLoginRequest.getUserAccount();
+        String userPassword = userLoginRequest.getUserPassword();
+        if (StringUtils.isAnyBlank(userAccount, userPassword)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        String token = userService.adminLogin(userAccount, userPassword, request);
+        return ResultUtils.success(token);
+    }
+
+
+    /**
      * 用户注销
      *
      * @param request 请求
@@ -337,24 +365,50 @@ public class UserController {
      * @param request 请求
      * @return {@link BaseResponse}<{@link Boolean}>
      */
-    @PostMapping("/delete")
+    @DeleteMapping("/delete")
     @ApiOperation(value = "删除用户")
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "id", value = "用户id"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<Boolean> deleteUser(@RequestBody long id, HttpServletRequest request) {
+    public BaseResponse<Boolean> deleteUser(Long id, HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        if (loginUser.getId().equals(id)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "无法删除自己");
         }
         if (!userService.isAdmin(loginUser)) {
             throw new BusinessException(ErrorCode.NO_AUTH);
         }
         if (id <= 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "ID错误");
         }
         boolean b = userService.removeById(id);
         return ResultUtils.success(b);
+    }
+
+    @GetMapping("/ban")
+    @ApiOperation(value = "封禁")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "id", value = "用户id"),
+                    @ApiImplicitParam(name = "request", value = "request请求")})
+    public BaseResponse<Long> banUser(@RequestParam Long id, HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        if (loginUser.getId().equals(id)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "无法封禁自己");
+        }
+        if (!userService.isAdmin(loginUser)) {
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+        if (id <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "ID错误");
+        }
+        userService.changeUserStatus(id);
+        return ResultUtils.success(id);
     }
 
     /**
@@ -388,7 +442,7 @@ public class UserController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "username", value = "用户名"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<Page<User>> searchUsersByUserName(String username, Long currentPage,HttpServletRequest request) {
+    public BaseResponse<Page<User>> searchUsersByUserName(String username, Long currentPage, HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
@@ -461,7 +515,7 @@ public class UserController {
         if (updateRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        if (!loginUser.getRole().equals(ADMIN_ROLE)){
+        if (!loginUser.getRole().equals(ADMIN_ROLE)) {
             throw new BusinessException(ErrorCode.NO_AUTH);
         }
         User user = new User();
