@@ -9,9 +9,8 @@ import org.springframework.session.data.redis.config.annotation.web.http.EnableR
 @EnableRedisHttpSession
 @EnableAspectJAutoProxy
 public class SuperApplication {
-
     public static void main(String[] args) {
         SpringApplication.run(SuperApplication.class, args);
     }
-
 }
+

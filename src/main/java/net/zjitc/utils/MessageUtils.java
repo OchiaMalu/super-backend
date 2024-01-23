@@ -1,7 +1,6 @@
 package net.zjitc.utils;
 
 import net.zjitc.properties.SuperProperties;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;

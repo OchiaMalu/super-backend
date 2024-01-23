@@ -7,7 +7,7 @@ import java.io.Serializable;
 
 /**
  * 统一返回类
- *
+ * @param <T>
  * @author OchiaMalu
  * @date 2023/07/28
  */

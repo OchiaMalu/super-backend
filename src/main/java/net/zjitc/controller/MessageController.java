@@ -118,13 +118,13 @@ public class MessageController {
     @ApiOperation(value = "获取用户点赞消息")
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<Page<MessageVO>> getUserLikeMessage(HttpServletRequest request,Long currentPage) {
+    public BaseResponse<Page<MessageVO>> getUserLikeMessage(HttpServletRequest request, Long currentPage) {
         User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
-        Page<MessageVO> messageVOPage = messageService.pageLike(loginUser.getId(), currentPage);
-        return ResultUtils.success(messageVOPage);
+        Page<MessageVO> messageVoPage = messageService.pageLike(loginUser.getId(), currentPage);
+        return ResultUtils.success(messageVoPage);
     }
 
     /**

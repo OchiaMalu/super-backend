@@ -19,7 +19,7 @@ public class TeamJoinRequest implements Serializable {
     /**
      * id
      */
-    @ApiModelProperty(value = "队伍id",required = true)
+    @ApiModelProperty(value = "队伍id", required = true)
     private Long teamId;
 
     /**

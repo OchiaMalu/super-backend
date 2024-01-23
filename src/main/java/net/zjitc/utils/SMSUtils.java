@@ -9,7 +9,6 @@ import com.aliyuncs.profile.DefaultProfile;
 import com.aliyuncs.profile.IClientProfile;
 import lombok.extern.log4j.Log4j2;
 import net.zjitc.properties.SMSProperties;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -32,7 +31,11 @@ public class SMSUtils {
     private SMSProperties tempProperties;
 
     public static void sendMessage(String phoneNum, String code) {
-        IClientProfile profile = DefaultProfile.getProfile(smsProperties.getRegionId(), smsProperties.getAccessKey(), smsProperties.getSecretKey());
+        IClientProfile profile = DefaultProfile.getProfile(
+                smsProperties.getRegionId(),
+                smsProperties.getAccessKey(),
+                smsProperties.getSecretKey()
+        );
         IAcsClient client = new DefaultAcsClient(profile);
         SendSmsRequest request = new SendSmsRequest();
         request.setPhoneNumbers(phoneNum);

@@ -1,8 +1,8 @@
 package net.zjitc.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import net.zjitc.model.domain.BlogComments;
 import com.baomidou.mybatisplus.extension.service.IService;
+import net.zjitc.model.domain.BlogComments;
 import net.zjitc.model.request.AddCommentRequest;
 import net.zjitc.model.vo.BlogCommentsVO;
 
@@ -17,7 +17,7 @@ public interface BlogCommentsService extends IService<BlogComments> {
 
     void addComment(AddCommentRequest addCommentRequest, Long userId);
 
-    List<BlogCommentsVO> listComments(long blogId,long userId);
+    List<BlogCommentsVO> listComments(long blogId, long userId);
 
     BlogCommentsVO getComment(long commentId, Long userId);
 
@@ -27,5 +27,5 @@ public interface BlogCommentsService extends IService<BlogComments> {
 
     List<BlogCommentsVO> listMyComments(Long id);
 
-    Page<BlogCommentsVO> pageMyComments(Long id,Long currentPage);
+    Page<BlogCommentsVO> pageMyComments(Long id, Long currentPage);
 }

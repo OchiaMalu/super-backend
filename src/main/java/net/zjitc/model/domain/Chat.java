@@ -1,13 +1,16 @@
 package net.zjitc.model.domain;
 
-import com.baomidou.mybatisplus.annotation.*;
-
-import java.io.Serializable;
-import java.util.Date;
-
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  * 聊天
@@ -16,7 +19,7 @@ import lombok.Data;
  * @TableName chat
  * @date 2023/07/28
  */
-@TableName(value ="chat")
+@TableName(value = "chat")
 @Data
 @ApiModel(value = "聊天")
 public class Chat implements Serializable {

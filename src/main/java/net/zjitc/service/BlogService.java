@@ -21,11 +21,11 @@ public interface BlogService extends IService<Blog> {
 
     void likeBlog(long blogId, Long userId);
 
-    Page<BlogVO> pageBlog(long currentPage,String title, Long id);
+    Page<BlogVO> pageBlog(long currentPage, String title, Long id);
 
     BlogVO getBlogById(long blogId, Long userId);
 
     void deleteBlog(Long blogId, Long userId, boolean isAdmin);
 
-    void updateBlog(BlogUpdateRequest blogUpdateRequest, Long userId,boolean isAdmin);
+    void updateBlog(BlogUpdateRequest blogUpdateRequest, Long userId, boolean isAdmin);
 }

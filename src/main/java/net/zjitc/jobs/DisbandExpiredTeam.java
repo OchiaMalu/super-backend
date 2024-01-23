@@ -1,5 +1,6 @@
 package net.zjitc.jobs;
 
+import lombok.extern.log4j.Log4j2;
 import net.zjitc.model.domain.Team;
 import net.zjitc.service.TeamService;
 import org.quartz.JobExecutionContext;
@@ -24,6 +25,7 @@ import static net.zjitc.constants.RedissonConstant.DISBAND_EXPIRED_TEAM_LOCK;
  * @author OchiaMalu
  * @date 2023/07/28
  */
+@Log4j2
 public class DisbandExpiredTeam extends QuartzJobBean {
     /**
      * redisson客户
@@ -47,7 +49,7 @@ public class DisbandExpiredTeam extends QuartzJobBean {
         RLock lock = redissonClient.getLock(DISBAND_EXPIRED_TEAM_LOCK);
         try {
             if (lock.tryLock(0, -1, TimeUnit.MICROSECONDS)) {
-                System.out.println("开始删除过期队伍");
+                log.info("开始删除过期队伍");
                 long begin = System.currentTimeMillis();
                 List<Team> teamList = teamService.list();
                 ZoneId zoneId = ZoneId.systemDefault();
@@ -63,13 +65,13 @@ public class DisbandExpiredTeam extends QuartzJobBean {
                     }
                 }
                 long end = System.currentTimeMillis();
-                System.out.println("删除过期队伍结束，耗时" + (end - begin));
+                log.info("删除过期队伍结束，耗时" + (end - begin));
             }
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } finally {
             if (lock.isHeldByCurrentThread()) {
-                System.out.println("unLock: " + Thread.currentThread().getId());
+                log.info("unLock: " + Thread.currentThread().getId());
                 lock.unlock();
             }
         }

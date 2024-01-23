@@ -4,12 +4,12 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.util.Date;
-
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  * 关注
@@ -18,7 +18,7 @@ import lombok.Data;
  * @TableName follow
  * @date 2023/07/28
  */
-@TableName(value ="follow")
+@TableName(value = "follow")
 @Data
 @ApiModel(value = "关注")
 public class Follow implements Serializable {

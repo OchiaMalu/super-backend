@@ -12,7 +12,6 @@ import com.qiniu.util.Auth;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.exception.BusinessException;
 import net.zjitc.properties.QiNiuProperties;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;

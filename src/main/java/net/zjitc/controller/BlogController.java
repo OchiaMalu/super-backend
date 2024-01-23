@@ -17,7 +17,13 @@ import net.zjitc.model.vo.BlogVO;
 import net.zjitc.service.BlogService;
 import net.zjitc.service.UserService;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -49,6 +55,7 @@ public class BlogController {
      * 博客列表页面
      *
      * @param currentPage 当前页面
+     * @param title 题目
      * @param request     请求
      * @return {@link BaseResponse}<{@link Page}<{@link BlogVO}>>
      */

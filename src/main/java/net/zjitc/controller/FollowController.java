@@ -13,7 +13,11 @@ import net.zjitc.model.domain.User;
 import net.zjitc.model.vo.UserVO;
 import net.zjitc.service.FollowService;
 import net.zjitc.service.UserService;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -50,12 +54,12 @@ public class FollowController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "id", value = "关注用户id"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<String> followUser(@PathVariable Long id, HttpServletRequest request){
+    public BaseResponse<String> followUser(@PathVariable Long id, HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
-        followService.followUser(id,loginUser.getId());
+        followService.followUser(id, loginUser.getId());
         return ResultUtils.success("ok");
     }
 
@@ -69,13 +73,13 @@ public class FollowController {
     @ApiOperation(value = "获取粉丝")
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<Page<UserVO>> listFans(HttpServletRequest request, String currentPage){
+    public BaseResponse<Page<UserVO>> listFans(HttpServletRequest request, String currentPage) {
         User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
-        Page<UserVO> userVOPage = followService.pageFans(loginUser.getId(), currentPage);
-        return ResultUtils.success(userVOPage);
+        Page<UserVO> userVoPage = followService.pageFans(loginUser.getId(), currentPage);
+        return ResultUtils.success(userVoPage);
     }
 
     /**
@@ -88,12 +92,12 @@ public class FollowController {
     @ApiOperation(value = "获取我关注的用户")
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<Page<UserVO>> listMyFollow(HttpServletRequest request, String currentPage){
+    public BaseResponse<Page<UserVO>> listMyFollow(HttpServletRequest request, String currentPage) {
         User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
-        Page<UserVO> userVoPage = followService.pageMyFollow(loginUser.getId(),currentPage);
+        Page<UserVO> userVoPage = followService.pageMyFollow(loginUser.getId(), currentPage);
         return ResultUtils.success(userVoPage);
     }
 }

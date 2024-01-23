@@ -1,6 +1,10 @@
 package net.zjitc.model.domain;
 
-import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -15,7 +19,7 @@ import java.util.Date;
  * @TableName user
  * @date 2023/07/28
  */
-@TableName(value ="user")
+@TableName(value = "user")
 @Data
 @ApiModel(value = "用户")
 public class User implements Serializable {

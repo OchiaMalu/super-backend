@@ -13,13 +13,19 @@ import net.zjitc.model.request.ChatRequest;
 import net.zjitc.model.vo.ChatMessageVO;
 import net.zjitc.service.ChatService;
 import net.zjitc.service.UserService;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
-import static net.zjitc.constants.ChatConstant.*;
+import static net.zjitc.constants.ChatConstant.HALL_CHAT;
+import static net.zjitc.constants.ChatConstant.PRIVATE_CHAT;
+import static net.zjitc.constants.ChatConstant.TEAM_CHAT;
 
 /**
  * 聊天控制器
@@ -84,7 +90,7 @@ public class ChatController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求有误");
         }
         User loginUser = userService.getLoginUser(request);
-        if (loginUser==null){
+        if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
         List<ChatMessageVO> teamChat = chatService.getTeamChat(chatRequest, TEAM_CHAT, loginUser);
@@ -103,7 +109,7 @@ public class ChatController {
             {@ApiImplicitParam(name = "request", value = "request请求")})
     public BaseResponse<List<ChatMessageVO>> getHallChat(HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
-        if (loginUser==null){
+        if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
         List<ChatMessageVO> hallChat = chatService.getHallChat(HALL_CHAT, loginUser);

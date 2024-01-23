@@ -15,7 +15,14 @@ import net.zjitc.model.vo.BlogCommentsVO;
 import net.zjitc.service.BlogCommentsService;
 import net.zjitc.service.UserService;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -55,7 +62,8 @@ public class BlogCommentsController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "addCommentRequest", value = "博文评论添加请求"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<String> addComment(@RequestBody AddCommentRequest addCommentRequest, HttpServletRequest request) {
+    public BaseResponse<String> addComment(@RequestBody AddCommentRequest addCommentRequest,
+                                           HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
@@ -156,18 +164,19 @@ public class BlogCommentsController {
      * 获取我的评论
      *
      * @param request 请求
+     * @param currentPage 当前页码
      * @return {@link BaseResponse}<{@link List}<{@link BlogCommentsVO}>>
      */
     @GetMapping("/list/my")
     @ApiOperation(value = "获取我的评论")
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<Page<BlogCommentsVO>> listMyBlogComments(HttpServletRequest request,Long currentPage) {
+    public BaseResponse<Page<BlogCommentsVO>> listMyBlogComments(HttpServletRequest request, Long currentPage) {
         User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
-        Page<BlogCommentsVO> blogCommentsVOPage = blogCommentsService.pageMyComments(loginUser.getId(), currentPage);
-        return ResultUtils.success(blogCommentsVOPage);
+        Page<BlogCommentsVO> blogCommentsVoPage = blogCommentsService.pageMyComments(loginUser.getId(), currentPage);
+        return ResultUtils.success(blogCommentsVoPage);
     }
 }

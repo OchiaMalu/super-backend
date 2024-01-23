@@ -1,14 +1,13 @@
 package net.zjitc.utils;
 
+import lombok.extern.slf4j.Slf4j;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.exception.BusinessException;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.annotation.Resource;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,6 +19,7 @@ import java.io.IOException;
  * @author OchiaMalu
  * @date 2023/06/22
  */
+@Slf4j
 @Component
 public class FileUtils {
 
@@ -39,7 +39,10 @@ public class FileUtils {
         File dir = new File(System.getProperty("user.dir") + basePath);
         //如果文件夹不存在则新建文件夹
         if (!dir.exists()) {
-            dir.mkdir();
+            boolean mkdir = dir.mkdir();
+            if (!mkdir) {
+                throw new BusinessException(ErrorCode.SYSTEM_ERROR);
+            }
         }
         File localFile = new File(System.getProperty("user.dir") + basePath + originalFilename);
         try {
@@ -50,7 +53,10 @@ public class FileUtils {
         }
         byte[] imageStream = getImageStream(localFile);
         String fileName = QiNiuUtils.upload(imageStream);
-        localFile.delete();
+        boolean delete = localFile.delete();
+        if (!delete) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
+        }
         //上传七牛云
         return fileName;
     }
@@ -70,13 +76,13 @@ public class FileUtils {
             bos.close();
             buffer = bos.toByteArray();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("exception message", e);
         }
         return buffer;
     }
 
     @Value("${super.img}")
-    public void initBasePath(String b){
-        basePath=b;
+    public void initBasePath(String b) {
+        basePath = b;
     }
 }

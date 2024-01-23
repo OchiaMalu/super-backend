@@ -14,5 +14,5 @@ public interface RedissonConstant {
     String DISBAND_EXPIRED_TEAM_LOCK = "super:disbandTeam:lock";
     String USER_RECOMMEND_LOCK = "super:user:recommend:lock";
     String BLOG_LIKE_LOCK = "super:blog:like:lock:";
-    String COMMENTS_LIKE_LOCK= "super:comments:like:lock:";
+    String COMMENTS_LIKE_LOCK = "super:comments:like:lock:";
 }

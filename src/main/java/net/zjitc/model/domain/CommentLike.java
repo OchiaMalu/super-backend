@@ -4,12 +4,12 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.util.Date;
-
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  * 评论
@@ -18,7 +18,7 @@ import lombok.Data;
  * @TableName comment_like
  * @date 2023/07/28
  */
-@TableName(value ="comment_like")
+@TableName(value = "comment_like")
 @Data
 @ApiModel(value = "点赞博文评论")
 public class CommentLike implements Serializable {

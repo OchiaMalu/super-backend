@@ -13,11 +13,12 @@ import java.util.Date;
 
 /**
  * 队伍
+ *
  * @author OchiaMalu
  * @TableName team
  * @date 2023/05/15
  */
-@TableName(value ="team")
+@TableName(value = "team")
 @Data
 @ApiModel(value = "队伍")
 public class Team implements Serializable {
@@ -59,7 +60,7 @@ public class Team implements Serializable {
     private Date expireTime;
 
     /**
-     *队长id
+     * 队长id
      */
     @ApiModelProperty(value = "队长id")
     private Long userId;

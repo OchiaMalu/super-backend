@@ -31,7 +31,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static net.zjitc.constants.RedisConstants.*;
+import static net.zjitc.constants.RedisConstants.BLOG_FEED_KEY;
+import static net.zjitc.constants.RedisConstants.MESSAGE_BLOG_NUM_KEY;
+import static net.zjitc.constants.RedisConstants.MESSAGE_LIKE_NUM_KEY;
 import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
 
 /**
@@ -195,11 +197,11 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message>
             messageVO.setFromUser(userVO);
             if (item.getType() == MessageTypeEnum.BLOG_COMMENT_LIKE.getValue()) {
                 BlogCommentsVO commentsVO = blogCommentsService.getComment(Long.parseLong(item.getData()), userId);
-                if (commentsVO==null){
+                if (commentsVO == null) {
                     BlogCommentsVO tempCommon = new BlogCommentsVO();
                     tempCommon.setContent("该评论已被删除");
                     messageVO.setComment(tempCommon);
-                }else {
+                } else {
                     messageVO.setComment(commentsVO);
                 }
             }

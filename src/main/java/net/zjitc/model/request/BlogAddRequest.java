@@ -3,11 +3,9 @@ package net.zjitc.model.request;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * 博客添加请求

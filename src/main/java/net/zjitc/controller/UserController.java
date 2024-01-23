@@ -2,7 +2,6 @@ package net.zjitc.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -23,14 +22,21 @@ import net.zjitc.service.UserService;
 import net.zjitc.utils.MessageUtils;
 import net.zjitc.utils.ValidateCodeUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ibatis.annotations.Delete;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.mail.MessagingException;
@@ -41,7 +47,14 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static net.zjitc.constants.RedisConstants.*;
+import static net.zjitc.constants.RedisConstants.REGISTER_CODE_KEY;
+import static net.zjitc.constants.RedisConstants.REGISTER_CODE_TTL;
+import static net.zjitc.constants.RedisConstants.USER_FORGET_PASSWORD_KEY;
+import static net.zjitc.constants.RedisConstants.USER_FORGET_PASSWORD_TTL;
+import static net.zjitc.constants.RedisConstants.USER_UPDATE_EMAIL_KEY;
+import static net.zjitc.constants.RedisConstants.USER_UPDATE_EMAIl_TTL;
+import static net.zjitc.constants.RedisConstants.USER_UPDATE_PHONE_KEY;
+import static net.zjitc.constants.RedisConstants.USER_UPDATE_PHONE_TTL;
 import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
 import static net.zjitc.constants.UserConstants.ADMIN_ROLE;
 
@@ -357,6 +370,29 @@ public class UserController {
         User safetyUser = userService.getSafetyUser(user);
         return ResultUtils.success(safetyUser);
     }
+
+    /**
+     * 管理系统获取当前用户
+     *
+     * @param request 请求
+     * @return {@link BaseResponse}<{@link User}>
+     */
+    @GetMapping("/admin/current")
+    @ApiOperation(value = "管理系统获取当前用户")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "request", value = "request请求")})
+    public BaseResponse<User> adminGetCurrentUser(HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        if (!loginUser.getRole().equals(ADMIN_ROLE)) {
+            throw new BusinessException(ErrorCode.NO_AUTH, "非管理员禁止登录");
+        }
+        //用户更新标签后，取得的用户是旧数据
+        Long userId = loginUser.getId();
+        User user = userService.getById(userId);
+        User safetyUser = userService.getSafetyUser(user);
+        return ResultUtils.success(safetyUser);
+    }
+
 
     /**
      * 删除用户

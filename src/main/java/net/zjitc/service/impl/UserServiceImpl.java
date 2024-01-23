@@ -13,7 +13,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
 import net.zjitc.common.ErrorCode;
-import net.zjitc.constants.UserConstants;
 import net.zjitc.exception.BusinessException;
 import net.zjitc.mapper.UserMapper;
 import net.zjitc.model.domain.Follow;
@@ -35,13 +34,25 @@ import org.springframework.util.DigestUtils;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static net.zjitc.constants.RedisConstants.*;
+import static net.zjitc.constants.RedisConstants.LOGIN_USER_KEY;
+import static net.zjitc.constants.RedisConstants.LOGIN_USER_TTL;
+import static net.zjitc.constants.RedisConstants.REGISTER_CODE_KEY;
+import static net.zjitc.constants.RedisConstants.USER_FORGET_PASSWORD_KEY;
+import static net.zjitc.constants.RedisConstants.USER_RECOMMEND_KEY;
+import static net.zjitc.constants.RedisConstants.USER_UPDATE_EMAIL_KEY;
+import static net.zjitc.constants.RedisConstants.USER_UPDATE_PHONE_KEY;
 import static net.zjitc.constants.SystemConstants.DEFAULT_CACHE_PAGE;
 import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
 import static net.zjitc.constants.UserConstants.ADMIN_ROLE;
@@ -84,7 +95,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private StringRedisTemplate stringRedisTemplate;
 
 
-
     @Override
     public String userRegister(UserRegisterRequest userRegisterRequest, HttpServletRequest request) {
         String phone = userRegisterRequest.getPhone();
@@ -106,11 +116,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public Long adminRegister(UserRegisterRequest userRegisterRequest, HttpServletRequest request) {
         User loginUser = getLoginUser(request);
-        if (loginUser==null){
+        if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN, "未登录");
         }
         Integer role = loginUser.getRole();
-        if (!role.equals(ADMIN_ROLE)){
+        if (!role.equals(ADMIN_ROLE)) {
             throw new BusinessException(ErrorCode.NO_AUTH, "无权限");
         }
         String phone = userRegisterRequest.getPhone();
@@ -125,15 +135,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public void changeUserStatus(Long id) {
         User user = this.getById(id);
         LambdaUpdateWrapper<User> userLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
-        if (user.getStatus().equals(0)){
-            userLambdaUpdateWrapper.eq(User::getId,id).set(User::getStatus,1);
-        }else {
-            userLambdaUpdateWrapper.eq(User::getId,id).set(User::getStatus,0);
+        if (user.getStatus().equals(0)) {
+            userLambdaUpdateWrapper.eq(User::getId, id).set(User::getStatus, 1);
+        } else {
+            userLambdaUpdateWrapper.eq(User::getId, id).set(User::getStatus, 0);
         }
         try {
             this.update(userLambdaUpdateWrapper);
         } catch (Exception e) {
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR,"系统错误");
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "系统错误");
         }
     }
 
@@ -167,8 +177,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (!userInDatabase.getPassword().equals(encryptPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码错误");
         }
-        if (!userInDatabase.getStatus().equals(0)){
-            throw new BusinessException(ErrorCode.FORBIDDEN,"该用户已被封禁");
+        if (!userInDatabase.getStatus().equals(0)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "该用户已被封禁");
         }
         // 3. 用户脱敏
         User safetyUser = getSafetyUser(userInDatabase);
@@ -213,11 +223,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (!userInDatabase.getPassword().equals(encryptPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码错误");
         }
-        if (!userInDatabase.getStatus().equals(0)){
-            throw new BusinessException(ErrorCode.FORBIDDEN,"该用户已被封禁");
+        if (!userInDatabase.getStatus().equals(0)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "该用户已被封禁");
         }
-        if (!userInDatabase.getRole().equals(1)){
-            throw new BusinessException(ErrorCode.NO_AUTH,"非管理员禁止登录");
+        if (!userInDatabase.getRole().equals(1)) {
+            throw new BusinessException(ErrorCode.NO_AUTH, "非管理员禁止登录");
         }
         // 3. 用户脱敏
         User safetyUser = getSafetyUser(userInDatabase);
@@ -730,7 +740,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         stringRedisTemplate.expire(LOGIN_USER_KEY + token, Duration.ofMinutes(15));
         return token;
     }
-
 
 
     @Deprecated

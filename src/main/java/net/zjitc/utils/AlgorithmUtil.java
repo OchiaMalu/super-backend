@@ -10,6 +10,14 @@ import java.util.Objects;
  * @date 2023/06/22
  */
 public class AlgorithmUtil {
+
+    /**
+     * 最短路径编辑算法
+     *
+     * @param tagList1 标签一
+     * @param tagList2 标签二
+     * @return 距离
+     */
     public static int minDistance(List<String> tagList1, List<String> tagList2) {
         int n = tagList1.size();
         int m = tagList2.size();

@@ -7,13 +7,21 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.exception.BusinessException;
 import net.zjitc.mapper.BlogCommentsMapper;
-import net.zjitc.model.domain.*;
+import net.zjitc.model.domain.Blog;
+import net.zjitc.model.domain.BlogComments;
+import net.zjitc.model.domain.CommentLike;
+import net.zjitc.model.domain.Message;
+import net.zjitc.model.domain.User;
 import net.zjitc.model.enums.MessageTypeEnum;
 import net.zjitc.model.request.AddCommentRequest;
 import net.zjitc.model.vo.BlogCommentsVO;
 import net.zjitc.model.vo.BlogVO;
 import net.zjitc.model.vo.UserVO;
-import net.zjitc.service.*;
+import net.zjitc.service.BlogCommentsService;
+import net.zjitc.service.BlogService;
+import net.zjitc.service.CommentLikeService;
+import net.zjitc.service.MessageService;
+import net.zjitc.service.UserService;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
@@ -89,7 +97,8 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
             BeanUtils.copyProperties(user, userVO);
             blogCommentsVO.setCommentUser(userVO);
             LambdaQueryWrapper<CommentLike> commentLikeLambdaQueryWrapper = new LambdaQueryWrapper<>();
-            commentLikeLambdaQueryWrapper.eq(CommentLike::getCommentId, comment.getId()).eq(CommentLike::getUserId, userId);
+            commentLikeLambdaQueryWrapper.eq(CommentLike::getCommentId, comment.getId())
+                    .eq(CommentLike::getUserId, userId);
             long count = commentLikeService.count(commentLikeLambdaQueryWrapper);
             blogCommentsVO.setIsLiked(count > 0);
             return blogCommentsVO;
@@ -99,7 +108,7 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
     @Override
     public BlogCommentsVO getComment(long commentId, Long userId) {
         BlogComments comments = this.getById(commentId);
-        if (comments==null){
+        if (comments == null) {
             return null;
         }
         BlogCommentsVO blogCommentsVO = new BlogCommentsVO();
@@ -116,13 +125,14 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
     public void likeComment(long commentId, Long userId) {
         RLock lock = redissonClient.getLock(COMMENTS_LIKE_LOCK + commentId + ":" + userId);
         try {
-            if (lock.tryLock(0, -1, TimeUnit.MILLISECONDS)){
+            if (lock.tryLock(0, -1, TimeUnit.MILLISECONDS)) {
                 BlogComments comments = this.getById(commentId);
-                if (comments==null){
-                    throw new BusinessException(ErrorCode.PARAMS_ERROR,"评论不存在");
+                if (comments == null) {
+                    throw new BusinessException(ErrorCode.PARAMS_ERROR, "评论不存在");
                 }
                 LambdaQueryWrapper<CommentLike> commentLikeLambdaQueryWrapper = new LambdaQueryWrapper<>();
-                commentLikeLambdaQueryWrapper.eq(CommentLike::getCommentId, commentId).eq(CommentLike::getUserId, userId);
+                commentLikeLambdaQueryWrapper.eq(CommentLike::getCommentId, commentId)
+                        .eq(CommentLike::getUserId, userId);
                 long count = commentLikeService.count(commentLikeLambdaQueryWrapper);
                 if (count == 0) {
                     CommentLike commentLike = new CommentLike();
@@ -166,9 +176,9 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
                     }
                 }
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("LikeBlog error", e);
-        }finally {
+        } finally {
             if (lock.isHeldByCurrentThread()) {
                 lock.unlock();
             }
@@ -241,12 +251,13 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
     public Page<BlogCommentsVO> pageMyComments(Long id, Long currentPage) {
         LambdaQueryWrapper<BlogComments> blogCommentsLambdaQueryWrapper = new LambdaQueryWrapper<>();
         blogCommentsLambdaQueryWrapper.eq(BlogComments::getUserId, id);
-        Page<BlogComments> blogCommentsPage = this.page(new Page<>(currentPage, PAGE_SIZE), blogCommentsLambdaQueryWrapper);
-        if (blogCommentsPage==null || blogCommentsPage.getSize()==0){
+        Page<BlogComments> blogCommentsPage = this.page(new Page<>(currentPage, PAGE_SIZE),
+                blogCommentsLambdaQueryWrapper);
+        if (blogCommentsPage == null || blogCommentsPage.getSize() == 0) {
             return new Page<>();
         }
-        Page<BlogCommentsVO> blogCommentsVOPage = new Page<>();
-        BeanUtils.copyProperties(blogCommentsPage,blogCommentsVOPage);
+        Page<BlogCommentsVO> blogCommentsVoPage = new Page<>();
+        BeanUtils.copyProperties(blogCommentsPage, blogCommentsVoPage);
         List<BlogCommentsVO> blogCommentsVOList = blogCommentsPage.getRecords().stream().map((item) -> {
             BlogCommentsVO blogCommentsVO = new BlogCommentsVO();
             BeanUtils.copyProperties(item, blogCommentsVO);
@@ -280,8 +291,8 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
             blogCommentsVO.setIsLiked(count > 0);
             return blogCommentsVO;
         }).collect(Collectors.toList());
-        blogCommentsVOPage.setRecords(blogCommentsVOList);
-        return blogCommentsVOPage;
+        blogCommentsVoPage.setRecords(blogCommentsVOList);
+        return blogCommentsVoPage;
     }
 }
 

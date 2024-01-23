@@ -15,13 +15,26 @@ import net.zjitc.exception.BusinessException;
 import net.zjitc.model.domain.Team;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.domain.UserTeam;
-import net.zjitc.model.request.*;
+import net.zjitc.model.request.DeleteRequest;
+import net.zjitc.model.request.TeamAddRequest;
+import net.zjitc.model.request.TeamCoverUpdateRequest;
+import net.zjitc.model.request.TeamJoinRequest;
+import net.zjitc.model.request.TeamKickOutRequest;
+import net.zjitc.model.request.TeamQueryRequest;
+import net.zjitc.model.request.TeamQuitRequest;
+import net.zjitc.model.request.TeamUpdateRequest;
 import net.zjitc.model.vo.TeamVO;
 import net.zjitc.model.vo.UserVO;
 import net.zjitc.service.TeamService;
 import net.zjitc.service.UserService;
 import net.zjitc.service.UserTeamService;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -151,8 +164,8 @@ public class TeamController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         User loginUser = userService.getLoginUser(request);
-        Page<TeamVO> teamVOPage = teamService.listTeams(currentPage, teamQueryRequest, userService.isAdmin(loginUser));
-        Page<TeamVO> finalPage = getTeamHasJoinNum(teamVOPage);
+        Page<TeamVO> teamVoPage = teamService.listTeams(currentPage, teamQueryRequest, userService.isAdmin(loginUser));
+        Page<TeamVO> finalPage = getTeamHasJoinNum(teamVoPage);
         return getUserJoinedList(loginUser, finalPage);
     }
 
@@ -283,7 +296,7 @@ public class TeamController {
                 .collect(Collectors.groupingBy(UserTeam::getTeamId));
         List<Long> idList = new ArrayList<>(listMap.keySet());
         if (idList.isEmpty()) {
-            return ResultUtils.success(new Page<TeamVO>());
+            return ResultUtils.success(new Page<>());
         }
         teamQuery.setIdList(idList);
         Page<TeamVO> teamVOPage = teamService.listMyJoin(currentPage, teamQuery);
@@ -400,9 +413,7 @@ public class TeamController {
             //用户已加入的队伍
             List<UserTeam> userTeamList = userTeamService.list(userTeamLambdaQueryWrapper);
             Set<Long> joinedTeamIdList = userTeamList.stream().map(UserTeam::getTeamId).collect(Collectors.toSet());
-            teamList.forEach(team -> {
-                team.setHasJoin(joinedTeamIdList.contains(team.getId()));
-            });
+            teamList.forEach(team -> team.setHasJoin(joinedTeamIdList.contains(team.getId())));
             teamPage.setRecords(teamList);
         } catch (Exception ignored) {
         }
@@ -412,7 +423,7 @@ public class TeamController {
     /**
      * 获取队伍已加入人数
      *
-     * @param teamVOPage 团队vopage
+     * @param teamVOPage teamVoPage
      * @return {@link Page}<{@link TeamVO}>
      */
     private Page<TeamVO> getTeamHasJoinNum(Page<TeamVO> teamVOPage) {

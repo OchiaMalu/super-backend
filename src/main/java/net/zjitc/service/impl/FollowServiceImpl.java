@@ -35,7 +35,6 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow>
     private UserService userService;
 
 
-
     @Override
     public void followUser(Long followUserId, Long userId) {
         LambdaQueryWrapper<Follow> followLambdaQueryWrapper = new LambdaQueryWrapper<>();
@@ -59,7 +58,8 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow>
         if (list == null || list.isEmpty()) {
             return new ArrayList<>();
         }
-        List<User> userList = list.stream().map((follow -> userService.getById(follow.getUserId()))).filter(Objects::nonNull).collect(Collectors.toList());
+        List<User> userList = list.stream().map((follow -> userService.getById(follow.getUserId())))
+                .filter(Objects::nonNull).collect(Collectors.toList());
         return userList.stream().map((item) -> {
             UserVO userVO = new UserVO();
             BeanUtils.copyProperties(item, userVO);
@@ -91,11 +91,13 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow>
         LambdaQueryWrapper<Follow> followLambdaQueryWrapper = new LambdaQueryWrapper<>();
         followLambdaQueryWrapper.eq(Follow::getUserId, userId);
         Page<Follow> followPage = this.page(new Page<>(Long.parseLong(currentPage), PAGE_SIZE), followLambdaQueryWrapper);
-        if (followPage==null || followPage.getSize()==0){
+        if (followPage == null || followPage.getSize() == 0) {
             return new Page<>();
         }
         Page<UserVO> userVOPage = new Page<>();
-        List<User> userList = followPage.getRecords().stream().map((follow -> userService.getById(follow.getFollowUserId()))).collect(Collectors.toList());
+        List<User> userList = followPage.getRecords().stream()
+                .map((follow -> userService.getById(follow.getFollowUserId())))
+                .collect(Collectors.toList());
         List<UserVO> userVOList = userList.stream().map((user) -> {
             UserVO userVO = new UserVO();
             BeanUtils.copyProperties(user, userVO);
@@ -114,8 +116,10 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow>
             return new Page<>();
         }
         Page<UserVO> userVoPage = new Page<>();
-        BeanUtils.copyProperties(followPage,userVoPage);
-        List<User> userList = followPage.getRecords().stream().map((follow -> userService.getById(follow.getUserId()))).filter(Objects::nonNull).collect(Collectors.toList());
+        BeanUtils.copyProperties(followPage, userVoPage);
+        List<User> userList = followPage.getRecords().stream()
+                .map((follow -> userService.getById(follow.getUserId())))
+                .filter(Objects::nonNull).collect(Collectors.toList());
         List<UserVO> userVOList = userList.stream().map((item) -> {
             UserVO userVO = new UserVO();
             BeanUtils.copyProperties(item, userVO);

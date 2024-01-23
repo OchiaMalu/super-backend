@@ -4,12 +4,12 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import java.io.Serializable;
-import java.util.Date;
-
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  * 博客
@@ -18,7 +18,7 @@ import lombok.Data;
  * @TableName blog_like
  * @date 2023/07/28
  */
-@TableName(value ="blog_like")
+@TableName(value = "blog_like")
 @Data
 @ApiModel(value = "点赞博文")
 public class BlogLike implements Serializable {

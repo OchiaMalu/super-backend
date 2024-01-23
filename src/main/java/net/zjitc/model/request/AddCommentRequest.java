@@ -14,7 +14,7 @@ import java.io.Serializable;
  */
 @Data
 @ApiModel(value = "添加博文评论请求")
-public class AddCommentRequest implements Serializable{
+public class AddCommentRequest implements Serializable {
     /**
      * 串行版本uid
      */
