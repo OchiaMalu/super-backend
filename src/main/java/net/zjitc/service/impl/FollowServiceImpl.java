@@ -77,7 +77,8 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow>
         LambdaQueryWrapper<Follow> followLambdaQueryWrapper = new LambdaQueryWrapper<>();
         followLambdaQueryWrapper.eq(Follow::getUserId, userId);
         List<Follow> list = this.list(followLambdaQueryWrapper);
-        List<User> userList = list.stream().map((follow -> userService.getById(follow.getFollowUserId()))).collect(Collectors.toList());
+        List<User> userList = list.stream().map((follow -> userService.getById(follow.getFollowUserId())))
+                .collect(Collectors.toList());
         return userList.stream().map((user) -> {
             UserVO userVO = new UserVO();
             BeanUtils.copyProperties(user, userVO);
@@ -90,7 +91,9 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow>
     public Page<UserVO> pageMyFollow(Long userId, String currentPage) {
         LambdaQueryWrapper<Follow> followLambdaQueryWrapper = new LambdaQueryWrapper<>();
         followLambdaQueryWrapper.eq(Follow::getUserId, userId);
-        Page<Follow> followPage = this.page(new Page<>(Long.parseLong(currentPage), PAGE_SIZE), followLambdaQueryWrapper);
+        Page<Follow> followPage = this.page(
+                new Page<>(Long.parseLong(currentPage), PAGE_SIZE),
+                followLambdaQueryWrapper);
         if (followPage == null || followPage.getSize() == 0) {
             return new Page<>();
         }
@@ -111,7 +114,10 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow>
     public Page<UserVO> pageFans(Long userId, String currentPage) {
         LambdaQueryWrapper<Follow> followLambdaQueryWrapper = new LambdaQueryWrapper<>();
         followLambdaQueryWrapper.eq(Follow::getFollowUserId, userId);
-        Page<Follow> followPage = this.page(new Page<>(Long.parseLong(currentPage), PAGE_SIZE), followLambdaQueryWrapper);
+        Page<Follow> followPage = this.page(
+                new Page<>(Long.parseLong(currentPage),
+                        PAGE_SIZE),
+                followLambdaQueryWrapper);
         if (followPage == null || followPage.getSize() == 0) {
             return new Page<>();
         }

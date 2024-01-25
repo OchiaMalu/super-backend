@@ -9,7 +9,9 @@ import java.util.Objects;
  * @author OchiaMalu
  * @date 2023/06/22
  */
-public class AlgorithmUtil {
+public final class AlgorithmUtil {
+    private AlgorithmUtil() {
+    }
 
     /**
      * 最短路径编辑算法

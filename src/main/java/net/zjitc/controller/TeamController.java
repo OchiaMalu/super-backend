@@ -110,7 +110,8 @@ public class TeamController {
     @ApiOperation(value = "更新队伍")
     @ApiImplicitParams({@ApiImplicitParam(name = "teamUpdateRequest", value = "队伍更新请求参数"),
             @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<Boolean> updateTeam(@RequestBody TeamUpdateRequest teamUpdateRequest, HttpServletRequest request) {
+    public BaseResponse<Boolean> updateTeam(@RequestBody TeamUpdateRequest teamUpdateRequest,
+                                            HttpServletRequest request) {
         if (teamUpdateRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -159,7 +160,8 @@ public class TeamController {
     @ApiOperation(value = "获取队伍列表")
     @ApiImplicitParams({@ApiImplicitParam(name = "teamQueryRequest", value = "队伍查询请求参数"),
             @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<Page<TeamVO>> listTeams(long currentPage, TeamQueryRequest teamQueryRequest, HttpServletRequest request) {
+    public BaseResponse<Page<TeamVO>> listTeams(long currentPage, TeamQueryRequest teamQueryRequest,
+                                                HttpServletRequest request) {
         if (teamQueryRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -255,7 +257,9 @@ public class TeamController {
     @ApiOperation(value = "获取我创建的队伍")
     @ApiImplicitParams({@ApiImplicitParam(name = "teamQuery", value = "获取队伍请求参数"),
             @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<Page<TeamVO>> listMyCreateTeams(long currentPage, TeamQueryRequest teamQuery, HttpServletRequest request) {
+    public BaseResponse<Page<TeamVO>> listMyCreateTeams(long currentPage,
+                                                        TeamQueryRequest teamQuery,
+                                                        HttpServletRequest request) {
         if (teamQuery == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -281,7 +285,9 @@ public class TeamController {
     @ApiOperation(value = "获取我加入的队伍")
     @ApiImplicitParams({@ApiImplicitParam(name = "teamQuery", value = "获取队伍请求参数"),
             @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<Page<TeamVO>> listMyJoinTeams(long currentPage, TeamQueryRequest teamQuery, HttpServletRequest request) {
+    public BaseResponse<Page<TeamVO>> listMyJoinTeams(long currentPage,
+                                                      TeamQueryRequest teamQuery,
+                                                      HttpServletRequest request) {
         if (teamQuery == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -357,7 +363,8 @@ public class TeamController {
     @ApiOperation(value = "更新封面图片")
     @ApiImplicitParams({@ApiImplicitParam(name = "teamCoverUpdateRequest", value = "队伍封面更新请求"),
             @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<String> changeCoverImage(TeamCoverUpdateRequest teamCoverUpdateRequest, HttpServletRequest request) {
+    public BaseResponse<String> changeCoverImage(TeamCoverUpdateRequest teamCoverUpdateRequest,
+                                                 HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
@@ -378,7 +385,8 @@ public class TeamController {
     @ApiOperation(value = "踢出队员")
     @ApiImplicitParams({@ApiImplicitParam(name = "teamKickOutRequest", value = "踢出队员请求"),
             @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<String> kickOut(@RequestBody TeamKickOutRequest teamKickOutRequest, HttpServletRequest request) {
+    public BaseResponse<String> kickOut(@RequestBody TeamKickOutRequest teamKickOutRequest,
+                                        HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);

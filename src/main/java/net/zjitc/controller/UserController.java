@@ -52,7 +52,7 @@ import static net.zjitc.constants.RedisConstants.REGISTER_CODE_TTL;
 import static net.zjitc.constants.RedisConstants.USER_FORGET_PASSWORD_KEY;
 import static net.zjitc.constants.RedisConstants.USER_FORGET_PASSWORD_TTL;
 import static net.zjitc.constants.RedisConstants.USER_UPDATE_EMAIL_KEY;
-import static net.zjitc.constants.RedisConstants.USER_UPDATE_EMAIl_TTL;
+import static net.zjitc.constants.RedisConstants.USER_UPDATE_EMAIL_TTL;
 import static net.zjitc.constants.RedisConstants.USER_UPDATE_PHONE_KEY;
 import static net.zjitc.constants.RedisConstants.USER_UPDATE_PHONE_TTL;
 import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
@@ -90,7 +90,7 @@ public class UserController {
     private JavaMailSender javaMailSender;
 
     @Value("${spring.mail.username}")
-    private String EMAIL_FROM;
+    private String userFrom;
 
     /**
      * 发送消息
@@ -153,7 +153,8 @@ public class UserController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "email", value = "邮箱"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<String> sendMailUpdateMessage(String email, HttpServletRequest request) throws MessagingException {
+    public BaseResponse<String> sendMailUpdateMessage(String email,
+                                                      HttpServletRequest request) throws MessagingException {
         User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
@@ -164,14 +165,17 @@ public class UserController {
         Integer code = ValidateCodeUtils.generateValidateCode(6);
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-        mimeMessageHelper.setFrom(new InternetAddress("SUPER <" + EMAIL_FROM + ">"));
+        mimeMessageHelper.setFrom(new InternetAddress("SUPER <" + userFrom + ">"));
         mimeMessageHelper.setTo(email);
         mimeMessageHelper.setSubject("SUPER 验证码");
-        mimeMessageHelper.setText("我们收到了一项请求，要求更新您的邮箱地址为" + email + "。本次操作的验证码为：" + code + "。如果您并未请求此验证码，则可能是他人正在尝试修改以下 SUPER 帐号：" + loginUser.getUserAccount() + "。请勿将此验证码转发给或提供给任何人。");
+        mimeMessageHelper.setText("我们收到了一项请求，要求更新您的邮箱地址为"
+                + email + "。本次操作的验证码为："
+                + code + "。如果您并未请求此验证码，则可能是他人正在尝试修改以下 SUPER 帐号："
+                + loginUser.getUserAccount() + "。请勿将此验证码转发给或提供给任何人。");
         javaMailSender.send(mimeMessage);
         String key = USER_UPDATE_EMAIL_KEY + email;
-        stringRedisTemplate.opsForValue().set(key, String.valueOf(code), USER_UPDATE_EMAIl_TTL, TimeUnit.MINUTES);
-        System.out.println(code);
+        stringRedisTemplate.opsForValue().set(key, String.valueOf(code), USER_UPDATE_EMAIL_TTL, TimeUnit.MINUTES);
+        log.info(String.valueOf(code));
         return ResultUtils.success("ok");
     }
 
@@ -179,13 +183,15 @@ public class UserController {
      * 用户注册
      *
      * @param userRegisterRequest 用户注册请求
-     * @return {@link BaseResponse}<{@link Long}>
+     * @param request             要求
+     * @return {@link BaseResponse}<{@link String}>
      */
     @PostMapping("/register")
     @ApiOperation(value = "用户注册")
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "userRegisterRequest", value = "用户注册请求参数")})
-    public BaseResponse<String> userRegister(@RequestBody UserRegisterRequest userRegisterRequest, HttpServletRequest request) {
+    public BaseResponse<String> userRegister(@RequestBody UserRegisterRequest userRegisterRequest,
+                                             HttpServletRequest request) {
         if (userRegisterRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -197,11 +203,13 @@ public class UserController {
      * 管理员新增用户
      *
      * @param userRegisterRequest 用户注册请求
+     * @param request             要求
      * @return {@link BaseResponse}<{@link Long}>
      */
     @PostMapping("/admin/register")
     @ApiOperation(value = "管理员新增用户")
-    public BaseResponse<Long> adminRegister(@RequestBody UserRegisterRequest userRegisterRequest, HttpServletRequest request) {
+    public BaseResponse<Long> adminRegister(@RequestBody UserRegisterRequest userRegisterRequest,
+                                            HttpServletRequest request) {
         if (userRegisterRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -301,7 +309,10 @@ public class UserController {
             String key = USER_FORGET_PASSWORD_KEY + phone;
             Integer code = ValidateCodeUtils.generateValidateCode(4);
             MessageUtils.sendMessage(phone, String.valueOf(code));
-            stringRedisTemplate.opsForValue().set(key, String.valueOf(code), USER_FORGET_PASSWORD_TTL, TimeUnit.MINUTES);
+            stringRedisTemplate.opsForValue().set(key,
+                    String.valueOf(code),
+                    USER_FORGET_PASSWORD_TTL,
+                    TimeUnit.MINUTES);
             return ResultUtils.success(user.getUserAccount());
         }
     }
@@ -458,7 +469,8 @@ public class UserController {
     @ApiOperation(value = "通过标签搜索用户")
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "tagNameList", value = "标签列表")})
-    public BaseResponse<Page<User>> searchUsersByTags(@RequestParam(required = false) List<String> tagNameList, long currentPage) {
+    public BaseResponse<Page<User>> searchUsersByTags(@RequestParam(required = false) List<String> tagNameList,
+                                                      long currentPage) {
         if (CollectionUtils.isEmpty(tagNameList)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -469,16 +481,19 @@ public class UserController {
     /**
      * 按用户名搜索用户
      *
-     * @param username 用户名
-     * @param request  请求
-     * @return {@link BaseResponse}<{@link List}<{@link User}>>
+     * @param username    用户名
+     * @param request     请求
+     * @param currentPage 当前页码
+     * @return {@link BaseResponse}<{@link Page}<{@link User}>>
      */
     @GetMapping("/search")
     @ApiOperation(value = "通过用户名搜索用户")
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "username", value = "用户名"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<Page<User>> searchUsersByUserName(String username, Long currentPage, HttpServletRequest request) {
+    public BaseResponse<Page<User>> searchUsersByUserName(String username,
+                                                          Long currentPage,
+                                                          HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
@@ -488,7 +503,9 @@ public class UserController {
             queryWrapper.like("username", username);
         }
         Page<User> userPage = userService.page(new Page<>(currentPage, PAGE_SIZE), queryWrapper);
-        List<User> safetyUserList = userPage.getRecords().stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
+        List<User> safetyUserList = userPage.getRecords()
+                .stream().map(user -> userService.getSafetyUser(user))
+                .collect(Collectors.toList());
         userPage.setRecords(safetyUserList);
         return ResultUtils.success(userPage);
     }
@@ -543,7 +560,8 @@ public class UserController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "user", value = "用户更新请求参数"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<String> adminUpdateUser(@RequestBody UserUpdateRequest updateRequest, HttpServletRequest request) {
+    public BaseResponse<String> adminUpdateUser(@RequestBody UserUpdateRequest updateRequest,
+                                                HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
@@ -585,6 +603,7 @@ public class UserController {
      *
      * @param currentPage 当前页面
      * @param request     请求
+     * @param username    用户名
      * @return {@link BaseResponse}<{@link Page}<{@link UserVO}>>
      */
     @GetMapping("/match")

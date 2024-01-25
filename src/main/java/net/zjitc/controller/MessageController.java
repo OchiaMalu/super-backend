@@ -111,8 +111,9 @@ public class MessageController {
     /**
      * 获取用户点赞消息
      *
-     * @param request 请求
-     * @return {@link BaseResponse}<{@link List}<{@link MessageVO}>>
+     * @param request     请求
+     * @param currentPage 当前页码
+     * @return {@link BaseResponse}<{@link Page}<{@link MessageVO}>>
      */
     @GetMapping("/like")
     @ApiOperation(value = "获取用户点赞消息")

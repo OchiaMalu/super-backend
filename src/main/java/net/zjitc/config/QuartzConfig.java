@@ -44,7 +44,9 @@ public class QuartzConfig {
     @Bean
     public Trigger disbandExpireTeamTrigger() {
         CronScheduleBuilder cronScheduleBuilder = CronScheduleBuilder.cronSchedule(jobTriggerTime);
-        return TriggerBuilder.newTrigger().forJob(disbandExpireTeamJobDetail()).withSchedule(cronScheduleBuilder).build();
+        return TriggerBuilder.newTrigger()
+                .forJob(disbandExpireTeamJobDetail())
+                .withSchedule(cronScheduleBuilder).build();
     }
 
     /**
@@ -65,6 +67,8 @@ public class QuartzConfig {
     @Bean
     public Trigger userRecommendationCacheTrigger() {
         CronScheduleBuilder cronScheduleBuilder = CronScheduleBuilder.cronSchedule(jobTriggerTime);
-        return TriggerBuilder.newTrigger().forJob(userRecommendationCacheJobDetail()).withSchedule(cronScheduleBuilder).build();
+        return TriggerBuilder.newTrigger()
+                .forJob(userRecommendationCacheJobDetail())
+                .withSchedule(cronScheduleBuilder).build();
     }
 }

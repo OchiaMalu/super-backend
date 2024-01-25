@@ -33,6 +33,12 @@ public class QiNiuUtils {
     @Resource
     private QiNiuProperties tempProperties;
 
+    /**
+     * 上载
+     *
+     * @param uploadBytes 上载字节
+     * @return {@link String}
+     */
     public static String upload(byte[] uploadBytes) {
         Configuration cfg = new Configuration(Region.autoRegion());
         UploadManager uploadManager = new UploadManager(cfg);
@@ -49,6 +55,9 @@ public class QiNiuUtils {
         }
     }
 
+    /**
+     * init属性
+     */
     @PostConstruct
     public void initProperties() {
         qiNiuProperties = tempProperties;

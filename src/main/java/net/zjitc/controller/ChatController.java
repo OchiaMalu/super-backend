@@ -59,9 +59,12 @@ public class ChatController {
     @PostMapping("/privateChat")
     @ApiOperation(value = "获取私聊")
     @ApiImplicitParams(
-            {@ApiImplicitParam(name = "chatRequest", value = "聊天请求"),
-                    @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<List<ChatMessageVO>> getPrivateChat(@RequestBody ChatRequest chatRequest, HttpServletRequest request) {
+            {@ApiImplicitParam(name = "chatRequest",
+                    value = "聊天请求"),
+                    @ApiImplicitParam(name = "request",
+                            value = "request请求")})
+    public BaseResponse<List<ChatMessageVO>> getPrivateChat(@RequestBody ChatRequest chatRequest,
+                                                            HttpServletRequest request) {
         if (chatRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -83,9 +86,12 @@ public class ChatController {
     @PostMapping("/teamChat")
     @ApiOperation(value = "获取队伍聊天")
     @ApiImplicitParams(
-            {@ApiImplicitParam(name = "chatRequest", value = "聊天请求"),
-                    @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<List<ChatMessageVO>> getTeamChat(@RequestBody ChatRequest chatRequest, HttpServletRequest request) {
+            {@ApiImplicitParam(name = "chatRequest",
+                    value = "聊天请求"),
+                    @ApiImplicitParam(name = "request",
+                            value = "request请求")})
+    public BaseResponse<List<ChatMessageVO>> getTeamChat(@RequestBody ChatRequest chatRequest,
+                                                         HttpServletRequest request) {
         if (chatRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求有误");
         }

@@ -7,13 +7,21 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.exception.BusinessException;
 import net.zjitc.mapper.BlogMapper;
-import net.zjitc.model.domain.*;
+import net.zjitc.model.domain.Blog;
+import net.zjitc.model.domain.BlogLike;
+import net.zjitc.model.domain.Follow;
+import net.zjitc.model.domain.Message;
+import net.zjitc.model.domain.User;
 import net.zjitc.model.enums.MessageTypeEnum;
 import net.zjitc.model.request.BlogAddRequest;
 import net.zjitc.model.request.BlogUpdateRequest;
 import net.zjitc.model.vo.BlogVO;
 import net.zjitc.model.vo.UserVO;
-import net.zjitc.service.*;
+import net.zjitc.service.BlogLikeService;
+import net.zjitc.service.BlogService;
+import net.zjitc.service.FollowService;
+import net.zjitc.service.MessageService;
+import net.zjitc.service.UserService;
 import net.zjitc.utils.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
@@ -30,7 +38,9 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static net.zjitc.constants.RedisConstants.*;
+import static net.zjitc.constants.RedisConstants.BLOG_FEED_KEY;
+import static net.zjitc.constants.RedisConstants.MESSAGE_BLOG_NUM_KEY;
+import static net.zjitc.constants.RedisConstants.MESSAGE_LIKE_NUM_KEY;
 import static net.zjitc.constants.RedissonConstant.BLOG_LIKE_LOCK;
 import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
 
@@ -62,7 +72,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
     private RedissonClient redissonClient;
 
     @Value("${super.qiniu.url:null}")
-    private String QINIU_URL;
+    private String qiniuUrl;
 
     @Override
     public Long addBlog(BlogAddRequest blogAddRequest, User loginUser) {
@@ -125,7 +135,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
                 continue;
             }
             String[] imgStr = images.split(",");
-            blogVO.setCoverImage(QINIU_URL + imgStr[0]);
+            blogVO.setCoverImage(qiniuUrl + imgStr[0]);
         }
         blogVoPage.setRecords(blogVOList);
         return blogVoPage;
@@ -216,7 +226,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
                 continue;
             }
             String[] imgStrs = images.split(",");
-            blogVO.setCoverImage(QINIU_URL + imgStrs[0]);
+            blogVO.setCoverImage(qiniuUrl + imgStrs[0]);
         }
         blogVoPage.setRecords(blogVOList);
         return blogVoPage;
@@ -253,7 +263,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
         String[] imgStrs = images.split(",");
         ArrayList<String> imgStrList = new ArrayList<>();
         for (String imgStr : imgStrs) {
-            imgStrList.add(QINIU_URL + imgStr);
+            imgStrList.add(qiniuUrl + imgStr);
         }
         String imgStr = StringUtils.join(imgStrList, ",");
         blogVO.setImages(imgStr);

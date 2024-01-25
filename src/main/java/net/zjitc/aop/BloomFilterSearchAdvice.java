@@ -13,10 +13,15 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 
-import static net.zjitc.constants.BloomFilterConstants.*;
+import static net.zjitc.constants.BloomFilterConstants.BLOG_BLOOM_PREFIX;
+import static net.zjitc.constants.BloomFilterConstants.TEAM_BLOOM_PREFIX;
+import static net.zjitc.constants.BloomFilterConstants.USER_BLOOM_PREFIX;
 
 /**
+ * 布隆过滤器搜索通知
+ *
  * @author OchiaMalu
+ * @date 2024/01/25
  */
 @Component
 @Aspect
@@ -27,6 +32,11 @@ public class BloomFilterSearchAdvice {
     private BloomFilter bloomFilter;
 
 
+    /**
+     * 发现用户通过id
+     *
+     * @param joinPoint 连接点
+     */
     @Before("execution(* net.zjitc.controller.UserController.getUserById(..))")
     public void findUserById(JoinPoint joinPoint) {
         Object[] args = joinPoint.getArgs();
@@ -37,6 +47,11 @@ public class BloomFilterSearchAdvice {
         }
     }
 
+    /**
+     * 发现团队通过id
+     *
+     * @param joinPoint 连接点
+     */
     @Before("execution(* net.zjitc.controller.TeamController.getTeamById(..))")
     public void findTeamById(JoinPoint joinPoint) {
         Object[] args = joinPoint.getArgs();
@@ -47,6 +62,11 @@ public class BloomFilterSearchAdvice {
         }
     }
 
+    /**
+     * 发现团队成员通过id
+     *
+     * @param joinPoint 连接点
+     */
     @Before("execution(* net.zjitc.controller.TeamController.getTeamMemberById(..))")
     public void findTeamMemberById(JoinPoint joinPoint) {
         Object[] args = joinPoint.getArgs();
@@ -57,6 +77,11 @@ public class BloomFilterSearchAdvice {
         }
     }
 
+    /**
+     * 发现博客通过id
+     *
+     * @param joinPoint 连接点
+     */
     @Before("execution(* net.zjitc.controller.BlogController.getBlogById(..))")
     public void findBlogById(JoinPoint joinPoint) {
         Object[] args = joinPoint.getArgs();

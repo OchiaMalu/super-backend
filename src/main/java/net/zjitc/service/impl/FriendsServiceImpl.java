@@ -5,6 +5,7 @@ import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.Gson;
+import lombok.extern.log4j.Log4j2;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.exception.BusinessException;
 import net.zjitc.mapper.FriendsMapper;
@@ -42,10 +43,14 @@ import static net.zjitc.constants.RedissonConstant.APPLY_LOCK;
 import static net.zjitc.utils.StringUtils.stringJsonListToLongSet;
 
 /**
+ * 朋友服务实现
+ *
  * @author OchiaMalu
  * @description 针对表【friends(好友申请管理表)】的数据库操作Service实现
  * @createDate 2023-06-18 14:10:45
+ * @date 2024/01/25
  */
+@Log4j2
 @Service
 public class FriendsServiceImpl extends ServiceImpl<FriendsMapper, Friends>
         implements FriendsService {
@@ -56,6 +61,13 @@ public class FriendsServiceImpl extends ServiceImpl<FriendsMapper, Friends>
     @Resource
     private RedissonClient redissonClient;
 
+    /**
+     * 添加好友记录
+     *
+     * @param loginUser        登录用户
+     * @param friendAddRequest 好友添加请求
+     * @return boolean
+     */
     @Override
     public boolean addFriendRecords(User loginUser, FriendAddRequest friendAddRequest) {
         if (StringUtils.isNotBlank(friendAddRequest.getRemark()) && friendAddRequest.getRemark().length() > 120) {
@@ -99,13 +111,19 @@ public class FriendsServiceImpl extends ServiceImpl<FriendsMapper, Friends>
         } finally {
             // 只能释放自己的锁
             if (lock.isHeldByCurrentThread()) {
-                System.out.println("unLock: " + Thread.currentThread().getId());
+                log.info("unLock: " + Thread.currentThread().getId());
                 lock.unlock();
             }
         }
         return false;
     }
 
+    /**
+     * 获取好友申请记录
+     *
+     * @param loginUser 登录用户
+     * @return {@link List}<{@link FriendsRecordVO}>
+     */
     @Override
     public List<FriendsRecordVO> obtainFriendApplicationRecords(User loginUser) {
         // 查询出当前用户所有申请、同意记录
@@ -114,6 +132,12 @@ public class FriendsServiceImpl extends ServiceImpl<FriendsMapper, Friends>
         return toFriendsVo(friendsLambdaQueryWrapper);
     }
 
+    /**
+     * 致朋友vo
+     *
+     * @param friendsLambdaQueryWrapper friends lambda查询包装器
+     * @return {@link List}<{@link FriendsRecordVO}>
+     */
     private List<FriendsRecordVO> toFriendsVo(LambdaQueryWrapper<Friends> friendsLambdaQueryWrapper) {
         List<Friends> friendsList = this.list(friendsLambdaQueryWrapper);
         Collections.reverse(friendsList);
@@ -126,6 +150,12 @@ public class FriendsServiceImpl extends ServiceImpl<FriendsMapper, Friends>
         }).collect(Collectors.toList());
     }
 
+    /**
+     * 获取我记录
+     *
+     * @param loginUser 登录用户
+     * @return {@link List}<{@link FriendsRecordVO}>
+     */
     @Override
     public List<FriendsRecordVO> getMyRecords(User loginUser) {
         // 查询出当前用户所有申请、同意记录
@@ -142,6 +172,12 @@ public class FriendsServiceImpl extends ServiceImpl<FriendsMapper, Friends>
         }).collect(Collectors.toList());
     }
 
+    /**
+     * 获取记录计数
+     *
+     * @param loginUser 登录用户
+     * @return int
+     */
     @Override
     public int getRecordCount(User loginUser) {
         LambdaQueryWrapper<Friends> friendsLambdaQueryWrapper = new LambdaQueryWrapper<>();
@@ -156,6 +192,13 @@ public class FriendsServiceImpl extends ServiceImpl<FriendsMapper, Friends>
         return count;
     }
 
+    /**
+     * 阅读
+     *
+     * @param loginUser 登录用户
+     * @param ids       ids
+     * @return boolean
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean toRead(User loginUser, Set<Long> ids) {
@@ -170,6 +213,13 @@ public class FriendsServiceImpl extends ServiceImpl<FriendsMapper, Friends>
         return flag;
     }
 
+    /**
+     * 同意申请
+     *
+     * @param loginUser 登录用户
+     * @param fromId    从…起id
+     * @return boolean
+     */
     @Override
     public boolean agreeToApply(User loginUser, Long fromId) {
         // 0. 根据receiveId查询所有接收的申请记录
@@ -177,7 +227,9 @@ public class FriendsServiceImpl extends ServiceImpl<FriendsMapper, Friends>
         friendsLambdaQueryWrapper.eq(Friends::getReceiveId, loginUser.getId());
         friendsLambdaQueryWrapper.eq(Friends::getFromId, fromId);
         List<Friends> recordCount = this.list(friendsLambdaQueryWrapper);
-        List<Friends> collect = recordCount.stream().filter(f -> f.getStatus() == DEFAULT_STATUS).collect(Collectors.toList());
+        List<Friends> collect = recordCount.stream()
+                .filter(f -> f.getStatus() == DEFAULT_STATUS)
+                .collect(Collectors.toList());
         // 条数小于1 就不能再同意
         if (collect.isEmpty()) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "该申请不存在");
@@ -187,7 +239,9 @@ public class FriendsServiceImpl extends ServiceImpl<FriendsMapper, Friends>
         }
         AtomicBoolean flag = new AtomicBoolean(false);
         collect.forEach(friend -> {
-            if (DateUtil.between(new Date(), friend.getCreateTime(), DateUnit.DAY) >= 3 || friend.getStatus() == EXPIRED_STATUS) {
+            if (DateUtil.between(new Date(),
+                    friend.getCreateTime(),
+                    DateUnit.DAY) >= 3 || friend.getStatus() == EXPIRED_STATUS) {
                 throw new BusinessException(ErrorCode.PARAMS_ERROR, "该申请已过期");
             }
             // 1. 分别查询receiveId和fromId的用户，更改userIds中的数据
@@ -206,11 +260,20 @@ public class FriendsServiceImpl extends ServiceImpl<FriendsMapper, Friends>
             fromUser.setFriendIds(jsonFromUserUserIds);
             // 2. 修改状态由0改为1
             friend.setStatus(AGREE_STATUS);
-            flag.set(userService.updateById(fromUser) && userService.updateById(receiveUser) && this.updateById(friend));
+            flag.set(userService.updateById(fromUser)
+                    && userService.updateById(receiveUser)
+                    && this.updateById(friend));
         });
         return flag.get();
     }
 
+    /**
+     * 取消申请
+     *
+     * @param id        id
+     * @param loginUser 登录用户
+     * @return boolean
+     */
     @Override
     public boolean canceledApply(Long id, User loginUser) {
         Friends friend = this.getById(id);

@@ -73,7 +73,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
     private FollowService followService;
 
     @Value("${super.qiniu.url:null}")
-    private String QINIU_URL;
+    private String qiniuUrl;
 
     /**
      * 加入团队
@@ -528,7 +528,10 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         LambdaQueryWrapper<UserTeam> userTeamLambdaQueryWrapper = new LambdaQueryWrapper<>();
         userTeamLambdaQueryWrapper.eq(UserTeam::getTeamId, teamId);
         List<UserTeam> userTeamList = userTeamService.list(userTeamLambdaQueryWrapper);
-        List<Long> userIdList = userTeamList.stream().map(UserTeam::getUserId).filter(id -> !Objects.equals(id, userId)).collect(Collectors.toList());
+        List<Long> userIdList = userTeamList.stream()
+                .map(UserTeam::getUserId)
+                .filter(id -> !Objects.equals(id, userId))
+                .collect(Collectors.toList());
         if (userIdList.isEmpty()) {
             return new ArrayList<>();
         }
@@ -556,7 +559,9 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
     public List<TeamVO> listAllMyJoin(Long id) {
         LambdaQueryWrapper<UserTeam> userTeamLambdaQueryWrapper = new LambdaQueryWrapper<>();
         userTeamLambdaQueryWrapper.eq(UserTeam::getUserId, id);
-        List<Long> teamIds = userTeamService.list(userTeamLambdaQueryWrapper).stream().map(UserTeam::getTeamId).collect(Collectors.toList());
+        List<Long> teamIds = userTeamService.list(userTeamLambdaQueryWrapper)
+                .stream().map(UserTeam::getTeamId)
+                .collect(Collectors.toList());
         if (teamIds.isEmpty()) {
             return new ArrayList<>();
         }
@@ -599,7 +604,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         String fileName = FileUtils.uploadFile(image);
         Team temp = new Team();
         temp.setId(team.getId());
-        temp.setCoverImage(QINIU_URL + fileName);
+        temp.setCoverImage(qiniuUrl + fileName);
         this.updateById(temp);
     }
 
@@ -625,7 +630,9 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         LambdaQueryWrapper<Team> teamLambdaQueryWrapper = new LambdaQueryWrapper<>();
         teamLambdaQueryWrapper.eq(Team::getUserId, userId);
         Page<Team> teamPage = this.page(new Page<>(currentPage, PAGE_SIZE), teamLambdaQueryWrapper);
-        List<TeamVO> teamVOList = teamPage.getRecords().stream().map((team) -> this.getTeam(team.getId(), userId)).collect(Collectors.toList());
+        List<TeamVO> teamVOList = teamPage.getRecords()
+                .stream().map((team) -> this.getTeam(team.getId(), userId))
+                .collect(Collectors.toList());
         Page<TeamVO> teamVOPage = new Page<>();
         BeanUtils.copyProperties(teamPage, teamVOPage);
         teamVOPage.setRecords(teamVOList);

@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
 
 /**
  * 关注控制器
@@ -64,10 +63,11 @@ public class FollowController {
     }
 
     /**
-     * 获取粉丝
+     * 列出粉丝
      *
-     * @param request 请求
-     * @return {@link BaseResponse}<{@link List}<{@link UserVO}>>
+     * @param request     请求
+     * @param currentPage 当前页码
+     * @return {@link BaseResponse}<{@link Page}<{@link UserVO}>>
      */
     @GetMapping("/fans")
     @ApiOperation(value = "获取粉丝")
@@ -85,8 +85,9 @@ public class FollowController {
     /**
      * 获取我关注的用户
      *
-     * @param request 请求
-     * @return {@link BaseResponse}<{@link List}<{@link UserVO}>>
+     * @param request     请求
+     * @param currentPage 当前页码
+     * @return {@link BaseResponse}<{@link Page}<{@link UserVO}>>
      */
     @GetMapping("/my")
     @ApiOperation(value = "获取我关注的用户")

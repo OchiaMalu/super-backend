@@ -33,7 +33,7 @@ public interface RedisConstants {
     /**
      * 用户更新邮件过期时间
      */
-    Long USER_UPDATE_EMAIl_TTL = 15L;
+    Long USER_UPDATE_EMAIL_TTL = 15L;
     /**
      * 用户忘记密码键
      */

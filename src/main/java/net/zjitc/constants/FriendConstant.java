@@ -1,4 +1,5 @@
 package net.zjitc.constants;
+
 /**
  * 好友常量
  *

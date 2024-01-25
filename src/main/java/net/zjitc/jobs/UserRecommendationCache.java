@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import lombok.extern.log4j.Log4j2;
 import net.zjitc.model.domain.Follow;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.vo.UserVO;
@@ -40,6 +41,7 @@ import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
  * @author OchiaMalu
  * @date 2023/07/28
  */
+@Log4j2
 public class UserRecommendationCache extends QuartzJobBean {
     /**
      * redisson客户
@@ -81,7 +83,7 @@ public class UserRecommendationCache extends QuartzJobBean {
         RLock lock = redissonClient.getLock(USER_RECOMMEND_LOCK);
         try {
             if (lock.tryLock(0, -1, TimeUnit.MICROSECONDS)) {
-                System.out.println("开始用户缓存");
+                log.info("开始用户缓存");
                 long begin = System.currentTimeMillis();
                 userList = userService.list();
                 for (User user : userList) {
@@ -94,13 +96,13 @@ public class UserRecommendationCache extends QuartzJobBean {
                     }
                 }
                 long end = System.currentTimeMillis();
-                System.out.println("用户缓存结束，耗时" + (end - begin));
+                log.info("用户缓存结束，耗时" + (end - begin));
             }
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } finally {
             if (lock.isHeldByCurrentThread()) {
-                System.out.println("unLock: " + Thread.currentThread().getId());
+                log.info("unLock: " + Thread.currentThread().getId());
                 lock.unlock();
             }
         }
@@ -164,7 +166,8 @@ public class UserRecommendationCache extends QuartzJobBean {
             }
         }
         //获取排列后的UserId
-        List<Long> userIdList = finalUserPairList.stream().map(pair -> pair.getKey().getId()).collect(Collectors.toList());
+        List<Long> userIdList = finalUserPairList.stream().map(pair -> pair.getKey().getId())
+                .collect(Collectors.toList());
         String idStr = StringUtils.join(userIdList, ",");
         QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
         userQueryWrapper.in("id", userIdList).last("ORDER BY FIELD(id," + idStr + ")");
@@ -174,7 +177,9 @@ public class UserRecommendationCache extends QuartzJobBean {
                     UserVO userVO = new UserVO();
                     BeanUtils.copyProperties(user, userVO);
                     LambdaQueryWrapper<Follow> followLambdaQueryWrapper = new LambdaQueryWrapper<>();
-                    followLambdaQueryWrapper.eq(Follow::getUserId, loginUser.getId()).eq(Follow::getFollowUserId, userVO.getId());
+                    followLambdaQueryWrapper
+                            .eq(Follow::getUserId, loginUser.getId())
+                            .eq(Follow::getFollowUserId, userVO.getId());
                     long count = followService.count(followLambdaQueryWrapper);
                     userVO.setIsFollow(count > 0);
                     return userVO;

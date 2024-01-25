@@ -47,5 +47,4 @@ public class HttpSessionConfig extends ServerEndpointConfig.Configurator impleme
         }
         super.modifyHandshake(sec, request, response);
     }
-
 }

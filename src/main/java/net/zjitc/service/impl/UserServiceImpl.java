@@ -59,15 +59,18 @@ import static net.zjitc.constants.UserConstants.ADMIN_ROLE;
 import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 
 /**
+ * 用户服务实现
+ *
  * @author OchiaMalu
  * @description 针对表【user】的数据库操作Service实现
  * @createDate 2023-05-07 19:56:01
+ * @date 2024/01/25
  */
 @Service
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
-    private static final String[] avatarUrls = {
+    private static final String[] AVATAR_URLS = {
             "http://niu.ochiamalu.xyz/12d4949b4009d089eaf071aef0f1f40.jpg",
             "http://niu.ochiamalu.xyz/1bff61de34bdc7bf40c6278b2848fbcf.jpg",
             "http://niu.ochiamalu.xyz/22fe8428428c93a565e181782e97654.jpg",
@@ -95,6 +98,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private StringRedisTemplate stringRedisTemplate;
 
 
+    /**
+     * 用户登记
+     *
+     * @param userRegisterRequest 用户登记要求
+     * @param request             要求
+     * @return {@link String}
+     */
     @Override
     public String userRegister(UserRegisterRequest userRegisterRequest, HttpServletRequest request) {
         String phone = userRegisterRequest.getPhone();
@@ -113,6 +123,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return afterInsertUser(key, userId, request);
     }
 
+    /**
+     * 管理员寄存器
+     *
+     * @param userRegisterRequest 用户登记要求
+     * @param request             要求
+     * @return {@link Long}
+     */
     @Override
     public Long adminRegister(UserRegisterRequest userRegisterRequest, HttpServletRequest request) {
         User loginUser = getLoginUser(request);
@@ -131,6 +148,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return insetUser(phone, account, password);
     }
 
+    /**
+     * 改变用户地位
+     *
+     * @param id id
+     */
     @Override
     public void changeUserStatus(Long id) {
         User user = this.getById(id);
@@ -147,6 +169,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
     }
 
+    /**
+     * 用户登录
+     *
+     * @param userAccount  用户账户
+     * @param userPassword 用户暗语
+     * @param request      要求
+     * @return {@link String}
+     */
     @Override
     public String userLogin(String userAccount, String userPassword, HttpServletRequest request) {
         // 1. 校验
@@ -193,6 +223,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return token;
     }
 
+    /**
+     * 管理员登录
+     *
+     * @param userAccount  用户账户
+     * @param userPassword 用户暗语
+     * @param request      要求
+     * @return {@link String}
+     */
     @Override
     public String adminLogin(String userAccount, String userPassword, HttpServletRequest request) {
         // 1. 校验
@@ -243,10 +281,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     /**
+     * 收到安全用户
      * 用户脱敏
      *
-     * @param originUser
-     * @return
+     * @param originUser 起源用户
+     * @return {@link User}
      */
     @Override
     public User getSafetyUser(User originUser) {
@@ -272,7 +311,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     /**
      * 用户注销
      *
-     * @param request
+     * @param request 要求
+     * @return int
      */
     @Override
     public int userLogout(HttpServletRequest request) {
@@ -287,10 +327,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     /**
+     * 按标签搜索用户
      * 根据标签搜索用户（内存过滤）
      *
      * @param tagNameList 用户要拥有的标签
-     * @return
+     * @param currentPage 当前页码
+     * @return {@link Page}<{@link User}>
      */
     @Override
     public Page<User> searchUsersByTags(List<String> tagNameList, long currentPage) {
@@ -299,7 +341,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
         for (String tagName : tagNameList) {
-            userLambdaQueryWrapper = userLambdaQueryWrapper.or().like(Strings.isNotEmpty(tagName), User::getTags, tagName);
+            userLambdaQueryWrapper = userLambdaQueryWrapper
+                    .or().like(Strings.isNotEmpty(tagName), User::getTags, tagName);
         }
         return page(new Page<>(currentPage, PAGE_SIZE), userLambdaQueryWrapper);
     }
@@ -307,8 +350,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     /**
      * 是否为管理员
      *
-     * @param loginUser
-     * @return
+     * @param loginUser 登录用户
+     * @return boolean
      */
     @Override
     public boolean isAdmin(User loginUser) {
@@ -316,6 +359,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
 
+    /**
+     * 使现代化用户
+     *
+     * @param user    用户
+     * @param request 要求
+     * @return boolean
+     */
     @Override
     public boolean updateUser(User user, HttpServletRequest request) {
         if (user == null) {
@@ -332,6 +382,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return updateById(user);
     }
 
+    /**
+     * 用户分页
+     *
+     * @param currentPage 当前页码
+     * @return {@link Page}<{@link UserVO}>
+     */
     @Override
     public Page<UserVO> userPage(long currentPage) {
         Page<User> page = this.page(new Page<>(currentPage, PAGE_SIZE));
@@ -340,6 +396,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return userVOPage;
     }
 
+    /**
+     * 收到登录用户
+     *
+     * @param request 要求
+     * @return {@link User}
+     */
     @Override
     public User getLoginUser(HttpServletRequest request) {
         String token = request.getHeader("authorization");
@@ -358,6 +420,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return user;
     }
 
+    /**
+     * 是登录名
+     *
+     * @param request 要求
+     * @return {@link Boolean}
+     */
     @Override
     public Boolean isLogin(HttpServletRequest request) {
         if (request == null) {
@@ -401,7 +469,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 //                .sorted((a, b) -> (int) (a.getValue() - b.getValue()))
 //                .limit(num)
 //                .collect(Collectors.toList());
-//        List<Long> userIdList = topUserPairList.stream().map(pair -> pair.getKey().getId()).collect(Collectors.toList());
+//        List<Long> userIdList = topUserPairList.stream()
+//        .map(pair -> pair.getKey().getId()).collect(Collectors.toList());
 //        String idStr = StringUtils.join(userIdList, ",");
 //        QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
 //        userQueryWrapper.in("id", userIdList).last("ORDER BY FIELD(id," + idStr + ")");
@@ -411,6 +480,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 //                .collect(Collectors.toList());
 //    }
 
+    /**
+     * 火柴用户
+     *
+     * @param currentPage 当前页码
+     * @param loginUser   登录用户
+     * @return {@link Page}<{@link UserVO}>
+     */
     @Override
     public Page<UserVO> matchUser(long currentPage, User loginUser) {
         String tags = loginUser.getTags();
@@ -462,7 +538,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             }
         }
         //获取排列后的UserId
-        List<Long> userIdList = finalUserPairList.stream().map(pair -> pair.getKey().getId()).collect(Collectors.toList());
+        List<Long> userIdList = finalUserPairList.stream().map(pair -> pair.getKey().getId())
+                .collect(Collectors.toList());
         String idStr = StringUtils.join(userIdList, ",");
         QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
         userQueryWrapper.in("id", userIdList).last("ORDER BY FIELD(id," + idStr + ")");
@@ -472,7 +549,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                     UserVO userVO = new UserVO();
                     BeanUtils.copyProperties(user, userVO);
                     LambdaQueryWrapper<Follow> followLambdaQueryWrapper = new LambdaQueryWrapper<>();
-                    followLambdaQueryWrapper.eq(Follow::getUserId, loginUser.getId()).eq(Follow::getFollowUserId, userVO.getId());
+                    followLambdaQueryWrapper.eq(Follow::getUserId, loginUser.getId())
+                            .eq(Follow::getFollowUserId, userVO.getId());
                     long count = followService.count(followLambdaQueryWrapper);
                     userVO.setIsFollow(count > 0);
                     return userVO;
@@ -486,6 +564,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return userVOPage;
     }
 
+    /**
+     * 收到用户通过id
+     *
+     * @param userId      用户id
+     * @param loginUserId 登录用户id
+     * @return {@link UserVO}
+     */
     @Override
     public UserVO getUserById(Long userId, Long loginUserId) {
         User user = this.getById(userId);
@@ -498,6 +583,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return userVO;
     }
 
+    /**
+     * 收到用户标签
+     *
+     * @param id id
+     * @return {@link List}<{@link String}>
+     */
     @Override
     public List<String> getUserTags(Long id) {
         User user = this.getById(id);
@@ -507,6 +598,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }.getType());
     }
 
+    /**
+     * 更新标记
+     *
+     * @param tags   标签
+     * @param userId 用户id
+     */
     @Override
     public void updateTags(List<String> tags, Long userId) {
         User user = new User();
@@ -517,6 +614,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         this.updateById(user);
     }
 
+    /**
+     * 使现代化用户具有密码
+     *
+     * @param updateRequest 更新请求
+     * @param userId        用户id
+     */
     @Override
     public void updateUserWithCode(UserUpdateRequest updateRequest, Long userId) {
         String key;
@@ -555,6 +658,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         this.updateById(user);
     }
 
+    /**
+     * 收到随机用户
+     *
+     * @return {@link Page}<{@link UserVO}>
+     */
     @Override
     public Page<UserVO> getRandomUser() {
         List<User> randomUser = userMapper.getRandomUser();
@@ -568,6 +676,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return userVOPage;
     }
 
+    /**
+     * 更新密码
+     *
+     * @param phone           电话
+     * @param code            密码
+     * @param password        暗语
+     * @param confirmPassword 确认密码
+     */
     @Override
     public void updatePassword(String phone, String code, String password, String confirmPassword) {
         if (!password.equals(confirmPassword)) {
@@ -590,6 +706,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         stringRedisTemplate.delete(key);
     }
 
+    /**
+     * 之前火柴用户
+     *
+     * @param currentPage 当前页码
+     * @param username    用户名
+     * @param loginUser   登录用户
+     * @return {@link Page}<{@link UserVO}>
+     */
     @Override
     public Page<UserVO> preMatchUser(long currentPage, String username, User loginUser) {
         Gson gson = new Gson();
@@ -601,7 +725,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 Page<User> userPage = this.page(new Page<>(currentPage, PAGE_SIZE), userLambdaQueryWrapper);
                 Page<UserVO> userVOPage = new Page<>();
                 BeanUtils.copyProperties(userPage, userVOPage);
-                List<UserVO> userVOList = userPage.getRecords().stream().map((user) -> this.getUserById(user.getId(), loginUser.getId())).collect(Collectors.toList());
+                List<UserVO> userVOList = userPage.getRecords()
+                        .stream().map((user) -> this.getUserById(user.getId(), loginUser.getId()))
+                        .collect(Collectors.toList());
                 userVOPage.setRecords(userVOList);
                 return userVOPage;
             }
@@ -643,7 +769,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
     }
 
-    private void checkRegisterRequest(String phone, String code, String account, String password, String checkPassword) {
+    /**
+     * 检查寄存器请求
+     *
+     * @param phone         电话
+     * @param code          密码
+     * @param account       账户
+     * @param password      暗语
+     * @param checkPassword 检查密码
+     */
+    private void checkRegisterRequest(String phone,
+                                      String code,
+                                      String account,
+                                      String password,
+                                      String checkPassword) {
         if (StringUtils.isAnyBlank(phone, code, account, password, checkPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "信息不全");
         }
@@ -658,6 +797,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
     }
 
+    /**
+     * 支票已注册
+     *
+     * @param phone 电话
+     */
     private void checkHasRegistered(String phone) {
         LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
         userLambdaQueryWrapper.eq(User::getPhone, phone);
@@ -667,6 +811,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
     }
 
+    /**
+     * 校验码
+     *
+     * @param code 密码
+     * @param key  钥匙
+     */
     private void checkCode(String code, String key) {
         Boolean hasKey = stringRedisTemplate.hasKey(key);
         if (Boolean.FALSE.equals(hasKey)) {
@@ -681,6 +831,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
     }
 
+    /**
+     * 支票帐户有效
+     *
+     * @param account 账户
+     */
     private void checkAccountValid(String account) {
         String validPattern = "[`~!@#$%^&*()+=|{}':;',\\\\[\\\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]";
         Matcher matcher = Pattern.compile(validPattern).matcher(account);
@@ -689,12 +844,23 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
     }
 
+    /**
+     * 检查密码
+     *
+     * @param password      暗语
+     * @param checkPassword 检查密码
+     */
     private void checkPassword(String password, String checkPassword) {
         if (!password.equals(checkPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "两次输入的密码不一致");
         }
     }
 
+    /**
+     * 支票账户重复
+     *
+     * @param account 账户
+     */
     private void checkAccountRepetition(String account) {
         LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
         userLambdaQueryWrapper.eq(User::getUserAccount, account);
@@ -704,13 +870,21 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
     }
 
+    /**
+     * 插图用户
+     *
+     * @param phone    电话
+     * @param account  账户
+     * @param password 暗语
+     * @return long
+     */
     private long insetUser(String phone, String account, String password) {
         // 2. 加密
         String encryptPassword = DigestUtils.md5DigestAsHex((SALT + password).getBytes());
         // 3. 插入数据
         User user = new User();
         Random random = new Random();
-        user.setAvatarUrl(avatarUrls[random.nextInt(avatarUrls.length)]);
+        user.setAvatarUrl(AVATAR_URLS[random.nextInt(AVATAR_URLS.length)]);
         user.setPhone(phone);
         user.setUsername(account);
         user.setUserAccount(account);
@@ -726,6 +900,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return user.getId();
     }
 
+    /**
+     * 之后插入用户
+     *
+     * @param key     钥匙
+     * @param userId  用户id
+     * @param request 要求
+     * @return {@link String}
+     */
     @Override
     public String afterInsertUser(String key, long userId, HttpServletRequest request) {
         stringRedisTemplate.delete(key);
@@ -742,6 +924,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
 
+    /**
+     * 按内存搜索
+     *
+     * @param tagNameList 标记名称列表
+     * @return {@link List}<{@link User}>
+     */
     @Deprecated
     private List<User> searchByMemory(List<String> tagNameList) {
         List<User> userList = userMapper.selectList(null);

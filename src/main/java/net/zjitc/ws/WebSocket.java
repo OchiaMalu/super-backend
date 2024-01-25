@@ -193,17 +193,20 @@ public class WebSocket {
      * @param config  配置
      */
     @OnOpen
-    public void onOpen(Session session, @PathParam(value = "userId") String userId, @PathParam(value = "teamId") String teamId, EndpointConfig config) {
+    public void onOpen(Session session,
+                       @PathParam(value = "userId") String userId,
+                       @PathParam(value = "teamId") String teamId,
+                       EndpointConfig config) {
         try {
             if (StringUtils.isBlank(userId) || "undefined".equals(userId)) {
                 sendError(userId, "参数有误");
                 return;
             }
-            HttpSession httpSession = (HttpSession) config.getUserProperties().get(HttpSession.class.getName());
-            User user = (User) httpSession.getAttribute(USER_LOGIN_STATE);
+            HttpSession userHttpSession = (HttpSession) config.getUserProperties().get(HttpSession.class.getName());
+            User user = (User) userHttpSession.getAttribute(USER_LOGIN_STATE);
             if (user != null) {
                 this.session = session;
-                this.httpSession = httpSession;
+                this.httpSession = userHttpSession;
             }
             if (!"NaN".equals(teamId)) {
                 if (!ROOMS.containsKey(teamId)) {
@@ -237,7 +240,9 @@ public class WebSocket {
      * @param session 会话
      */
     @OnClose
-    public void onClose(@PathParam("userId") String userId, @PathParam(value = "teamId") String teamId, Session session) {
+    public void onClose(@PathParam("userId") String userId,
+                        @PathParam(value = "teamId") String teamId,
+                        Session session) {
         try {
             if (!"NaN".equals(teamId)) {
                 ROOMS.get(teamId).remove(userId);
@@ -296,22 +301,22 @@ public class WebSocket {
      * @param chatType 聊天类型
      */
     private void teamChat(User user, String text, Team team, Integer chatType) {
-        ChatMessageVO ChatMessageVO = new ChatMessageVO();
+        ChatMessageVO chatMessageVo = new ChatMessageVO();
         WebSocketVO fromWebSocketVO = new WebSocketVO();
         BeanUtils.copyProperties(user, fromWebSocketVO);
-        ChatMessageVO.setFormUser(fromWebSocketVO);
-        ChatMessageVO.setText(text);
-        ChatMessageVO.setTeamId(team.getId());
-        ChatMessageVO.setChatType(chatType);
-        ChatMessageVO.setCreateTime(DateUtil.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
+        chatMessageVo.setFormUser(fromWebSocketVO);
+        chatMessageVo.setText(text);
+        chatMessageVo.setTeamId(team.getId());
+        chatMessageVo.setChatType(chatType);
+        chatMessageVo.setCreateTime(DateUtil.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
         if (Objects.equals(user.getId(), team.getUserId()) || user.getRole() == ADMIN_ROLE) {
-            ChatMessageVO.setIsAdmin(true);
+            chatMessageVo.setIsAdmin(true);
         }
         User loginUser = (User) this.httpSession.getAttribute(USER_LOGIN_STATE);
         if (Objects.equals(loginUser.getId(), user.getId())) {
-            ChatMessageVO.setIsMy(true);
+            chatMessageVo.setIsMy(true);
         }
-        String toJson = new Gson().toJson(ChatMessageVO);
+        String toJson = new Gson().toJson(chatMessageVo);
         try {
             broadcast(String.valueOf(team.getId()), toJson);
             saveChat(user.getId(), null, text, team.getId(), chatType);
@@ -329,21 +334,21 @@ public class WebSocket {
      * @param chatType 聊天类型
      */
     private void hallChat(User user, String text, Integer chatType) {
-        ChatMessageVO ChatMessageVO = new ChatMessageVO();
+        ChatMessageVO chatMessageVo = new ChatMessageVO();
         WebSocketVO fromWebSocketVO = new WebSocketVO();
         BeanUtils.copyProperties(user, fromWebSocketVO);
-        ChatMessageVO.setFormUser(fromWebSocketVO);
-        ChatMessageVO.setText(text);
-        ChatMessageVO.setChatType(chatType);
-        ChatMessageVO.setCreateTime(DateUtil.format(new Date(), "yyyy年MM月dd日 HH:mm:ss"));
+        chatMessageVo.setFormUser(fromWebSocketVO);
+        chatMessageVo.setText(text);
+        chatMessageVo.setChatType(chatType);
+        chatMessageVo.setCreateTime(DateUtil.format(new Date(), "yyyy年MM月dd日 HH:mm:ss"));
         if (user.getRole() == ADMIN_ROLE) {
-            ChatMessageVO.setIsAdmin(true);
+            chatMessageVo.setIsAdmin(true);
         }
         User loginUser = (User) this.httpSession.getAttribute(USER_LOGIN_STATE);
         if (Objects.equals(loginUser.getId(), user.getId())) {
-            ChatMessageVO.setIsMy(true);
+            chatMessageVo.setIsMy(true);
         }
-        String toJson = new Gson().toJson(ChatMessageVO);
+        String toJson = new Gson().toJson(chatMessageVo);
         sendAllMessage(toJson);
         saveChat(user.getId(), null, text, null, chatType);
         chatService.deleteKey(CACHE_CHAT_HALL, String.valueOf(user.getId()));
@@ -358,12 +363,13 @@ public class WebSocket {
      * @param chatType 聊天类型
      */
     private void privateChat(User user, Long toId, String text, Integer chatType) {
-        ChatMessageVO ChatMessageVO = chatService.chatResult(user.getId(), toId, text, chatType, DateUtil.date(System.currentTimeMillis()));
+        ChatMessageVO chatMessageVo = chatService
+                .chatResult(user.getId(), toId, text, chatType, DateUtil.date(System.currentTimeMillis()));
         User loginUser = (User) this.httpSession.getAttribute(USER_LOGIN_STATE);
         if (Objects.equals(loginUser.getId(), user.getId())) {
-            ChatMessageVO.setIsMy(true);
+            chatMessageVo.setIsMy(true);
         }
-        String toJson = new Gson().toJson(ChatMessageVO);
+        String toJson = new Gson().toJson(chatMessageVo);
         sendOneMessage(toId.toString(), toJson);
         saveChat(user.getId(), toId, text, null, chatType);
         chatService.deleteKey(CACHE_CHAT_PRIVATE, user.getId() + "" + toId);
@@ -420,11 +426,11 @@ public class WebSocket {
      * @param message 消息
      */
     public void sendAllMessage(String message) {
-        for (Session session : SESSIONS) {
+        for (Session userSession : SESSIONS) {
             try {
-                if (session.isOpen()) {
-                    synchronized (session) {
-                        session.getBasicRemote().sendText(message);
+                if (userSession.isOpen()) {
+                    synchronized (userSession) {
+                        userSession.getBasicRemote().sendText(message);
                     }
                 }
             } catch (Exception e) {
@@ -441,11 +447,11 @@ public class WebSocket {
      * @param message 消息
      */
     public void sendOneMessage(String userId, String message) {
-        Session session = SESSION_POOL.get(userId);
-        if (session != null && session.isOpen()) {
+        Session userSession = SESSION_POOL.get(userId);
+        if (userSession != null && userSession.isOpen()) {
             try {
-                synchronized (session) {
-                    session.getBasicRemote().sendText(message);
+                synchronized (userSession) {
+                    userSession.getBasicRemote().sendText(message);
                 }
             } catch (Exception e) {
                 log.error("exception message", e);
@@ -458,13 +464,13 @@ public class WebSocket {
      */
     public void sendAllUsers() {
         HashMap<String, List<WebSocketVO>> stringListHashMap = new HashMap<>(0);
-        List<WebSocketVO> WebSocketVOs = new ArrayList<>();
-        stringListHashMap.put("users", WebSocketVOs);
+        List<WebSocketVO> webSocketVos = new ArrayList<>();
+        stringListHashMap.put("users", webSocketVos);
         for (Serializable key : SESSION_POOL.keySet()) {
             User user = userService.getById(key);
-            WebSocketVO WebSocketVO = new WebSocketVO();
-            BeanUtils.copyProperties(user, WebSocketVO);
-            WebSocketVOs.add(WebSocketVO);
+            WebSocketVO webSocketVO = new WebSocketVO();
+            BeanUtils.copyProperties(user, webSocketVO);
+            webSocketVos.add(webSocketVO);
         }
         sendAllMessage(JSONUtil.toJsonStr(stringListHashMap));
     }

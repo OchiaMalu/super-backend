@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.exception.BusinessException;
+import net.zjitc.mapper.ChatMapper;
 import net.zjitc.model.domain.Chat;
 import net.zjitc.model.domain.Team;
 import net.zjitc.model.domain.User;
@@ -13,7 +14,6 @@ import net.zjitc.model.request.ChatRequest;
 import net.zjitc.model.vo.ChatMessageVO;
 import net.zjitc.model.vo.WebSocketVO;
 import net.zjitc.service.ChatService;
-import net.zjitc.mapper.ChatMapper;
 import net.zjitc.service.TeamService;
 import net.zjitc.service.UserService;
 import org.springframework.beans.BeanUtils;
@@ -27,13 +27,18 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static net.zjitc.constants.ChatConstant.*;
+import static net.zjitc.constants.ChatConstant.CACHE_CHAT_HALL;
+import static net.zjitc.constants.ChatConstant.CACHE_CHAT_PRIVATE;
+import static net.zjitc.constants.ChatConstant.CACHE_CHAT_TEAM;
 import static net.zjitc.constants.UserConstants.ADMIN_ROLE;
 
 /**
+ * 聊天服务实现
+ *
  * @author OchiaMalu
  * @description 针对表【chat(聊天消息表)】的数据库操作Service实现
  * @createDate 2023-06-17 21:50:15
+ * @date 2024/01/25
  */
 @Service
 public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
@@ -48,6 +53,14 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
     @Resource
     private TeamService teamService;
 
+    /**
+     * 获取私人聊天
+     *
+     * @param chatRequest 聊天请求
+     * @param chatType    聊天类型
+     * @param loginUser   登录用户
+     * @return {@link List}<{@link ChatMessageVO}>
+     */
     @Override
     public List<ChatMessageVO> getPrivateChat(ChatRequest chatRequest, int chatType, User loginUser) {
         Long toId = chatRequest.getToId();
@@ -68,16 +81,25 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         // 两方共有聊天
         List<Chat> list = this.list(chatLambdaQueryWrapper);
         List<ChatMessageVO> chatMessageVOList = list.stream().map(chat -> {
-            ChatMessageVO ChatMessageVO = chatResult(loginUser.getId(), toId, chat.getText(), chatType, chat.getCreateTime());
+            ChatMessageVO chatMessageVo = chatResult(loginUser.getId(),
+                    toId, chat.getText(), chatType,
+                    chat.getCreateTime());
             if (chat.getFromId().equals(loginUser.getId())) {
-                ChatMessageVO.setIsMy(true);
+                chatMessageVo.setIsMy(true);
             }
-            return ChatMessageVO;
+            return chatMessageVo;
         }).collect(Collectors.toList());
         saveCache(CACHE_CHAT_PRIVATE, loginUser.getId() + String.valueOf(toId), chatMessageVOList);
         return chatMessageVOList;
     }
 
+    /**
+     * 获取缓存
+     *
+     * @param redisKey redis键
+     * @param id       id
+     * @return {@link List}<{@link ChatMessageVO}>
+     */
     @Override
     public List<ChatMessageVO> getCache(String redisKey, String id) {
         ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
@@ -90,6 +112,13 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         return chatRecords;
     }
 
+    /**
+     * 保存缓存
+     *
+     * @param redisKey       redis键
+     * @param id             id
+     * @param chatMessageVOS 聊天消息vos
+     */
     @Override
     public void saveCache(String redisKey, String id, List<ChatMessageVO> chatMessageVOS) {
         try {
@@ -106,33 +135,56 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         }
     }
 
+    /**
+     * 聊天结果
+     *
+     * @param userId 用户id
+     * @param text   文本
+     * @return {@link ChatMessageVO}
+     */
     private ChatMessageVO chatResult(Long userId, String text) {
-        ChatMessageVO ChatMessageVO = new ChatMessageVO();
+        ChatMessageVO chatMessageVo = new ChatMessageVO();
         User fromUser = userService.getById(userId);
         WebSocketVO fromWebSocketVo = new WebSocketVO();
         BeanUtils.copyProperties(fromUser, fromWebSocketVo);
-        ChatMessageVO.setFormUser(fromWebSocketVo);
-        ChatMessageVO.setText(text);
-        return ChatMessageVO;
+        chatMessageVo.setFormUser(fromWebSocketVo);
+        chatMessageVo.setText(text);
+        return chatMessageVo;
     }
 
+    /**
+     * 聊天结果
+     *
+     * @param userId     用户id
+     * @param toId       到id
+     * @param text       文本
+     * @param chatType   聊天类型
+     * @param createTime 创建时间
+     * @return {@link ChatMessageVO}
+     */
     @Override
     public ChatMessageVO chatResult(Long userId, Long toId, String text, Integer chatType, Date createTime) {
-        ChatMessageVO ChatMessageVO = new ChatMessageVO();
+        ChatMessageVO chatMessageVo = new ChatMessageVO();
         User fromUser = userService.getById(userId);
         User toUser = userService.getById(toId);
         WebSocketVO fromWebSocketVo = new WebSocketVO();
         WebSocketVO toWebSocketVo = new WebSocketVO();
         BeanUtils.copyProperties(fromUser, fromWebSocketVo);
         BeanUtils.copyProperties(toUser, toWebSocketVo);
-        ChatMessageVO.setFormUser(fromWebSocketVo);
-        ChatMessageVO.setToUser(toWebSocketVo);
-        ChatMessageVO.setChatType(chatType);
-        ChatMessageVO.setText(text);
-        ChatMessageVO.setCreateTime(DateUtil.format(createTime, "yyyy-MM-dd HH:mm:ss"));
-        return ChatMessageVO;
+        chatMessageVo.setFormUser(fromWebSocketVo);
+        chatMessageVo.setToUser(toWebSocketVo);
+        chatMessageVo.setChatType(chatType);
+        chatMessageVo.setText(text);
+        chatMessageVo.setCreateTime(DateUtil.format(createTime, "yyyy-MM-dd HH:mm:ss"));
+        return chatMessageVo;
     }
 
+    /**
+     * 删除密钥
+     *
+     * @param key 钥匙
+     * @param id  id
+     */
     @Override
     public void deleteKey(String key, String id) {
         if (key.equals(CACHE_CHAT_HALL)) {
@@ -142,6 +194,14 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         }
     }
 
+    /**
+     * 获取团队聊天
+     *
+     * @param chatRequest 聊天请求
+     * @param chatType    聊天类型
+     * @param loginUser   登录用户
+     * @return {@link List}<{@link ChatMessageVO}>
+     */
     @Override
     public List<ChatMessageVO> getTeamChat(ChatRequest chatRequest, int chatType, User loginUser) {
         Long teamId = chatRequest.getTeamId();
@@ -162,6 +222,13 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         return chatMessageVOS;
     }
 
+    /**
+     * 获得大厅聊天
+     *
+     * @param chatType  聊天类型
+     * @param loginUser 登录用户
+     * @return {@link List}<{@link ChatMessageVO}>
+     */
     @Override
     public List<ChatMessageVO> getHallChat(int chatType, User loginUser) {
         List<ChatMessageVO> chatRecords = getCache(CACHE_CHAT_HALL, String.valueOf(loginUser.getId()));
@@ -177,6 +244,13 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         return chatMessageVOS;
     }
 
+    /**
+     * 支票是我信息
+     *
+     * @param loginUser   登录用户
+     * @param chatRecords 聊天记录
+     * @return {@link List}<{@link ChatMessageVO}>
+     */
     private List<ChatMessageVO> checkIsMyMessage(User loginUser, List<ChatMessageVO> chatRecords) {
         return chatRecords.stream().peek(chat -> {
             if (chat.getFormUser().getId() != loginUser.getId() && chat.getIsMy()) {
@@ -188,19 +262,29 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         }).collect(Collectors.toList());
     }
 
-    private List<ChatMessageVO> returnMessage(User loginUser, Long userId, LambdaQueryWrapper<Chat> chatLambdaQueryWrapper) {
+    /**
+     * 返回消息
+     *
+     * @param loginUser              登录用户
+     * @param userId                 用户id
+     * @param chatLambdaQueryWrapper 聊天lambda查询包装器
+     * @return {@link List}<{@link ChatMessageVO}>
+     */
+    private List<ChatMessageVO> returnMessage(User loginUser,
+                                              Long userId,
+                                              LambdaQueryWrapper<Chat> chatLambdaQueryWrapper) {
         List<Chat> chatList = this.list(chatLambdaQueryWrapper);
         return chatList.stream().map(chat -> {
-            ChatMessageVO ChatMessageVO = chatResult(chat.getFromId(), chat.getText());
+            ChatMessageVO chatMessageVo = chatResult(chat.getFromId(), chat.getText());
             boolean isCaptain = userId != null && userId.equals(chat.getFromId());
             if (userService.getById(chat.getFromId()).getRole() == ADMIN_ROLE || isCaptain) {
-                ChatMessageVO.setIsAdmin(true);
+                chatMessageVo.setIsAdmin(true);
             }
             if (chat.getFromId().equals(loginUser.getId())) {
-                ChatMessageVO.setIsMy(true);
+                chatMessageVo.setIsMy(true);
             }
-            ChatMessageVO.setCreateTime(DateUtil.format(chat.getCreateTime(), "yyyy年MM月dd日 HH:mm:ss"));
-            return ChatMessageVO;
+            chatMessageVo.setCreateTime(DateUtil.format(chat.getCreateTime(), "yyyy年MM月dd日 HH:mm:ss"));
+            return chatMessageVo;
         }).collect(Collectors.toList());
     }
 }

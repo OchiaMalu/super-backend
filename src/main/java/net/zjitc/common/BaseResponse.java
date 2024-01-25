@@ -6,7 +6,9 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
+ * 基本响应
  * 统一返回类
+ *
  * @param <T>
  * @author OchiaMalu
  * @date 2023/07/28

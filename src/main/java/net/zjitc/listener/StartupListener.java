@@ -4,10 +4,10 @@ import cn.hutool.bloomfilter.BitSetBloomFilter;
 import cn.hutool.bloomfilter.BloomFilter;
 import cn.hutool.bloomfilter.BloomFilterUtil;
 import lombok.extern.log4j.Log4j2;
-import net.zjitc.properties.SuperProperties;
 import net.zjitc.model.domain.Blog;
 import net.zjitc.model.domain.Team;
 import net.zjitc.model.domain.User;
+import net.zjitc.properties.SuperProperties;
 import net.zjitc.service.BlogService;
 import net.zjitc.service.TeamService;
 import net.zjitc.service.UserService;
@@ -18,8 +18,16 @@ import org.springframework.context.annotation.Configuration;
 import javax.annotation.Resource;
 import java.util.List;
 
-import static net.zjitc.constants.BloomFilterConstants.*;
+import static net.zjitc.constants.BloomFilterConstants.BLOG_BLOOM_PREFIX;
+import static net.zjitc.constants.BloomFilterConstants.TEAM_BLOOM_PREFIX;
+import static net.zjitc.constants.BloomFilterConstants.USER_BLOOM_PREFIX;
 
+/**
+ * 启动侦听器
+ *
+ * @author OchiaMalu
+ * @date 2024/01/25
+ */
 @Configuration
 @Log4j2
 public class StartupListener implements CommandLineRunner {
@@ -36,6 +44,11 @@ public class StartupListener implements CommandLineRunner {
     @Resource
     private SuperProperties superProperties;
 
+    /**
+     * 启动
+     *
+     * @param args args
+     */
     @Override
     public void run(String... args) {
         if (superProperties.isEnableBloomFilter()) {
@@ -48,6 +61,11 @@ public class StartupListener implements CommandLineRunner {
         }
     }
 
+    /**
+     * 初始化布隆过滤器
+     *
+     * @return {@link BloomFilter}
+     */
     @Bean
     public BloomFilter initBloomFilter() {
         BitSetBloomFilter bloomFilter = BloomFilterUtil.createBitSet(2000000, 1500000, 2);

@@ -13,7 +13,10 @@ import java.util.Set;
  * @author OchiaMalu
  * @date 2023/06/22
  */
-public class StringUtils {
+public final class StringUtils {
+    private StringUtils() {
+    }
+
     /**
      * 字符串json数组转Long类型set集合
      *

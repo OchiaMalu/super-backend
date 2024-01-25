@@ -1,7 +1,5 @@
 package net.zjitc.constants;
 
-import org.springframework.beans.factory.annotation.Value;
-
 /**
  * 系统常量
  *

@@ -1,5 +1,6 @@
 package net.zjitc.constants;
 
+
 /**
  * 聊天常量
  *
@@ -37,5 +38,4 @@ public interface ChatConstant {
      * 缓存聊天团队
      */
     String CACHE_CHAT_TEAM = "super:chat:chat_records:chat_team:";
-
 }

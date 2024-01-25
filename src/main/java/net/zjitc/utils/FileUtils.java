@@ -25,6 +25,12 @@ public class FileUtils {
 
     private static String basePath;
 
+    /**
+     * 上传档案
+     *
+     * @param file 文件
+     * @return {@link String}
+     */
     public static String uploadFile(MultipartFile file) {
         //获取原文件名
         String originalFilename = file.getOriginalFilename();
@@ -61,6 +67,12 @@ public class FileUtils {
         return fileName;
     }
 
+    /**
+     * 获取图像流
+     *
+     * @param imageFile 图像文件
+     * @return {@link byte[]}
+     */
     public static byte[] getImageStream(File imageFile) {
         byte[] buffer = null;
         FileInputStream fis;
@@ -81,6 +93,11 @@ public class FileUtils {
         return buffer;
     }
 
+    /**
+     * init基本路径
+     *
+     * @param b b
+     */
     @Value("${super.img}")
     public void initBasePath(String b) {
         basePath = b;

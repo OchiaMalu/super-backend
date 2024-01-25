@@ -1,6 +1,10 @@
 package net.zjitc.constants;
+
 /**
  * 用户常量
+ *
+ * @author OchiaMalu
+ * @date 2024/01/25
  */
 
 public interface UserConstants {
@@ -18,5 +22,4 @@ public interface UserConstants {
      * 管理员权限
      */
     int ADMIN_ROLE = 1;
-
 }

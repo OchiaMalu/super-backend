@@ -8,17 +8,22 @@ import net.zjitc.common.BaseResponse;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.common.ResultUtils;
 import net.zjitc.exception.BusinessException;
+import net.zjitc.model.domain.User;
 import net.zjitc.model.request.FriendAddRequest;
 import net.zjitc.model.vo.FriendsRecordVO;
 import net.zjitc.service.FriendsService;
 import net.zjitc.service.UserService;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import net.zjitc.model.domain.User;
-
 import java.util.List;
 import java.util.Set;
 
@@ -56,7 +61,9 @@ public class FriendsController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "friendAddRequest", value = "好友添加请求"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<Boolean> addFriendRecords(@RequestBody FriendAddRequest friendAddRequest, HttpServletRequest request) {
+    public BaseResponse<Boolean> addFriendRecords(
+            @RequestBody FriendAddRequest friendAddRequest,
+            HttpServletRequest request) {
         if (friendAddRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求有误");
         }

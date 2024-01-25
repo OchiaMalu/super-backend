@@ -67,7 +67,7 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
     private RedissonClient redissonClient;
 
     @Value("${super.qiniu.url:null}")
-    private String QINIU_URL;
+    private String qiniuUrl;
 
     @Override
     @Transactional
@@ -229,7 +229,7 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
                 blogVO.setCoverImage(null);
             } else {
                 String[] imgStr = images.split(",");
-                blogVO.setCoverImage(QINIU_URL + imgStr[0]);
+                blogVO.setCoverImage(qiniuUrl + imgStr[0]);
             }
             Long authorId = blogVO.getUserId();
             User author = userService.getById(authorId);
@@ -275,7 +275,7 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
                 blogVO.setCoverImage(null);
             } else {
                 String[] imgStr = images.split(",");
-                blogVO.setCoverImage(QINIU_URL + imgStr[0]);
+                blogVO.setCoverImage(qiniuUrl + imgStr[0]);
             }
             Long authorId = blogVO.getUserId();
             User author = userService.getById(authorId);

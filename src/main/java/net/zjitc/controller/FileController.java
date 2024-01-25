@@ -52,7 +52,7 @@ public class FileController {
     private UserService userService;
 
     @Value("${super.qiniu.url:null}")
-    private String QINIU_URL;
+    private String qiniuUrl;
 
     /**
      * 上传
@@ -75,7 +75,7 @@ public class FileController {
             throw new BusinessException(ErrorCode.NOT_LOGIN, "请登录");
         }
         String filename = FileUtils.uploadFile(file);
-        String fileUrl = QINIU_URL + filename;
+        String fileUrl = qiniuUrl + filename;
         User user = new User();
         user.setId(loginUser.getId());
         user.setAvatarUrl(fileUrl);

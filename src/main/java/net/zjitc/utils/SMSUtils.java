@@ -15,6 +15,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
 /**
+ * smsutil
  * 短信发送工具
  *
  * @author OchiaMalu
@@ -30,6 +31,12 @@ public class SMSUtils {
     @Resource
     private SMSProperties tempProperties;
 
+    /**
+     * 发送消息
+     *
+     * @param phoneNum 电话号码
+     * @param code     密码
+     */
     public static void sendMessage(String phoneNum, String code) {
         IClientProfile profile = DefaultProfile.getProfile(
                 smsProperties.getRegionId(),
@@ -50,6 +57,9 @@ public class SMSUtils {
         }
     }
 
+    /**
+     * init属性
+     */
     @PostConstruct
     public void initProperties() {
         smsProperties = tempProperties;
