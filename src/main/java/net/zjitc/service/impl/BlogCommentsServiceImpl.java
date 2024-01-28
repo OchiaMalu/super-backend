@@ -124,7 +124,7 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
 
     @Override
     @Transactional
-    public void likeComment(long commentId, Long userId) {
+    public void likeComment(Long commentId, Long userId) {
         RLock lock = redissonClient.getLock(COMMENTS_LIKE_LOCK + commentId + ":" + userId);
         try {
             if (lock.tryLock(DEFAULT_WAIT_TIME, DEFAULT_LEASE_TIME, TimeUnit.MILLISECONDS)) {
@@ -137,45 +137,10 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
                         .eq(CommentLike::getUserId, userId);
                 long count = commentLikeService.count(commentLikeLambdaQueryWrapper);
                 if (count == 0) {
-                    CommentLike commentLike = new CommentLike();
-                    commentLike.setCommentId(commentId);
-                    commentLike.setUserId(userId);
-                    commentLikeService.save(commentLike);
-                    BlogComments blogComments = this.getById(commentId);
-                    this.update().eq("id", commentId)
-                            .set("liked_num", blogComments.getLikedNum() + 1)
-                            .update();
-                    String likeNumKey = MESSAGE_LIKE_NUM_KEY + blogComments.getUserId();
-                    Boolean hasKey = stringRedisTemplate.hasKey(likeNumKey);
-                    if (Boolean.TRUE.equals(hasKey)) {
-                        stringRedisTemplate.opsForValue().increment(likeNumKey);
-                    } else {
-                        stringRedisTemplate.opsForValue().set(likeNumKey, "1");
-                    }
-                    Message message = new Message();
-                    message.setType(MessageTypeEnum.BLOG_COMMENT_LIKE.getValue());
-                    message.setFromId(userId);
-                    message.setToId(blogComments.getUserId());
-                    message.setData(String.valueOf(blogComments.getId()));
-                    messageService.save(message);
+                    doLikeComment(commentId, userId);
                 } else {
                     commentLikeService.remove(commentLikeLambdaQueryWrapper);
-                    BlogComments blogComments = this.getById(commentId);
-                    this.update().eq("id", commentId)
-                            .set("liked_num", blogComments.getLikedNum() - 1)
-                            .update();
-                    LambdaQueryWrapper<Message> messageQueryWrapper = new LambdaQueryWrapper<>();
-                    messageQueryWrapper
-                            .eq(Message::getType, MessageTypeEnum.BLOG_COMMENT_LIKE.getValue())
-                            .eq(Message::getFromId, userId)
-                            .eq(Message::getToId, blogComments.getUserId())
-                            .eq(Message::getData, String.valueOf(blogComments.getId()));
-                    messageService.remove(messageQueryWrapper);
-                    String likeNumKey = MESSAGE_LIKE_NUM_KEY + blogComments.getUserId();
-                    String upNumStr = stringRedisTemplate.opsForValue().get(likeNumKey);
-                    if (!StrUtil.isNullOrUndefined(upNumStr) && Long.parseLong(upNumStr) != 0) {
-                        stringRedisTemplate.opsForValue().decrement(likeNumKey);
-                    }
+                    doUnLikeComment(commentId, userId);
                 }
             }
         } catch (Exception e) {
@@ -186,6 +151,61 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
             }
         }
 
+    }
+
+    /**
+     * 点赞评论
+     *
+     * @param commentId 评论id
+     * @param userId    用户id
+     */
+    public void doLikeComment(Long commentId, Long userId) {
+        CommentLike commentLike = new CommentLike();
+        commentLike.setCommentId(commentId);
+        commentLike.setUserId(userId);
+        commentLikeService.save(commentLike);
+        BlogComments blogComments = this.getById(commentId);
+        this.update().eq("id", commentId)
+                .set("liked_num", blogComments.getLikedNum() + 1)
+                .update();
+        String likeNumKey = MESSAGE_LIKE_NUM_KEY + blogComments.getUserId();
+        Boolean hasKey = stringRedisTemplate.hasKey(likeNumKey);
+        if (Boolean.TRUE.equals(hasKey)) {
+            stringRedisTemplate.opsForValue().increment(likeNumKey);
+        } else {
+            stringRedisTemplate.opsForValue().set(likeNumKey, "1");
+        }
+        Message message = new Message();
+        message.setType(MessageTypeEnum.BLOG_COMMENT_LIKE.getValue());
+        message.setFromId(userId);
+        message.setToId(blogComments.getUserId());
+        message.setData(String.valueOf(blogComments.getId()));
+        messageService.save(message);
+    }
+
+    /**
+     * 取消喜欢评论
+     *
+     * @param commentId 评论id
+     * @param userId    用户id
+     */
+    public void doUnLikeComment(Long commentId, Long userId) {
+        BlogComments blogComments = this.getById(commentId);
+        this.update().eq("id", commentId)
+                .set("liked_num", blogComments.getLikedNum() - 1)
+                .update();
+        LambdaQueryWrapper<Message> messageQueryWrapper = new LambdaQueryWrapper<>();
+        messageQueryWrapper
+                .eq(Message::getType, MessageTypeEnum.BLOG_COMMENT_LIKE.getValue())
+                .eq(Message::getFromId, userId)
+                .eq(Message::getToId, blogComments.getUserId())
+                .eq(Message::getData, String.valueOf(blogComments.getId()));
+        messageService.remove(messageQueryWrapper);
+        String likeNumKey = MESSAGE_LIKE_NUM_KEY + blogComments.getUserId();
+        String upNumStr = stringRedisTemplate.opsForValue().get(likeNumKey);
+        if (!StrUtil.isNullOrUndefined(upNumStr) && Long.parseLong(upNumStr) != 0) {
+            stringRedisTemplate.opsForValue().decrement(likeNumKey);
+        }
     }
 
     @Override

@@ -9,7 +9,6 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.exception.BusinessException;
 import net.zjitc.mapper.TeamMapper;
-import net.zjitc.model.domain.Follow;
 import net.zjitc.model.domain.Team;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.domain.UserTeam;
@@ -91,6 +90,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
     @Override
     @Transactional(rollbackFor = Exception.class)
     public long addTeam(Team team, User loginUser) {
+        // todo redisson锁
         // 1. 请求参数是否为空？
         if (team == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -110,9 +110,35 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
             team.setExpireTime(null);
         }
         final long userId = loginUser.getId();
-        // 3. 校验信息
-        // 7. 校验用户最多创建 5 个队伍
-        // todo redisson锁
+        // 校验信息
+        validateTeamParam(userId, team);
+        // 8. 插入队伍信息到队伍表
+        team.setId(null);
+        team.setUserId(userId);
+        boolean result = this.save(team);
+        Long teamId = team.getId();
+        if (!result || teamId == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "创建队伍失败");
+        }
+        // 9. 插入用户  => 队伍关系到关系表
+        UserTeam userTeam = new UserTeam();
+        userTeam.setUserId(userId);
+        userTeam.setTeamId(teamId);
+        userTeam.setJoinTime(new Date());
+        result = userTeamService.save(userTeam);
+        if (!result) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "创建队伍失败");
+        }
+        return teamId;
+    }
+
+    /**
+     * 验证团队参数
+     *
+     * @param userId 用户id
+     * @param team   团队
+     */
+    public void validateTeamParam(Long userId, Team team) {
         QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId);
         long hasTeamNum = this.count(queryWrapper);
@@ -152,25 +178,6 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         if (expireTime != null && new Date().after(expireTime)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "超时时间 > 当前时间");
         }
-        // 8. 插入队伍信息到队伍表
-        team.setId(null);
-        team.setUserId(userId);
-        boolean result = this.save(team);
-        Long teamId = team.getId();
-        if (!result || teamId == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "创建队伍失败");
-        }
-        // 9. 插入用户  => 队伍关系到关系表
-        UserTeam userTeam = new UserTeam();
-        userTeam.setUserId(userId);
-        userTeam.setTeamId(teamId);
-        userTeam.setJoinTime(new Date());
-        result = userTeamService.save(userTeam);
-        if (!result) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "创建队伍失败");
-        }
-        return teamId;
-
     }
 
     /**
@@ -183,39 +190,20 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
      */
     @Override
     public Page<TeamVO> listTeams(long currentPage, TeamQueryRequest teamQuery, boolean isAdmin) {
-        QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
+        LambdaQueryWrapper<Team> teamLambdaQueryWrapper = new LambdaQueryWrapper<>();
         // 组合查询条件
         if (teamQuery != null) {
             Long id = teamQuery.getId();
-            if (id != null && id > 0) {
-                queryWrapper.eq("id", id);
-            }
             List<Long> idList = teamQuery.getIdList();
-            if (CollectionUtils.isNotEmpty(idList)) {
-                queryWrapper.in("id", idList);
-            }
             String searchText = teamQuery.getSearchText();
-            if (StringUtils.isNotBlank(searchText)) {
-                queryWrapper.and(qw -> qw.like("name", searchText).or().like("description", searchText));
-            }
+            // 根据队伍名查询
             String name = teamQuery.getName();
-            if (StringUtils.isNotBlank(name)) {
-                queryWrapper.like("name", name);
-            }
+            // 根据描述查询
             String description = teamQuery.getDescription();
-            if (StringUtils.isNotBlank(description)) {
-                queryWrapper.like("description", description);
-            }
+            // 根绝最大人数查询
             Integer maxNum = teamQuery.getMaxNum();
-            // 查询最大人数相等的
-            if (maxNum != null && maxNum > 0) {
-                queryWrapper.eq("max_num", maxNum);
-            }
+            // 根据队长Id查询
             Long userId = teamQuery.getUserId();
-            // 根据创建人来查询
-            if (userId != null && userId > 0) {
-                queryWrapper.eq("user_id", userId);
-            }
             // 根据状态来查询
             Integer status = teamQuery.getStatus();
             TeamStatusEnum statusEnum = TeamStatusEnum.getEnumByValue(status);
@@ -225,38 +213,23 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
             if (!isAdmin && statusEnum.equals(TeamStatusEnum.PRIVATE)) {
                 throw new BusinessException(ErrorCode.NO_AUTH);
             }
-            queryWrapper.eq("status", statusEnum.getValue());
+            teamLambdaQueryWrapper
+                    .eq(id != null && id > 0, Team::getId, id)
+                    .in(CollectionUtils.isNotEmpty(idList), Team::getId, idList)
+                    .and(StringUtils.isNotBlank(searchText),
+                            qw -> qw.like(Team::getName, searchText)
+                                    .or()
+                                    .like(Team::getDescription, searchText)
+                    )
+                    .like(StringUtils.isNotBlank(name), Team::getName, name)
+                    .like(StringUtils.isNotBlank(description), Team::getDescription, description)
+                    .eq(maxNum != null && maxNum > 0, Team::getMaxNum, maxNum)
+                    .eq(userId != null && userId > 0, Team::getUserId, userId)
+                    .eq(Team::getStatus, statusEnum.getValue());
         }
         // 不展示已过期的队伍
-        // expireTime is null or expireTime > now()
-        queryWrapper.and(qw -> qw.gt("expire_time", new Date()).or().isNull("expire_time"));
-        Page<Team> teamPage = this.page(new Page<>(currentPage, PAGE_SIZE), queryWrapper);
-        if (CollectionUtils.isEmpty(teamPage.getRecords())) {
-            return new Page<>();
-        }
-        Page<TeamVO> teamVOPage = new Page<>();
-        // 关联查询创建人的用户信息
-        BeanUtils.copyProperties(teamPage, teamVOPage, "records");
-        List<Team> teamPageRecords = teamPage.getRecords();
-        ArrayList<TeamVO> teamUserVOList = new ArrayList<>();
-        for (Team team : teamPageRecords) {
-            Long userId = team.getUserId();
-            if (userId == null) {
-                continue;
-            }
-            User user = userService.getById(userId);
-            TeamVO teamUserVO = new TeamVO();
-            BeanUtils.copyProperties(team, teamUserVO);
-            // 脱敏用户信息
-            if (user != null) {
-                UserVO userVO = new UserVO();
-                BeanUtils.copyProperties(user, userVO);
-                teamUserVO.setCreateUser(userVO);
-            }
-            teamUserVOList.add(teamUserVO);
-        }
-        teamVOPage.setRecords(teamUserVOList);
-        return teamVOPage;
+        teamLambdaQueryWrapper.and(qw -> qw.gt(Team::getExpireTime, new Date()).or().isNull(Team::getExpireTime));
+        return listTeamByCondition(currentPage, teamLambdaQueryWrapper);
     }
 
     /**
@@ -489,13 +462,24 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         List<Long> idList = teamQuery.getIdList();
         LambdaQueryWrapper<Team> teamLambdaQueryWrapper = new LambdaQueryWrapper<>();
         teamLambdaQueryWrapper.in(Team::getId, idList);
+        return listTeamByCondition(currentPage, teamLambdaQueryWrapper);
+    }
+
+    /**
+     * 按条件列出团队
+     *
+     * @param currentPage            当前页码
+     * @param teamLambdaQueryWrapper 团队lambda查询包装器
+     * @return {@link Page}<{@link TeamVO}>
+     */
+    public Page<TeamVO> listTeamByCondition(long currentPage, LambdaQueryWrapper<Team> teamLambdaQueryWrapper) {
         Page<Team> teamPage = this.page(new Page<>(currentPage, PAGE_SIZE), teamLambdaQueryWrapper);
         if (CollectionUtils.isEmpty(teamPage.getRecords())) {
             return new Page<>();
         }
-        Page<TeamVO> teamVOPage = new Page<>();
+        Page<TeamVO> teamVoPage = new Page<>();
         // 关联查询创建人的用户信息
-        BeanUtils.copyProperties(teamPage, teamVOPage, "records");
+        BeanUtils.copyProperties(teamPage, teamVoPage, "records");
         List<Team> teamPageRecords = teamPage.getRecords();
         ArrayList<TeamVO> teamUserVOList = new ArrayList<>();
         for (Team team : teamPageRecords) {
@@ -514,8 +498,8 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
             }
             teamUserVOList.add(teamUserVO);
         }
-        teamVOPage.setRecords(teamUserVOList);
-        return teamVOPage;
+        teamVoPage.setRecords(teamUserVOList);
+        return teamVoPage;
     }
 
     /**
@@ -544,15 +528,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
         userLambdaQueryWrapper.in(User::getId, userIdList);
         List<User> userList = userService.list(userLambdaQueryWrapper);
-        return userList.stream().map((user) -> {
-            UserVO userVO = new UserVO();
-            BeanUtils.copyProperties(user, userVO);
-            LambdaQueryWrapper<Follow> followLambdaQueryWrapper = new LambdaQueryWrapper<>();
-            followLambdaQueryWrapper.eq(Follow::getUserId, userId).eq(Follow::getFollowUserId, user.getId());
-            long count = followService.count(followLambdaQueryWrapper);
-            userVO.setIsFollow(count > 0);
-            return userVO;
-        }).collect(Collectors.toList());
+        return userList.stream().map((user) -> followService.getUserFollowInfo(user, userId)).collect(Collectors.toList());
     }
 
     /**

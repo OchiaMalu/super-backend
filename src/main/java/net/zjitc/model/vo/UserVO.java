@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
+ * 用户vo
  * 用户签证官
  *
  * @author OchiaMalu

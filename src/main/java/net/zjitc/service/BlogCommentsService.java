@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import net.zjitc.model.domain.BlogComments;
 import net.zjitc.model.request.AddCommentRequest;
 import net.zjitc.model.vo.BlogCommentsVO;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -47,7 +48,8 @@ public interface BlogCommentsService extends IService<BlogComments> {
      * @param commentId 议论id
      * @param userId    用户id
      */
-    void likeComment(long commentId, Long userId);
+    @Transactional
+    void likeComment(Long commentId, Long userId);
 
     /**
      * 删除评论

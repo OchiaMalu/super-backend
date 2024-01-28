@@ -74,19 +74,7 @@ public class FriendsServiceImpl extends ServiceImpl<FriendsMapper, Friends>
      */
     @Override
     public boolean addFriendRecords(User loginUser, FriendAddRequest friendAddRequest) {
-        if (StringUtils.isNotBlank(
-                friendAddRequest.getRemark())
-                &&
-                friendAddRequest.getRemark().length() > MAXIMUM_REMARK_LENGTH) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "申请备注最多120个字符");
-        }
-        if (ObjectUtils.anyNull(loginUser.getId(), friendAddRequest.getReceiveId())) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "添加失败");
-        }
-        // 1.添加的不能是自己
-        if (Objects.equals(loginUser.getId(), friendAddRequest.getReceiveId())) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "不能添加自己为好友");
-        }
+        validateRequest(loginUser, friendAddRequest);
         RLock lock = redissonClient.getLock(APPLY_LOCK + loginUser.getId());
         try {
             // 抢到锁并执行
@@ -123,6 +111,28 @@ public class FriendsServiceImpl extends ServiceImpl<FriendsMapper, Friends>
             }
         }
         return false;
+    }
+
+    /**
+     * 校验添加好友请求
+     *
+     * @param loginUser        登录用户
+     * @param friendAddRequest 好友添加请求
+     */
+    public void validateRequest(User loginUser, FriendAddRequest friendAddRequest) {
+        if (StringUtils.isNotBlank(
+                friendAddRequest.getRemark())
+                &&
+                friendAddRequest.getRemark().length() > MAXIMUM_REMARK_LENGTH) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "申请备注最多120个字符");
+        }
+        if (ObjectUtils.anyNull(loginUser.getId(), friendAddRequest.getReceiveId())) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "添加失败");
+        }
+        // 1.添加的不能是自己
+        if (Objects.equals(loginUser.getId(), friendAddRequest.getReceiveId())) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "不能添加自己为好友");
+        }
     }
 
     /**

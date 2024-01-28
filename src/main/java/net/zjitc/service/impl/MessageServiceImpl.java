@@ -174,8 +174,8 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message>
         if (messagePage.getSize() == 0) {
             return new Page<>();
         }
-        Page<MessageVO> messageVOPage = new Page<>();
-        BeanUtils.copyProperties(messagePage, messageVOPage);
+        Page<MessageVO> messageVoPage = new Page<>();
+        BeanUtils.copyProperties(messagePage, messageVoPage);
         LambdaUpdateWrapper<Message> messageLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
         messageLambdaUpdateWrapper.eq(Message::getToId, userId).eq(Message::getType, 0)
                 .or().eq(Message::getType, 1).set(Message::getIsRead, 1);
@@ -211,8 +211,8 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message>
             }
             return messageVO;
         }).collect(Collectors.toList());
-        messageVOPage.setRecords(messageVOList);
-        return messageVOPage;
+        messageVoPage.setRecords(messageVOList);
+        return messageVoPage;
     }
 }
 

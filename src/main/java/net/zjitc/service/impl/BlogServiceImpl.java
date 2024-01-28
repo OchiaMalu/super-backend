@@ -144,6 +144,12 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
         return blogVoPage;
     }
 
+    /**
+     * 点赞博文
+     *
+     * @param blogId 博文id
+     * @param userId 用户id
+     */
     @Override
     public void likeBlog(long blogId, Long userId) {
         RLock lock = redissonClient.getLock(BLOG_LIKE_LOCK + blogId + ":" + userId);
@@ -159,40 +165,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
                 long isLike = blogLikeService.count(blogLikeLambdaQueryWrapper);
                 if (isLike > 0) {
                     blogLikeService.remove(blogLikeLambdaQueryWrapper);
-                    int newNum = blog.getLikedNum() - 1;
-                    this.update().eq("id", blogId).set("liked_num", newNum).update();
-                    LambdaQueryWrapper<Message> messageQueryWrapper = new LambdaQueryWrapper<>();
-                    messageQueryWrapper
-                            .eq(Message::getType, MessageTypeEnum.BLOG_LIKE.getValue())
-                            .eq(Message::getFromId, userId)
-                            .eq(Message::getToId, blog.getUserId())
-                            .eq(Message::getData, String.valueOf(blog.getId()));
-                    messageService.remove(messageQueryWrapper);
-                    String likeNumKey = MESSAGE_LIKE_NUM_KEY + blog.getUserId();
-                    String upNumStr = stringRedisTemplate.opsForValue().get(likeNumKey);
-                    if (!StrUtil.isNullOrUndefined(upNumStr) && Long.parseLong(upNumStr) != 0) {
-                        stringRedisTemplate.opsForValue().decrement(likeNumKey);
-                    }
+                    doUnLikeBlog(blog, userId);
                 } else {
-                    BlogLike blogLike = new BlogLike();
-                    blogLike.setBlogId(blogId);
-                    blogLike.setUserId(userId);
-                    blogLikeService.save(blogLike);
-                    int newNum = blog.getLikedNum() + 1;
-                    this.update().eq("id", blogId).set("liked_num", newNum).update();
-                    Message message = new Message();
-                    message.setType(MessageTypeEnum.BLOG_LIKE.getValue());
-                    message.setFromId(userId);
-                    message.setToId(blog.getUserId());
-                    message.setData(String.valueOf(blog.getId()));
-                    messageService.save(message);
-                    String likeNumKey = MESSAGE_LIKE_NUM_KEY + blog.getUserId();
-                    Boolean hasKey = stringRedisTemplate.hasKey(likeNumKey);
-                    if (Boolean.TRUE.equals(hasKey)) {
-                        stringRedisTemplate.opsForValue().increment(likeNumKey);
-                    } else {
-                        stringRedisTemplate.opsForValue().set(likeNumKey, "1");
-                    }
+                    doLikeBlog(blog, userId);
                 }
             }
         } catch (Exception e) {
@@ -201,6 +176,57 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
             if (lock.isHeldByCurrentThread()) {
                 lock.unlock();
             }
+        }
+    }
+
+    /**
+     * 取消点赞博文
+     *
+     * @param blog   博文
+     * @param userId 用户id
+     */
+    public void doUnLikeBlog(Blog blog, Long userId) {
+        int newNum = blog.getLikedNum() - 1;
+        this.update().eq("id", blog.getId()).set("liked_num", newNum).update();
+        LambdaQueryWrapper<Message> messageQueryWrapper = new LambdaQueryWrapper<>();
+        messageQueryWrapper
+                .eq(Message::getType, MessageTypeEnum.BLOG_LIKE.getValue())
+                .eq(Message::getFromId, userId)
+                .eq(Message::getToId, blog.getUserId())
+                .eq(Message::getData, String.valueOf(blog.getId()));
+        messageService.remove(messageQueryWrapper);
+        String likeNumKey = MESSAGE_LIKE_NUM_KEY + blog.getUserId();
+        String upNumStr = stringRedisTemplate.opsForValue().get(likeNumKey);
+        if (!StrUtil.isNullOrUndefined(upNumStr) && Long.parseLong(upNumStr) != 0) {
+            stringRedisTemplate.opsForValue().decrement(likeNumKey);
+        }
+    }
+
+    /**
+     * 点赞博文
+     *
+     * @param blog   博文
+     * @param userId 用户id
+     */
+    public void doLikeBlog(Blog blog, Long userId) {
+        BlogLike blogLike = new BlogLike();
+        blogLike.setBlogId(blog.getId());
+        blogLike.setUserId(userId);
+        blogLikeService.save(blogLike);
+        int newNum = blog.getLikedNum() + 1;
+        this.update().eq("id", blog.getId()).set("liked_num", newNum).update();
+        Message message = new Message();
+        message.setType(MessageTypeEnum.BLOG_LIKE.getValue());
+        message.setFromId(userId);
+        message.setToId(blog.getUserId());
+        message.setData(String.valueOf(blog.getId()));
+        messageService.save(message);
+        String likeNumKey = MESSAGE_LIKE_NUM_KEY + blog.getUserId();
+        Boolean hasKey = stringRedisTemplate.hasKey(likeNumKey);
+        if (Boolean.TRUE.equals(hasKey)) {
+            stringRedisTemplate.opsForValue().increment(likeNumKey);
+        } else {
+            stringRedisTemplate.opsForValue().set(likeNumKey, "1");
         }
     }
 

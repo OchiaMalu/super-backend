@@ -3,6 +3,7 @@ package net.zjitc.service;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import net.zjitc.model.domain.Follow;
+import net.zjitc.model.domain.User;
 import net.zjitc.model.vo.UserVO;
 
 import java.util.List;
@@ -58,4 +59,12 @@ public interface FollowService extends IService<Follow> {
      * @return {@link Page}<{@link UserVO}>
      */
     Page<UserVO> pageFans(Long userId, String currentPage);
+
+    /**
+     * 获取用户关注信息
+     *
+     * @param user 用户
+     * @return {@link UserVO}
+     */
+    UserVO getUserFollowInfo(User user, long userId);
 }
