@@ -7,35 +7,37 @@ package net.zjitc.constants;
  * @author OchiaMalu
  * @date 2023/06/22
  */
-public interface ChatConstant {
+public final class ChatConstant {
+    private ChatConstant() {
+    }
 
     /**
      * 私聊
      */
-    int PRIVATE_CHAT = 1;
+    public static final int PRIVATE_CHAT = 1;
 
     /**
      * 队伍群聊
      */
 
-    int TEAM_CHAT = 2;
+    public static final int TEAM_CHAT = 2;
     /**
      * 大厅聊天
      */
-    int HALL_CHAT = 3;
+    public static final int HALL_CHAT = 3;
 
     /**
      * 缓存聊天大厅
      */
-    String CACHE_CHAT_HALL = "supper:chat:chat_records:chat_hall";
+    public static final String CACHE_CHAT_HALL = "supper:chat:chat_records:chat_hall";
 
     /**
      * 缓存私人聊天
      */
-    String CACHE_CHAT_PRIVATE = "super:chat:chat_records:chat_private:";
+    public static final String CACHE_CHAT_PRIVATE = "super:chat:chat_records:chat_private:";
 
     /**
      * 缓存聊天团队
      */
-    String CACHE_CHAT_TEAM = "super:chat:chat_records:chat_team:";
+    public static final String CACHE_CHAT_TEAM = "super:chat:chat_records:chat_team:";
 }

@@ -6,31 +6,34 @@ package net.zjitc.constants;
  * @author OchiaMalu
  * @date 2023/06/22
  */
-public interface FriendConstant {
+public final class FriendConstant {
+    private FriendConstant() {
+    }
+
     /**
      * 默认状态 未处理
      */
-    int DEFAULT_STATUS = 0;
+    public static final int DEFAULT_STATUS = 0;
     /**
      * 已同意
      */
-    int AGREE_STATUS = 1;
+    public static final int AGREE_STATUS = 1;
     /**
      * 已过期
      */
-    int EXPIRED_STATUS = 2;
+    public static final int EXPIRED_STATUS = 2;
 
     /**
      * 撤销
      */
-    int REVOKE_STATUS = 3;
+    public static final int REVOKE_STATUS = 3;
     /**
      * 未读
      */
-    int NOT_READ = 0;
+    public static final int NOT_READ = 0;
 
     /**
      * 已读
      */
-    int READ = 1;
+    public static final int READ = 1;
 }

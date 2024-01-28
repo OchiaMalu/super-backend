@@ -7,8 +7,11 @@ package net.zjitc.constants;
  * @author OchiaMalu
  * @date 2023/07/28
  */
-public interface BloomFilterConstants {
-    String USER_BLOOM_PREFIX = "super:user:id:";
-    String TEAM_BLOOM_PREFIX = "super:team:id:";
-    String BLOG_BLOOM_PREFIX = "super:blog:id:";
+public final class BloomFilterConstants {
+    private BloomFilterConstants() {
+    }
+
+    public static final String USER_BLOOM_PREFIX = "super:user:id:";
+    public static final String TEAM_BLOOM_PREFIX = "super:team:id:";
+    public static final String BLOG_BLOOM_PREFIX = "super:blog:id:";
 }
