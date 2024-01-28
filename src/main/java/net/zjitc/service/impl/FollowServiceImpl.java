@@ -97,9 +97,10 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow>
         if (followPage == null || followPage.getSize() == 0) {
             return new Page<>();
         }
-        Page<UserVO> userVOPage = new Page<>();
+        Page<UserVO> userVoPage = new Page<>();
         List<User> userList = followPage.getRecords().stream()
                 .map((follow -> userService.getById(follow.getFollowUserId())))
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
         List<UserVO> userVOList = userList.stream().map((user) -> {
             UserVO userVO = new UserVO();
@@ -107,7 +108,7 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow>
             userVO.setIsFollow(true);
             return userVO;
         }).collect(Collectors.toList());
-        return userVOPage.setRecords(userVOList);
+        return userVoPage.setRecords(userVOList);
     }
 
     @Override
