@@ -43,6 +43,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
+import static net.zjitc.constants.TeamConstants.MAXIMUM_DESCRIPTION_LEN;
+import static net.zjitc.constants.TeamConstants.MAXIMUM_JOINED_TEAM;
+import static net.zjitc.constants.TeamConstants.MAXIMUM_MEMBER_NUM;
+import static net.zjitc.constants.TeamConstants.MAXIMUM_PASSWORD_LEN;
+import static net.zjitc.constants.TeamConstants.MAXIMUM_TEAM_NUM;
+import static net.zjitc.constants.TeamConstants.MAXIMUM_TITLE_LEN;
 
 /**
  * 团队服务impl
@@ -106,26 +112,26 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         final long userId = loginUser.getId();
         // 3. 校验信息
         // 7. 校验用户最多创建 5 个队伍
-        // todo 有 bug，可能同时创建 100 个队伍
+        // todo redisson锁
         QueryWrapper<Team> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId);
         long hasTeamNum = this.count(queryWrapper);
-        if (hasTeamNum >= 5) {
+        if (hasTeamNum >= MAXIMUM_TEAM_NUM) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户最多创建 5 个队伍");
         }
         //   1. 队伍人数 > 1 且 <= 20
         int maxNum = Optional.ofNullable(team.getMaxNum()).orElse(0);
-        if (maxNum < 1 || maxNum > 20) {
+        if (maxNum < 1 || maxNum > MAXIMUM_MEMBER_NUM) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "队伍人数不满足要求");
         }
         //   2. 队伍标题 <= 20
         String name = team.getName();
-        if (StringUtils.isBlank(name) || name.length() > 20) {
+        if (StringUtils.isBlank(name) || name.length() > MAXIMUM_TITLE_LEN) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "队伍标题不满足要求");
         }
         //   3. 描述 <= 512
         String description = team.getDescription();
-        if (StringUtils.isNotBlank(description) && description.length() > 512) {
+        if (StringUtils.isNotBlank(description) && description.length() > MAXIMUM_DESCRIPTION_LEN) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "队伍描述过长");
         }
         //   4. status 是否公开（int）不传默认为 0（公开）
@@ -137,7 +143,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         //   5. 如果 status 是加密状态，一定要有密码，且密码 <= 32
         String password = team.getPassword();
         if (TeamStatusEnum.SECRET.equals(statusEnum)) {
-            if (StringUtils.isBlank(password) || password.length() > 32) {
+            if (StringUtils.isBlank(password) || password.length() > MAXIMUM_PASSWORD_LEN) {
                 throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码设置不正确");
             }
         }
@@ -322,7 +328,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         QueryWrapper<UserTeam> userTeamQueryWrapper = new QueryWrapper<>();
         userTeamQueryWrapper.eq("user_id", userId);
         long hasJoinNum = userTeamService.count(userTeamQueryWrapper);
-        if (hasJoinNum > 5) {
+        if (hasJoinNum > MAXIMUM_JOINED_TEAM) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "最多创建和加入 5 个队伍");
         }
         // 不能重复加入已加入的队伍

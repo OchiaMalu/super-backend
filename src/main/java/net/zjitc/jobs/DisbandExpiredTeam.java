@@ -17,6 +17,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static net.zjitc.constants.RedissonConstant.DEFAULT_LEASE_TIME;
+import static net.zjitc.constants.RedissonConstant.DEFAULT_WAIT_TIME;
 import static net.zjitc.constants.RedissonConstant.DISBAND_EXPIRED_TEAM_LOCK;
 
 /**
@@ -48,7 +50,7 @@ public class DisbandExpiredTeam extends QuartzJobBean {
     protected void executeInternal(@NonNull JobExecutionContext context) {
         RLock lock = redissonClient.getLock(DISBAND_EXPIRED_TEAM_LOCK);
         try {
-            if (lock.tryLock(0, -1, TimeUnit.MICROSECONDS)) {
+            if (lock.tryLock(DEFAULT_WAIT_TIME, DEFAULT_LEASE_TIME, TimeUnit.MICROSECONDS)) {
                 log.info("开始删除过期队伍");
                 long begin = System.currentTimeMillis();
                 List<Team> teamList = teamService.list();

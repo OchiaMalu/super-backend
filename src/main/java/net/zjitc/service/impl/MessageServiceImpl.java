@@ -125,8 +125,8 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message>
     public List<BlogVO> getUserBlog(Long userId) {
         String key = BLOG_FEED_KEY + userId;
         Set<ZSetOperations.TypedTuple<String>> typedTuples = stringRedisTemplate.opsForZSet()
-                .reverseRangeByScoreWithScores(key, 0, System.currentTimeMillis(), 0, 10);
-        if (typedTuples == null || typedTuples.size() == 0) {
+                .reverseRangeByScoreWithScores(key, 0, System.currentTimeMillis(), 0, PAGE_SIZE);
+        if (typedTuples == null || typedTuples.isEmpty()) {
             return new ArrayList<>();
         }
         ArrayList<BlogVO> blogVOList = new ArrayList<>(typedTuples.size());

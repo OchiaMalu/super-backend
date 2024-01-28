@@ -42,7 +42,10 @@ import static net.zjitc.constants.RedisConstants.BLOG_FEED_KEY;
 import static net.zjitc.constants.RedisConstants.MESSAGE_BLOG_NUM_KEY;
 import static net.zjitc.constants.RedisConstants.MESSAGE_LIKE_NUM_KEY;
 import static net.zjitc.constants.RedissonConstant.BLOG_LIKE_LOCK;
+import static net.zjitc.constants.RedissonConstant.DEFAULT_LEASE_TIME;
+import static net.zjitc.constants.RedissonConstant.DEFAULT_WAIT_TIME;
 import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
+import static net.zjitc.constants.SystemConstants.PROTOCOL_LENGTH;
 
 /**
  * @author OchiaMalu
@@ -145,7 +148,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
     public void likeBlog(long blogId, Long userId) {
         RLock lock = redissonClient.getLock(BLOG_LIKE_LOCK + blogId + ":" + userId);
         try {
-            if (lock.tryLock(0, -1, TimeUnit.MILLISECONDS)) {
+            if (lock.tryLock(DEFAULT_WAIT_TIME, DEFAULT_LEASE_TIME, TimeUnit.MILLISECONDS)) {
                 Blog blog = this.getById(blogId);
                 if (blog == null) {
                     throw new BusinessException(ErrorCode.PARAMS_ERROR, "博文不存在");
@@ -305,7 +308,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
             String imgStr = blogUpdateRequest.getImgStr();
             String[] imgs = imgStr.split(",");
             for (String img : imgs) {
-                imageNameList.add(img.substring(25));
+                String fileName = img.substring(img.indexOf("/", PROTOCOL_LENGTH) + 1);
+                imageNameList.add(fileName);
             }
         }
         if (blogUpdateRequest.getImages() != null) {

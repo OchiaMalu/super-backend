@@ -37,6 +37,8 @@ import java.util.stream.Collectors;
 
 import static net.zjitc.constants.RedisConstants.MESSAGE_LIKE_NUM_KEY;
 import static net.zjitc.constants.RedissonConstant.COMMENTS_LIKE_LOCK;
+import static net.zjitc.constants.RedissonConstant.DEFAULT_LEASE_TIME;
+import static net.zjitc.constants.RedissonConstant.DEFAULT_WAIT_TIME;
 import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
 
 /**
@@ -125,7 +127,7 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
     public void likeComment(long commentId, Long userId) {
         RLock lock = redissonClient.getLock(COMMENTS_LIKE_LOCK + commentId + ":" + userId);
         try {
-            if (lock.tryLock(0, -1, TimeUnit.MILLISECONDS)) {
+            if (lock.tryLock(DEFAULT_WAIT_TIME, DEFAULT_LEASE_TIME, TimeUnit.MILLISECONDS)) {
                 BlogComments comments = this.getById(commentId);
                 if (comments == null) {
                     throw new BusinessException(ErrorCode.PARAMS_ERROR, "评论不存在");

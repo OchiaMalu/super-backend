@@ -61,4 +61,17 @@ public final class RedisConstants {
      * 用户推荐缓存
      */
     public static final String USER_RECOMMEND_KEY = "super:recommend:";
+
+    /**
+     * 最小缓存随机时间
+     */
+    public static final int MINIMUM_CACHE_RANDOM_TIME = 2;
+    /**
+     * 最大缓存随机时间
+     */
+    public static final int MAXIMUM_CACHE_RANDOM_TIME = 3;
+    /**
+     * 缓存时间偏移
+     */
+    public static final int CACHE_TIME_OFFSET = 10;
 }

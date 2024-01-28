@@ -30,6 +30,9 @@ import java.util.stream.Collectors;
 import static net.zjitc.constants.ChatConstant.CACHE_CHAT_HALL;
 import static net.zjitc.constants.ChatConstant.CACHE_CHAT_PRIVATE;
 import static net.zjitc.constants.ChatConstant.CACHE_CHAT_TEAM;
+import static net.zjitc.constants.RedisConstants.CACHE_TIME_OFFSET;
+import static net.zjitc.constants.RedisConstants.MAXIMUM_CACHE_RANDOM_TIME;
+import static net.zjitc.constants.RedisConstants.MINIMUM_CACHE_RANDOM_TIME;
 import static net.zjitc.constants.UserConstants.ADMIN_ROLE;
 
 /**
@@ -124,11 +127,19 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         try {
             ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
             // 解决缓存雪崩
-            int i = RandomUtil.randomInt(2, 3);
+            int i = RandomUtil.randomInt(MINIMUM_CACHE_RANDOM_TIME, MAXIMUM_CACHE_RANDOM_TIME);
             if (redisKey.equals(CACHE_CHAT_HALL)) {
-                valueOperations.set(redisKey, chatMessageVOS, 2 + i / 10, TimeUnit.MINUTES);
+                valueOperations.set(
+                        redisKey,
+                        chatMessageVOS,
+                        MINIMUM_CACHE_RANDOM_TIME + i / CACHE_TIME_OFFSET,
+                        TimeUnit.MINUTES);
             } else {
-                valueOperations.set(redisKey + id, chatMessageVOS, 2 + i / 10, TimeUnit.MINUTES);
+                valueOperations.set(
+                        redisKey + id,
+                        chatMessageVOS,
+                        MINIMUM_CACHE_RANDOM_TIME + i / CACHE_TIME_OFFSET,
+                        TimeUnit.MINUTES);
             }
         } catch (Exception e) {
             log.error("redis set key error");

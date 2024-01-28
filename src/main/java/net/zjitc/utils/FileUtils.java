@@ -13,6 +13,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
+import static net.zjitc.constants.SystemConstants.DEFAULT_BUFFER_SIZE;
+import static net.zjitc.constants.SystemConstants.FILE_END;
+
 /**
  * 文件工具
  *
@@ -79,9 +82,9 @@ public class FileUtils {
         try {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             fis = new FileInputStream(imageFile);
-            byte[] b = new byte[1024];
+            byte[] b = new byte[DEFAULT_BUFFER_SIZE];
             int n;
-            while ((n = fis.read(b)) != -1) {
+            while ((n = fis.read(b)) != FILE_END) {
                 bos.write(b, 0, n);
             }
             fis.close();

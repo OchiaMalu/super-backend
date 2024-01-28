@@ -36,10 +36,14 @@ import java.util.stream.Collectors;
 import static net.zjitc.constants.FriendConstant.AGREE_STATUS;
 import static net.zjitc.constants.FriendConstant.DEFAULT_STATUS;
 import static net.zjitc.constants.FriendConstant.EXPIRED_STATUS;
+import static net.zjitc.constants.FriendConstant.MAXIMUM_APPLY_TIME;
+import static net.zjitc.constants.FriendConstant.MAXIMUM_REMARK_LENGTH;
 import static net.zjitc.constants.FriendConstant.NOT_READ;
 import static net.zjitc.constants.FriendConstant.READ;
 import static net.zjitc.constants.FriendConstant.REVOKE_STATUS;
 import static net.zjitc.constants.RedissonConstant.APPLY_LOCK;
+import static net.zjitc.constants.RedissonConstant.DEFAULT_LEASE_TIME;
+import static net.zjitc.constants.RedissonConstant.DEFAULT_WAIT_TIME;
 import static net.zjitc.utils.StringUtils.stringJsonListToLongSet;
 
 /**
@@ -70,7 +74,10 @@ public class FriendsServiceImpl extends ServiceImpl<FriendsMapper, Friends>
      */
     @Override
     public boolean addFriendRecords(User loginUser, FriendAddRequest friendAddRequest) {
-        if (StringUtils.isNotBlank(friendAddRequest.getRemark()) && friendAddRequest.getRemark().length() > 120) {
+        if (StringUtils.isNotBlank(
+                friendAddRequest.getRemark())
+                &&
+                friendAddRequest.getRemark().length() > MAXIMUM_REMARK_LENGTH) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "申请备注最多120个字符");
         }
         if (ObjectUtils.anyNull(loginUser.getId(), friendAddRequest.getReceiveId())) {
@@ -83,7 +90,7 @@ public class FriendsServiceImpl extends ServiceImpl<FriendsMapper, Friends>
         RLock lock = redissonClient.getLock(APPLY_LOCK + loginUser.getId());
         try {
             // 抢到锁并执行
-            if (lock.tryLock(0, -1, TimeUnit.MILLISECONDS)) {
+            if (lock.tryLock(DEFAULT_WAIT_TIME, DEFAULT_LEASE_TIME, TimeUnit.MILLISECONDS)) {
                 // 2.条数大于等于1 就不能再添加
                 LambdaQueryWrapper<Friends> friendsLambdaQueryWrapper = new LambdaQueryWrapper<>();
                 friendsLambdaQueryWrapper.eq(Friends::getReceiveId, friendAddRequest.getReceiveId());
@@ -241,7 +248,7 @@ public class FriendsServiceImpl extends ServiceImpl<FriendsMapper, Friends>
         collect.forEach(friend -> {
             if (DateUtil.between(new Date(),
                     friend.getCreateTime(),
-                    DateUnit.DAY) >= 3 || friend.getStatus() == EXPIRED_STATUS) {
+                    DateUnit.DAY) >= MAXIMUM_APPLY_TIME || friend.getStatus() == EXPIRED_STATUS) {
                 throw new BusinessException(ErrorCode.PARAMS_ERROR, "该申请已过期");
             }
             // 1. 分别查询receiveId和fromId的用户，更改userIds中的数据

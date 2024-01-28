@@ -54,8 +54,12 @@ import static net.zjitc.constants.RedisConstants.USER_RECOMMEND_KEY;
 import static net.zjitc.constants.RedisConstants.USER_UPDATE_EMAIL_KEY;
 import static net.zjitc.constants.RedisConstants.USER_UPDATE_PHONE_KEY;
 import static net.zjitc.constants.SystemConstants.DEFAULT_CACHE_PAGE;
+import static net.zjitc.constants.SystemConstants.MAXIMUM_LOGIN_IDLE_TIME;
+import static net.zjitc.constants.SystemConstants.MINIMUM_ENABLE_RANDOM_USER_NUM;
 import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
 import static net.zjitc.constants.UserConstants.ADMIN_ROLE;
+import static net.zjitc.constants.UserConstants.MINIMUM_ACCOUNT_LEN;
+import static net.zjitc.constants.UserConstants.MINIMUM_PASSWORD_LEN;
 import static net.zjitc.constants.UserConstants.USER_LOGIN_STATE;
 
 /**
@@ -183,17 +187,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (StringUtils.isAnyBlank(userAccount, userPassword)) {
             return null;
         }
-        if (userAccount.length() < 4) {
+        if (userAccount.length() < MINIMUM_ACCOUNT_LEN) {
             return null;
         }
-        if (userPassword.length() < 8) {
+        if (userPassword.length() < MINIMUM_PASSWORD_LEN) {
             return null;
         }
         // 账户不能包含特殊字符
-        String validPattern = "[`~!@#$%^&*()+=|{}':;',\\\\[\\\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]";
+        String validPattern = "[^[a-zA-Z][a-zA-Z0-9_]{4,15}$]";
         Matcher matcher = Pattern.compile(validPattern).matcher(userAccount);
-        if (matcher.find()) {
-            return null;
+        if (!matcher.find()) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号非法");
         }
         // 2. 加密
         String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
@@ -214,12 +218,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User safetyUser = getSafetyUser(userInDatabase);
         // 4. 记录用户的登录态
         request.getSession().setAttribute(USER_LOGIN_STATE, safetyUser);
-        request.getSession().setMaxInactiveInterval(900);
+        request.getSession().setMaxInactiveInterval(MAXIMUM_LOGIN_IDLE_TIME);
         String token = UUID.randomUUID().toString(true);
         Gson gson = new Gson();
         String userStr = gson.toJson(safetyUser);
         stringRedisTemplate.opsForValue().set(LOGIN_USER_KEY + token, userStr);
-        stringRedisTemplate.expire(LOGIN_USER_KEY + token, Duration.ofMinutes(15));
+        stringRedisTemplate.expire(LOGIN_USER_KEY + token, Duration.ofSeconds(MAXIMUM_LOGIN_IDLE_TIME));
         return token;
     }
 
@@ -237,17 +241,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (StringUtils.isAnyBlank(userAccount, userPassword)) {
             return null;
         }
-        if (userAccount.length() < 4) {
+        if (userAccount.length() < MINIMUM_ACCOUNT_LEN) {
             return null;
         }
-        if (userPassword.length() < 8) {
+        if (userPassword.length() < MINIMUM_PASSWORD_LEN) {
             return null;
         }
         // 账户不能包含特殊字符
-        String validPattern = "[`~!@#$%^&*()+=|{}':;',\\\\[\\\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]";
+        String validPattern = "[^[a-zA-Z][a-zA-Z0-9_]{4,15}$]";
         Matcher matcher = Pattern.compile(validPattern).matcher(userAccount);
-        if (matcher.find()) {
-            return null;
+        if (!matcher.find()) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号非法");
         }
         // 2. 加密
         String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
@@ -271,12 +275,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User safetyUser = getSafetyUser(userInDatabase);
         // 4. 记录用户的登录态
         request.getSession().setAttribute(USER_LOGIN_STATE, safetyUser);
-        request.getSession().setMaxInactiveInterval(900);
+        request.getSession().setMaxInactiveInterval(MAXIMUM_LOGIN_IDLE_TIME);
         String token = UUID.randomUUID().toString(true);
         Gson gson = new Gson();
         String userStr = gson.toJson(safetyUser);
         stringRedisTemplate.opsForValue().set(LOGIN_USER_KEY + token, userStr);
-        stringRedisTemplate.expire(LOGIN_USER_KEY + token, Duration.ofMinutes(15));
+        stringRedisTemplate.expire(LOGIN_USER_KEY + token, Duration.ofSeconds(MAXIMUM_LOGIN_IDLE_TIME));
         return token;
     }
 
@@ -391,9 +395,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     public Page<UserVO> userPage(long currentPage) {
         Page<User> page = this.page(new Page<>(currentPage, PAGE_SIZE));
-        Page<UserVO> userVOPage = new Page<>();
-        BeanUtils.copyProperties(page, userVOPage);
-        return userVOPage;
+        Page<UserVO> userVoPage = new Page<>();
+        BeanUtils.copyProperties(page, userVoPage);
+        return userVoPage;
     }
 
     /**
@@ -416,7 +420,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User user = gson.fromJson(userStr, User.class);
         stringRedisTemplate.expire(LOGIN_USER_KEY + token, LOGIN_USER_TTL, TimeUnit.MINUTES);
         request.getSession().setAttribute(USER_LOGIN_STATE, user);
-        request.getSession().setMaxInactiveInterval(900);
+        request.getSession().setMaxInactiveInterval(MAXIMUM_LOGIN_IDLE_TIME);
         return user;
     }
 
@@ -432,53 +436,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return false;
         }
         Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
-        if (userObj == null) {
-            return false;
-        }
-        return true;
+        return userObj != null;
     }
-
-//    @Override
-//    public List<User> matchUsers(long num, User loginUser) {
-//        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-//        queryWrapper.select("id", "tags");
-//        queryWrapper.isNotNull("tags");
-//        List<User> userList = this.list(queryWrapper);
-//        String tags = loginUser.getTags();
-//        Gson gson = new Gson();
-//        List<String> tagList = gson.fromJson(tags, new TypeToken<List<String>>() {
-//        }.getType());
-//        // 用户列表的下标 => 相似度
-//        List<Pair<User, Long>> list = new ArrayList<>();
-//        // 依次计算所有用户和当前用户的相似度
-//        for (int i = 0; i < userList.size(); i++) {
-//            User user = userList.get(i);
-//            String userTags = user.getTags();
-//            // 无标签或者为当前用户自己
-//            if (StringUtils.isBlank(userTags) || Objects.equals(user.getId(), loginUser.getId())) {
-//                continue;
-//            }
-//            List<String> userTagList = gson.fromJson(userTags, new TypeToken<List<String>>() {
-//            }.getType());
-//            // 计算分数
-//            long distance = AlgorithmUtil.minDistance(tagList, userTagList);
-//            list.add(new Pair<>(user, distance));
-//        }
-//        // 按编辑距离由小到大排序
-//        List<Pair<User, Long>> topUserPairList = list.stream()
-//                .sorted((a, b) -> (int) (a.getValue() - b.getValue()))
-//                .limit(num)
-//                .collect(Collectors.toList());
-//        List<Long> userIdList = topUserPairList.stream()
-//        .map(pair -> pair.getKey().getId()).collect(Collectors.toList());
-//        String idStr = StringUtils.join(userIdList, ",");
-//        QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
-//        userQueryWrapper.in("id", userIdList).last("ORDER BY FIELD(id," + idStr + ")");
-//        return this.list(userQueryWrapper)
-//                .stream()
-//                .map(this::getSafetyUser)
-//                .collect(Collectors.toList());
-//    }
 
     /**
      * 火柴用户
@@ -502,8 +461,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 用户列表的下标 => 相似度
         List<Pair<User, Long>> list = new ArrayList<>();
         // 依次计算所有用户和当前用户的相似度
-        for (int i = 0; i < userList.size(); i++) {
-            User user = userList.get(i);
+        for (User user : userList) {
             String userTags = user.getTags();
             // 无标签或者为当前用户自己
             if (StringUtils.isBlank(userTags) || Objects.equals(user.getId(), loginUser.getId())) {
@@ -525,7 +483,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         int end = (int) (((currentPage - 1) * PAGE_SIZE) + PAGE_SIZE) - 1;
         if (topUserPairList.size() < end) {
             //剩余数量
-            int temp = (int) (topUserPairList.size() - begin);
+            int temp = topUserPairList.size() - begin;
             if (temp <= 0) {
                 return new Page<>();
             }
@@ -637,15 +595,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (!correctCode.equals(updateRequest.getCode())) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "验证码错误");
         }
+        LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
         if (isPhone) {
-            LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
             userLambdaQueryWrapper.eq(User::getPhone, updateRequest.getPhone());
             User user = this.getOne(userLambdaQueryWrapper);
             if (user != null) {
                 throw new BusinessException(ErrorCode.PARAMS_ERROR, "该手机号已被绑定");
             }
         } else {
-            LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
             userLambdaQueryWrapper.eq(User::getEmail, updateRequest.getEmail());
             User user = this.getOne(userLambdaQueryWrapper);
             if (user != null) {
@@ -744,17 +701,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                     return userVOPage;
                 }
             } else {
-                Page<UserVO> userVOPage = this.matchUser(currentPage, loginUser);
-                String userVOPageStr = gson.toJson(userVOPage);
-                stringRedisTemplate.opsForValue().set(key, userVOPageStr);
-                return userVOPage;
+                Page<UserVO> userVoPage = this.matchUser(currentPage, loginUser);
+                String userVoPageStr = gson.toJson(userVoPage);
+                stringRedisTemplate.opsForValue().set(key, userVoPageStr);
+                return userVoPage;
             }
         } else {
             if (StringUtils.isNotBlank(username)) {
                 throw new BusinessException(ErrorCode.NOT_LOGIN);
             }
             long userNum = this.count();
-            if (userNum <= 10) {
+            if (userNum <= MINIMUM_ENABLE_RANDOM_USER_NUM) {
                 Page<User> userPage = this.page(new Page<>(currentPage, PAGE_SIZE));
                 List<UserVO> userVOList = userPage.getRecords().stream().map((user) -> {
                     UserVO userVO = new UserVO();
@@ -789,10 +746,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (StringUtils.isAnyBlank(phone, code, account, password, checkPassword)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
         }
-        if (account.length() < 4) {
+        if (account.length() < MINIMUM_ACCOUNT_LEN) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户账号过短");
         }
-        if (password.length() < 8 || checkPassword.length() < 8) {
+        if (password.length() < MINIMUM_PASSWORD_LEN || checkPassword.length() < MINIMUM_PASSWORD_LEN) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户密码过短");
         }
     }
@@ -837,10 +794,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * @param account 账户
      */
     private void checkAccountValid(String account) {
-        String validPattern = "[`~!@#$%^&*()+=|{}':;',\\\\[\\\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]";
+        String validPattern = "[^[a-zA-Z][a-zA-Z0-9_]{4,15}$]";
         Matcher matcher = Pattern.compile(validPattern).matcher(account);
-        if (matcher.find()) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户名包含特殊字符");
+        if (!matcher.find()) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号非法");
         }
     }
 
@@ -917,9 +874,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         Gson gson = new Gson();
         String userStr = gson.toJson(safetyUser);
         request.getSession().setAttribute(USER_LOGIN_STATE, safetyUser);
-        request.getSession().setMaxInactiveInterval(900);
+        request.getSession().setMaxInactiveInterval(MAXIMUM_LOGIN_IDLE_TIME);
         stringRedisTemplate.opsForValue().set(LOGIN_USER_KEY + token, userStr);
-        stringRedisTemplate.expire(LOGIN_USER_KEY + token, Duration.ofMinutes(15));
+        stringRedisTemplate.expire(LOGIN_USER_KEY + token, Duration.ofSeconds(MAXIMUM_LOGIN_IDLE_TIME));
         return token;
     }
 

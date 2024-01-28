@@ -106,7 +106,7 @@ public class UserController {
         if (StringUtils.isBlank(phone)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        Integer code = ValidateCodeUtils.generateValidateCode(6);
+        Integer code = ValidateCodeUtils.generateValidateCode();
         String key = REGISTER_CODE_KEY + phone;
         stringRedisTemplate.opsForValue().set(key, String.valueOf(code), REGISTER_CODE_TTL, TimeUnit.MINUTES);
         MessageUtils.sendMessage(phone, String.valueOf(code));
@@ -133,7 +133,7 @@ public class UserController {
         if (StringUtils.isBlank(phone)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        Integer code = ValidateCodeUtils.generateValidateCode(6);
+        Integer code = ValidateCodeUtils.generateValidateCode();
         String key = USER_UPDATE_PHONE_KEY + phone;
         stringRedisTemplate.opsForValue().set(key, String.valueOf(code), USER_UPDATE_PHONE_TTL, TimeUnit.MINUTES);
         MessageUtils.sendMessage(phone, String.valueOf(code));
@@ -162,7 +162,7 @@ public class UserController {
         if (StringUtils.isBlank(email)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        Integer code = ValidateCodeUtils.generateValidateCode(6);
+        Integer code = ValidateCodeUtils.generateValidateCode();
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
         mimeMessageHelper.setFrom(new InternetAddress("SUPER <" + userFrom + ">"));
@@ -307,7 +307,7 @@ public class UserController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "该手机号未绑定账号");
         } else {
             String key = USER_FORGET_PASSWORD_KEY + phone;
-            Integer code = ValidateCodeUtils.generateValidateCode(4);
+            Integer code = ValidateCodeUtils.generateValidateCode();
             MessageUtils.sendMessage(phone, String.valueOf(code));
             stringRedisTemplate.opsForValue().set(key,
                     String.valueOf(code),
@@ -435,6 +435,13 @@ public class UserController {
         return ResultUtils.success(b);
     }
 
+    /**
+     * 封禁用户
+     *
+     * @param id      用户ID
+     * @param request 请求
+     * @return {@link BaseResponse}<{@link Long}>
+     */
     @GetMapping("/ban")
     @ApiOperation(value = "封禁")
     @ApiImplicitParams(

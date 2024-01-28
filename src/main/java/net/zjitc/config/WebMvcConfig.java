@@ -10,6 +10,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
+import static net.zjitc.constants.SystemConstants.CROSS_ORIGIN_ALLOWED_TIME;
+
 /**
  * web mvc配置
  *
@@ -50,6 +52,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 //设置允许的方法
                 .allowedMethods("*")
                 //跨域允许时间
-                .maxAge(3600);
+                .maxAge(CROSS_ORIGIN_ALLOWED_TIME);
     }
 }

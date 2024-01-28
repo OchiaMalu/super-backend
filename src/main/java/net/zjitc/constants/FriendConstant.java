@@ -36,4 +36,12 @@ public final class FriendConstant {
      * 已读
      */
     public static final int READ = 1;
+    /**
+     * 最大备注长度
+     */
+    public static final int MAXIMUM_REMARK_LENGTH = 120;
+    /**
+     * 最长申请时间
+     */
+    public static final int MAXIMUM_APPLY_TIME = 3;
 }

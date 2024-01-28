@@ -19,6 +19,9 @@ import javax.annotation.Resource;
 import java.util.List;
 
 import static net.zjitc.constants.BloomFilterConstants.BLOG_BLOOM_PREFIX;
+import static net.zjitc.constants.BloomFilterConstants.EXPECTED_INCLUSION_RECORD;
+import static net.zjitc.constants.BloomFilterConstants.HASH_FUNCTION_NUMBER;
+import static net.zjitc.constants.BloomFilterConstants.PRE_OPENED_MAXIMUM_INCLUSION_RECORD;
 import static net.zjitc.constants.BloomFilterConstants.TEAM_BLOOM_PREFIX;
 import static net.zjitc.constants.BloomFilterConstants.USER_BLOOM_PREFIX;
 
@@ -68,7 +71,11 @@ public class StartupListener implements CommandLineRunner {
      */
     @Bean
     public BloomFilter initBloomFilter() {
-        BitSetBloomFilter bloomFilter = BloomFilterUtil.createBitSet(2000000, 1500000, 2);
+        BitSetBloomFilter bloomFilter = BloomFilterUtil.createBitSet(
+                PRE_OPENED_MAXIMUM_INCLUSION_RECORD,
+                EXPECTED_INCLUSION_RECORD,
+                HASH_FUNCTION_NUMBER
+        );
         List<User> userList = userService.list(null);
         for (User user : userList) {
             bloomFilter.add(USER_BLOOM_PREFIX + user.getId());

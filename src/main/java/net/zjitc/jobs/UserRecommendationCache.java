@@ -31,6 +31,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static net.zjitc.constants.RedisConstants.USER_RECOMMEND_KEY;
+import static net.zjitc.constants.RedissonConstant.DEFAULT_LEASE_TIME;
+import static net.zjitc.constants.RedissonConstant.DEFAULT_WAIT_TIME;
 import static net.zjitc.constants.RedissonConstant.USER_RECOMMEND_LOCK;
 import static net.zjitc.constants.SystemConstants.DEFAULT_CACHE_PAGE;
 import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
@@ -82,7 +84,7 @@ public class UserRecommendationCache extends QuartzJobBean {
     protected void executeInternal(@NonNull JobExecutionContext context) throws JobExecutionException {
         RLock lock = redissonClient.getLock(USER_RECOMMEND_LOCK);
         try {
-            if (lock.tryLock(0, -1, TimeUnit.MICROSECONDS)) {
+            if (lock.tryLock(DEFAULT_WAIT_TIME, DEFAULT_LEASE_TIME, TimeUnit.MICROSECONDS)) {
                 log.info("开始用户缓存");
                 long begin = System.currentTimeMillis();
                 userList = userService.list();
