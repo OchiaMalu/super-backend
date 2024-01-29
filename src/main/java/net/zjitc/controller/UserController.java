@@ -477,9 +477,14 @@ public class UserController {
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "tagNameList", value = "标签列表")})
     public BaseResponse<Page<User>> searchUsersByTags(@RequestParam(required = false) List<String> tagNameList,
-                                                      long currentPage) {
+                                                      long currentPage,
+                                                      HttpServletRequest request) {
         if (CollectionUtils.isEmpty(tagNameList)) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "标签不能为空");
+        }
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
         Page<User> userList = userService.searchUsersByTags(tagNameList, currentPage);
         return ResultUtils.success(userList);
