@@ -119,7 +119,9 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow>
         List<User> userList = followPage.getRecords().stream()
                 .map((follow -> userService.getById(follow.getUserId())))
                 .filter(Objects::nonNull).collect(Collectors.toList());
-        List<UserVO> userVOList = userList.stream().map((user) -> this.getUserFollowInfo(user, userId)).collect(Collectors.toList());
+        List<UserVO> userVOList = userList.stream()
+                .map((user) -> this.getUserFollowInfo(user, userId))
+                .collect(Collectors.toList());
         userVoPage.setRecords(userVOList);
         return userVoPage;
     }

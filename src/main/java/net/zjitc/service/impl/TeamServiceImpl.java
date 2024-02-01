@@ -528,7 +528,9 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
         userLambdaQueryWrapper.in(User::getId, userIdList);
         List<User> userList = userService.list(userLambdaQueryWrapper);
-        return userList.stream().map((user) -> followService.getUserFollowInfo(user, userId)).collect(Collectors.toList());
+        return userList.stream()
+                .map((user) -> followService.getUserFollowInfo(user, userId))
+                .collect(Collectors.toList());
     }
 
     /**
