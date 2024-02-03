@@ -466,10 +466,11 @@ public class UserController {
     }
 
     /**
-     * 搜索用户标签
+     * 按标签搜索用户
      *
      * @param tagNameList 标记名称列表
      * @param currentPage 当前页面
+     * @param request     要求
      * @return {@link BaseResponse}<{@link Page}<{@link User}>>
      */
     @GetMapping("/search/tags")

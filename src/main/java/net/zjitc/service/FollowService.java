@@ -63,7 +63,8 @@ public interface FollowService extends IService<Follow> {
     /**
      * 获取用户关注信息
      *
-     * @param user 用户
+     * @param user   用户
+     * @param userId 用户id
      * @return {@link UserVO}
      */
     UserVO getUserFollowInfo(User user, long userId);
