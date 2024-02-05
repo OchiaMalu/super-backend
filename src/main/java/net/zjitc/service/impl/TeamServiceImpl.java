@@ -44,6 +44,7 @@ import java.util.stream.Collectors;
 import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
 import static net.zjitc.constants.TeamConstants.MAXIMUM_DESCRIPTION_LEN;
 import static net.zjitc.constants.TeamConstants.MAXIMUM_JOINED_TEAM;
+import static net.zjitc.constants.TeamConstants.MAXIMUM_JOINED_USER_AVATAR_NUM;
 import static net.zjitc.constants.TeamConstants.MAXIMUM_MEMBER_NUM;
 import static net.zjitc.constants.TeamConstants.MAXIMUM_PASSWORD_LEN;
 import static net.zjitc.constants.TeamConstants.MAXIMUM_TEAM_NUM;
@@ -621,6 +622,24 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         BeanUtils.copyProperties(teamPage, teamVOPage);
         teamVOPage.setRecords(teamVOList);
         return teamVOPage;
+    }
+
+    @Override
+    public Page<TeamVO> getJoinedUserAvatar(Page<TeamVO> teamVoPage) {
+        teamVoPage.getRecords().forEach((item) -> {
+            Long teamId = item.getId();
+            LambdaQueryWrapper<UserTeam> userTeamLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            userTeamLambdaQueryWrapper.eq(UserTeam::getTeamId, teamId);
+            List<Long> joinedUserIdList = userTeamService.list(userTeamLambdaQueryWrapper)
+                    .stream().map((UserTeam::getUserId))
+                    .limit(MAXIMUM_JOINED_USER_AVATAR_NUM)
+                    .collect(Collectors.toList());
+            List<String> joinedUserAvatarList = userService.listByIds(joinedUserIdList)
+                    .stream().map((User::getAvatarUrl))
+                    .collect(Collectors.toList());
+            item.setJoinedUserAvatars(joinedUserAvatarList);
+        });
+        return teamVoPage;
     }
 
 

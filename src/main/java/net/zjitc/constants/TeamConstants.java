@@ -35,4 +35,9 @@ public final class TeamConstants {
      * 最大加入团队
      */
     public static final int MAXIMUM_JOINED_TEAM = 5;
+
+    /**
+     * 队伍卡片显示已加入队员头像的最大数量
+     */
+    public static final int MAXIMUM_JOINED_USER_AVATAR_NUM = 3;
 }

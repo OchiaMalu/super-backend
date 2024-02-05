@@ -167,7 +167,8 @@ public class TeamController {
         }
         User loginUser = userService.getLoginUser(request);
         Page<TeamVO> teamVoPage = teamService.listTeams(currentPage, teamQueryRequest, userService.isAdmin(loginUser));
-        Page<TeamVO> finalPage = getTeamHasJoinNum(teamVoPage);
+        Page<TeamVO> teamVoPageWithAvatar = teamService.getJoinedUserAvatar(teamVoPage);
+        Page<TeamVO> finalPage = getTeamHasJoinNum(teamVoPageWithAvatar);
         return getUserJoinedList(loginUser, finalPage);
     }
 
@@ -378,7 +379,7 @@ public class TeamController {
      * 踢出队员
      *
      * @param teamKickOutRequest 踢出队员请求
-     * @param request                请求
+     * @param request            请求
      * @return {@link BaseResponse}<{@link String}>
      */
     @PostMapping("/kick")

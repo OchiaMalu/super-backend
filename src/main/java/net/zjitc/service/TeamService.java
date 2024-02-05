@@ -146,4 +146,13 @@ public interface TeamService extends IService<Team> {
      * @return {@link Page}<{@link TeamVO}>
      */
     Page<TeamVO> listMyCreate(long currentPage, Long userId);
+
+    /**
+     * 获取已加入队员头像
+     *
+     * @param teamVoPage 团队vo分页
+     * @return {@link Page}<{@link TeamVO}>
+     */
+    Page<TeamVO> getJoinedUserAvatar(Page<TeamVO> teamVoPage);
+
 }

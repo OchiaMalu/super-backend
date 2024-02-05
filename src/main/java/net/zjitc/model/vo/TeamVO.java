@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 团队签证官
@@ -96,4 +97,5 @@ public class TeamVO implements Serializable {
     @ApiModelProperty(value = "是否已加入队伍")
     private boolean hasJoin = false;
 
+    private List<String> joinedUserAvatars;
 }
