@@ -304,7 +304,7 @@ public class WebSocket {
         ChatMessageVO chatMessageVo = new ChatMessageVO();
         WebSocketVO fromWebSocketVO = new WebSocketVO();
         BeanUtils.copyProperties(user, fromWebSocketVO);
-        chatMessageVo.setFormUser(fromWebSocketVO);
+        chatMessageVo.setFromUser(fromWebSocketVO);
         chatMessageVo.setText(text);
         chatMessageVo.setTeamId(team.getId());
         chatMessageVo.setChatType(chatType);
@@ -337,7 +337,7 @@ public class WebSocket {
         ChatMessageVO chatMessageVo = new ChatMessageVO();
         WebSocketVO fromWebSocketVO = new WebSocketVO();
         BeanUtils.copyProperties(user, fromWebSocketVO);
-        chatMessageVo.setFormUser(fromWebSocketVO);
+        chatMessageVo.setFromUser(fromWebSocketVO);
         chatMessageVo.setText(text);
         chatMessageVo.setChatType(chatType);
         chatMessageVo.setCreateTime(DateUtil.format(new Date(), "yyyy年MM月dd日 HH:mm:ss"));

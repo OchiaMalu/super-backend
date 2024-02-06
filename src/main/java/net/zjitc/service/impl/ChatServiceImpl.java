@@ -158,7 +158,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         User fromUser = userService.getById(userId);
         WebSocketVO fromWebSocketVo = new WebSocketVO();
         BeanUtils.copyProperties(fromUser, fromWebSocketVo);
-        chatMessageVo.setFormUser(fromWebSocketVo);
+        chatMessageVo.setFromUser(fromWebSocketVo);
         chatMessageVo.setText(text);
         return chatMessageVo;
     }
@@ -182,7 +182,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         WebSocketVO toWebSocketVo = new WebSocketVO();
         BeanUtils.copyProperties(fromUser, fromWebSocketVo);
         BeanUtils.copyProperties(toUser, toWebSocketVo);
-        chatMessageVo.setFormUser(fromWebSocketVo);
+        chatMessageVo.setFromUser(fromWebSocketVo);
         chatMessageVo.setToUser(toWebSocketVo);
         chatMessageVo.setChatType(chatType);
         chatMessageVo.setText(text);
@@ -264,10 +264,10 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
      */
     private List<ChatMessageVO> checkIsMyMessage(User loginUser, List<ChatMessageVO> chatRecords) {
         return chatRecords.stream().peek(chat -> {
-            if (chat.getFormUser().getId() != loginUser.getId() && chat.getIsMy()) {
+            if (chat.getFromUser().getId() != loginUser.getId() && chat.getIsMy()) {
                 chat.setIsMy(false);
             }
-            if (chat.getFormUser().getId() == loginUser.getId() && !chat.getIsMy()) {
+            if (chat.getFromUser().getId() == loginUser.getId() && !chat.getIsMy()) {
                 chat.setIsMy(true);
             }
         }).collect(Collectors.toList());

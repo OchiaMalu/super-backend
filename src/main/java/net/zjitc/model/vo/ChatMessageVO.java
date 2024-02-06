@@ -23,7 +23,7 @@ public class ChatMessageVO implements Serializable {
      * 形式用户
      */
     @ApiModelProperty(value = "发送id")
-    private WebSocketVO formUser;
+    private WebSocketVO fromUser;
     /**
      * 用户
      */
