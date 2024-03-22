@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -287,9 +288,11 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
             UserVO userVO = new UserVO();
             BeanUtils.copyProperties(user, userVO);
             blogCommentsVO.setCommentUser(userVO);
-
             Long blogId = blogCommentsVO.getBlogId();
             Blog blog = blogService.getById(blogId);
+            if (blog == null) {
+                return null;
+            }
             BlogVO blogVO = new BlogVO();
             BeanUtils.copyProperties(blog, blogVO);
             String images = blogVO.getImages();
@@ -304,15 +307,13 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
             UserVO authorVO = new UserVO();
             BeanUtils.copyProperties(author, authorVO);
             blogVO.setAuthor(authorVO);
-
             blogCommentsVO.setBlog(blogVO);
-
             LambdaQueryWrapper<CommentLike> commentLikeLambdaQueryWrapper = new LambdaQueryWrapper<>();
             commentLikeLambdaQueryWrapper.eq(CommentLike::getUserId, id).eq(CommentLike::getCommentId, item.getId());
             long count = commentLikeService.count(commentLikeLambdaQueryWrapper);
             blogCommentsVO.setIsLiked(count > 0);
             return blogCommentsVO;
-        }).collect(Collectors.toList());
+        }).filter(Objects::nonNull).collect(Collectors.toList());
         blogCommentsVoPage.setRecords(blogCommentsVOList);
         return blogCommentsVoPage;
     }
