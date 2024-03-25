@@ -226,7 +226,8 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
                     .like(StringUtils.isNotBlank(description), Team::getDescription, description)
                     .eq(maxNum != null && maxNum > 0, Team::getMaxNum, maxNum)
                     .eq(userId != null && userId > 0, Team::getUserId, userId)
-                    .eq(Team::getStatus, statusEnum.getValue());
+                    .eq(Team::getStatus, statusEnum.getValue())
+                    .orderBy(true, false, Team::getCreateTime);
         }
         // 不展示已过期的队伍
         teamLambdaQueryWrapper.and(qw -> qw.gt(Team::getExpireTime, new Date()).or().isNull(Team::getExpireTime));
