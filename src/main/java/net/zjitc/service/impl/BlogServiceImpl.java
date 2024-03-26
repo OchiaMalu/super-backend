@@ -17,6 +17,7 @@ import net.zjitc.model.request.BlogAddRequest;
 import net.zjitc.model.request.BlogUpdateRequest;
 import net.zjitc.model.vo.BlogVO;
 import net.zjitc.model.vo.UserVO;
+import net.zjitc.properties.SuperProperties;
 import net.zjitc.service.BlogLikeService;
 import net.zjitc.service.BlogService;
 import net.zjitc.service.FollowService;
@@ -45,7 +46,6 @@ import static net.zjitc.constants.RedissonConstant.BLOG_LIKE_LOCK;
 import static net.zjitc.constants.RedissonConstant.DEFAULT_LEASE_TIME;
 import static net.zjitc.constants.RedissonConstant.DEFAULT_WAIT_TIME;
 import static net.zjitc.constants.SystemConstants.PAGE_SIZE;
-import static net.zjitc.constants.SystemConstants.PROTOCOL_LENGTH;
 
 /**
  * @author OchiaMalu
@@ -74,8 +74,17 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
     @Resource
     private RedissonClient redissonClient;
 
+    @Resource
+    private SuperProperties superProperties;
+
     @Value("${super.qiniu.url:null}")
     private String qiniuUrl;
+
+    @Value("${server.servlet.session.cookie.domain}")
+    private String host;
+
+    @Value("${server.port}")
+    private String port;
 
     @Override
     public Long addBlog(BlogAddRequest blogAddRequest, User loginUser) {
@@ -84,9 +93,16 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
         try {
             MultipartFile[] images = blogAddRequest.getImages();
             if (images != null) {
-                for (MultipartFile image : images) {
-                    String filename = FileUtils.uploadFile(image);
-                    imageNameList.add(filename);
+                if (superProperties.isUseLocalStorage()) {
+                    for (MultipartFile image : images) {
+                        String filename = FileUtils.uploadFile2Local(image);
+                        imageNameList.add(filename);
+                    }
+                } else {
+                    for (MultipartFile image : images) {
+                        String filename = FileUtils.uploadFile2Cloud(image);
+                        imageNameList.add(filename);
+                    }
                 }
                 String imageStr = StringUtils.join(imageNameList, ",");
                 blog.setImages(imageStr);
@@ -132,15 +148,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
             BeanUtils.copyProperties(blog, blogVO);
             return blogVO;
         }).collect(Collectors.toList());
-        for (BlogVO blogVO : blogVOList) {
-            String images = blogVO.getImages();
-            if (images == null) {
-                continue;
-            }
-            String[] imgStr = images.split(",");
-            blogVO.setCoverImage(qiniuUrl + imgStr[0]);
-        }
-        blogVoPage.setRecords(blogVOList);
+        List<BlogVO> blogWithCoverImg = getCoverImg(blogVOList);
+        blogVoPage.setRecords(blogWithCoverImg);
         return blogVoPage;
     }
 
@@ -249,15 +258,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
             }
             return blogVO;
         }).collect(Collectors.toList());
-        for (BlogVO blogVO : blogVOList) {
-            String images = blogVO.getImages();
-            if (images == null) {
-                continue;
-            }
-            String[] imgStrs = images.split(",");
-            blogVO.setCoverImage(qiniuUrl + imgStrs[0]);
-        }
-        blogVoPage.setRecords(blogVOList);
+        List<BlogVO> blogWithCoverImg = getCoverImg(blogVOList);
+        blogVoPage.setRecords(blogWithCoverImg);
         return blogVoPage;
     }
 
@@ -292,7 +294,12 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
         String[] imgStrs = images.split(",");
         ArrayList<String> imgStrList = new ArrayList<>();
         for (String imgStr : imgStrs) {
-            imgStrList.add(qiniuUrl + imgStr);
+            if (superProperties.isUseLocalStorage()) {
+                String fileUrl = "http://" + host + ":" + port + "/api/common/image/" + imgStr;
+                imgStrList.add(fileUrl);
+            } else {
+                imgStrList.add(qiniuUrl + imgStr);
+            }
         }
         String imgStr = StringUtils.join(imgStrList, ",");
         blogVO.setImages(imgStr);
@@ -334,15 +341,22 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
             String imgStr = blogUpdateRequest.getImgStr();
             String[] imgs = imgStr.split(",");
             for (String img : imgs) {
-                String fileName = img.substring(img.indexOf("/", PROTOCOL_LENGTH) + 1);
+                String fileName = img.substring(img.lastIndexOf("/") + 1);
                 imageNameList.add(fileName);
             }
         }
         if (blogUpdateRequest.getImages() != null) {
             MultipartFile[] images = blogUpdateRequest.getImages();
-            for (MultipartFile image : images) {
-                String filename = FileUtils.uploadFile(image);
-                imageNameList.add(filename);
+            if (superProperties.isUseLocalStorage()) {
+                for (MultipartFile image : images) {
+                    String filename = FileUtils.uploadFile2Local(image);
+                    imageNameList.add(filename);
+                }
+            } else {
+                for (MultipartFile image : images) {
+                    String filename = FileUtils.uploadFile2Cloud(image);
+                    imageNameList.add(filename);
+                }
             }
         }
         if (!imageNameList.isEmpty()) {
@@ -352,6 +366,29 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
         blog.setTitle(blogUpdateRequest.getTitle());
         blog.setContent(blogUpdateRequest.getContent());
         this.updateById(blog);
+    }
+
+    /**
+     * 获取封面img
+     *
+     * @param blogVOList 博客volist
+     * @return {@link List}<{@link BlogVO}>
+     */
+    private List<BlogVO> getCoverImg(List<BlogVO> blogVOList) {
+        for (BlogVO blogVO : blogVOList) {
+            String images = blogVO.getImages();
+            if (images == null) {
+                continue;
+            }
+            String[] imgStr = images.split(",");
+            if (superProperties.isUseLocalStorage()) {
+                String fileUrl = "http://" + host + ":" + port + "/api/common/image/" + imgStr[0];
+                blogVO.setCoverImage(fileUrl);
+            } else {
+                blogVO.setCoverImage(qiniuUrl + imgStr[0]);
+            }
+        }
+        return blogVOList;
     }
 }
 

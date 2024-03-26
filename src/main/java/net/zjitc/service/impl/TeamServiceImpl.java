@@ -20,6 +20,7 @@ import net.zjitc.model.request.TeamQuitRequest;
 import net.zjitc.model.request.TeamUpdateRequest;
 import net.zjitc.model.vo.TeamVO;
 import net.zjitc.model.vo.UserVO;
+import net.zjitc.properties.SuperProperties;
 import net.zjitc.service.FollowService;
 import net.zjitc.service.TeamService;
 import net.zjitc.service.UserService;
@@ -80,6 +81,15 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
 
     @Value("${super.qiniu.url:null}")
     private String qiniuUrl;
+
+    @Resource
+    private SuperProperties superProperties;
+
+    @Value("${server.servlet.session.cookie.domain}")
+    private String host;
+
+    @Value("${server.port}")
+    private String port;
 
     /**
      * 加入团队
@@ -587,11 +597,20 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         if (!team.getUserId().equals(userId) && !admin) {
             throw new BusinessException(ErrorCode.NO_AUTH);
         }
-        String fileName = FileUtils.uploadFile(image);
-        Team temp = new Team();
-        temp.setId(team.getId());
-        temp.setCoverImage(qiniuUrl + fileName);
-        this.updateById(temp);
+        if (superProperties.isUseLocalStorage()) {
+            String fileName = FileUtils.uploadFile2Local(image);
+            String fileUrl = "http://" + host + ":" + port + "/api/common/image/" + fileName;
+            Team temp = new Team();
+            temp.setId(team.getId());
+            temp.setCoverImage(fileUrl);
+            this.updateById(temp);
+        } else {
+            String fileName = FileUtils.uploadFile2Cloud(image);
+            Team temp = new Team();
+            temp.setId(team.getId());
+            temp.setCoverImage(qiniuUrl + fileName);
+            this.updateById(temp);
+        }
     }
 
     @Override

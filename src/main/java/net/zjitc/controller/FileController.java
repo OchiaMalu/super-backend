@@ -9,11 +9,13 @@ import net.zjitc.common.ErrorCode;
 import net.zjitc.common.ResultUtils;
 import net.zjitc.exception.BusinessException;
 import net.zjitc.model.domain.User;
+import net.zjitc.properties.SuperProperties;
 import net.zjitc.service.UserService;
 import net.zjitc.utils.FileUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -54,8 +56,17 @@ public class FileController {
     @Resource
     private UserService userService;
 
+    @Resource
+    private SuperProperties superProperties;
+
     @Value("${super.qiniu.url:null}")
     private String qiniuUrl;
+
+    @Value("${server.servlet.session.cookie.domain}")
+    private String host;
+
+    @Value("${server.port}")
+    private String port;
 
     /**
      * 上传
@@ -77,16 +88,29 @@ public class FileController {
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN, "请登录");
         }
-        String filename = FileUtils.uploadFile(file);
-        String fileUrl = qiniuUrl + filename;
-        User user = new User();
-        user.setId(loginUser.getId());
-        user.setAvatarUrl(fileUrl);
-        boolean success = userService.updateById(user);
-        if (!success) {
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "头像上传失败");
+        if (superProperties.isUseLocalStorage()) {
+            String fileName = FileUtils.uploadFile2Local(file);
+            String fileUrl = "http://" + host + ":" + port + "/api/common/image/" + fileName;
+            User user = new User();
+            user.setId(loginUser.getId());
+            user.setAvatarUrl(fileUrl);
+            boolean success = userService.updateById(user);
+            if (!success) {
+                throw new BusinessException(ErrorCode.SYSTEM_ERROR, "头像上传失败");
+            }
+            return ResultUtils.success(fileUrl);
+        } else {
+            String filename = FileUtils.uploadFile2Cloud(file);
+            String fileUrl = qiniuUrl + filename;
+            User user = new User();
+            user.setId(loginUser.getId());
+            user.setAvatarUrl(fileUrl);
+            boolean success = userService.updateById(user);
+            if (!success) {
+                throw new BusinessException(ErrorCode.SYSTEM_ERROR, "头像上传失败");
+            }
+            return ResultUtils.success(fileUrl);
         }
-        return ResultUtils.success(fileUrl);
     }
 
     /**
@@ -95,12 +119,12 @@ public class FileController {
      * @param name     名字
      * @param response 响应
      */
-    @GetMapping("/download")
+    @GetMapping("/image/{name}")
     @ApiOperation(value = "文件下载")
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "name", value = "文件名"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
-    public void download(String name, HttpServletResponse response) {
+    public void download(@PathVariable String name, HttpServletResponse response) {
         try {
             //获取指定文件
             File img = new File(System.getProperty("user.dir") + basePath + name);

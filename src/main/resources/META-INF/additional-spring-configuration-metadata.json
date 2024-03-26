@@ -25,6 +25,19 @@
           "description": "禁用"
         }
       ]
+    },
+    {
+      "name": "super.use-local-storage",
+      "values": [
+        {
+          "value": true,
+          "description": "启用"
+        },
+        {
+          "value": false,
+          "description": "禁用"
+        }
+      ]
     }
   ]
 }

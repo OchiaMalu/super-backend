@@ -27,5 +27,13 @@ public class SuperProperties {
      */
     private boolean enableBloomFilter = false;
 
+    /**
+     * 使用真实短信服务
+     */
     private boolean useShortMessagingService = false;
+
+    /**
+     * 使用图片本地存储
+     */
+    private boolean useLocalStorage = true;
 }
