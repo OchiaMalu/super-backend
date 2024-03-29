@@ -2,7 +2,7 @@
 <img src="doc/images/main.png" alt="image-20230623213937364" style="zoom:50%;" align="center" />
 </p>
 <p align=center>
-   SUPER速配-伙伴匹配系统
+   SUPER速配-用户匹配系统
 </p>
 <p align="center">
 <a target="_blank" href="https://gitee.com/ochiamaluo/super-backend">
@@ -37,7 +37,7 @@ https://gitee.com/ochiamaluo/super-frontend/tree/master/super-admin
 
 ## 在线体验
 
-演示地址: http://ochiamalu.xyz
+演示地址: http://ochiamalu.top
 
 账号可以自行注册，一切聊天、评论需遵守中华人民共和国有关法律规定。
 
@@ -94,7 +94,7 @@ https://gitee.com/ochiamaluo/super-frontend/tree/master/super-admin
 
 ## 项目文档
 
-文档地址： http://doc.ochiamalu.xyz/
+文档地址： http://doc.ochiamalu.top/
 
 ## 项目地址
 
@@ -157,11 +157,10 @@ https://gitee.com/ochiamaluo/super-frontend/tree/master/super-admin
    maven install
    ```
 
-2. 修改application.xml，其中spring.mail为非必填项，不填写则无法发送邮件
-3. 修改SMSUtils配置，若不修改则无法发送验证码短信，可通过控制台输出的方式获取生成的验证码。
+2. 修改application.xml，详细配置信息请见项目文档
 
-4. 新建super数据库，并执行super.sql
-5. 运行SuperApplication
+3. 新建super数据库，并执行super.sql
+4. 运行SuperApplication
 
 ## 贡献代码
 
