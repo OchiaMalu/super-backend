@@ -20,6 +20,7 @@ import net.zjitc.model.domain.User;
 import net.zjitc.model.request.UserRegisterRequest;
 import net.zjitc.model.request.UserUpdateRequest;
 import net.zjitc.model.vo.UserVO;
+import net.zjitc.properties.SuperProperties;
 import net.zjitc.service.FollowService;
 import net.zjitc.service.UserService;
 import net.zjitc.utils.AlgorithmUtil;
@@ -688,6 +689,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return userVOPage;
     }
 
+    @Resource
+    private SuperProperties superProperties;
+
     /**
      * 之前火柴用户
      *
@@ -706,15 +710,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             if (StringUtils.isNotBlank(username)) { // 填写了用户名,模糊查询
                 userVOPage = getUserPageByUsername(currentPage, username, loginUser);
             } else { // 没有填写用户名,正常匹配
-                Boolean hasKey = stringRedisTemplate.hasKey(key);
-                if (Boolean.TRUE.equals(hasKey)) { // 存在缓存
-                    String userVOPageStr = stringRedisTemplate.opsForValue().get(key);
-                    userVOPage = gson.fromJson(userVOPageStr, new TypeToken<Page<UserVO>>() {
-                    }.getType());
-                } else { // 不存在缓存,匹配后加入缓存
+                if (superProperties.isEnableCache()) {
+                    Boolean hasKey = stringRedisTemplate.hasKey(key);
+                    if (Boolean.TRUE.equals(hasKey)) { // 存在缓存
+                        String userVOPageStr = stringRedisTemplate.opsForValue().get(key);
+                        userVOPage = gson.fromJson(userVOPageStr, new TypeToken<Page<UserVO>>() {
+                        }.getType());
+                    } else { // 不存在缓存,匹配后加入缓存
+                        userVOPage = this.matchUser(currentPage, loginUser);
+                        String userVOPageStr = gson.toJson(userVOPage);
+                        stringRedisTemplate.opsForValue().set(key, userVOPageStr);
+                    }
+                } else {
                     userVOPage = this.matchUser(currentPage, loginUser);
-                    String userVOPageStr = gson.toJson(userVOPage);
-                    stringRedisTemplate.opsForValue().set(key, userVOPageStr);
                 }
             }
             return userVOPage;

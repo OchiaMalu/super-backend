@@ -36,4 +36,9 @@ public class SuperProperties {
      * 使用图片本地存储
      */
     private boolean useLocalStorage = true;
+
+    /**
+     * 使用 Redis 缓存用户匹配信息
+     */
+    private boolean enableCache = true;
 }

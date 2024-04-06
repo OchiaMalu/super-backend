@@ -14,9 +14,11 @@ import net.zjitc.service.UserService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Set;
 
 import static net.zjitc.constants.BloomFilterConstants.BLOG_BLOOM_PREFIX;
 import static net.zjitc.constants.BloomFilterConstants.EXPECTED_INCLUSION_RECORD;
@@ -24,6 +26,7 @@ import static net.zjitc.constants.BloomFilterConstants.HASH_FUNCTION_NUMBER;
 import static net.zjitc.constants.BloomFilterConstants.PRE_OPENED_MAXIMUM_INCLUSION_RECORD;
 import static net.zjitc.constants.BloomFilterConstants.TEAM_BLOOM_PREFIX;
 import static net.zjitc.constants.BloomFilterConstants.USER_BLOOM_PREFIX;
+import static net.zjitc.constants.RedisConstants.USER_RECOMMEND_KEY;
 
 /**
  * 启动侦听器
@@ -47,6 +50,9 @@ public class StartupListener implements CommandLineRunner {
     @Resource
     private SuperProperties superProperties;
 
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
+
     /**
      * 启动
      *
@@ -61,6 +67,27 @@ public class StartupListener implements CommandLineRunner {
             long end = System.currentTimeMillis();
             String cost = end - begin + " ms";
             log.info("BloomFilter initialed in " + cost);
+        }
+        if (!superProperties.isEnableCache()) {
+            long begin = System.currentTimeMillis();
+            log.info("Starting delete cache from redis......");
+            this.deleteCache();
+            long end = System.currentTimeMillis();
+            String cost = end - begin + " ms";
+            log.info("Cache has been deleted in " + cost);
+        }
+    }
+
+
+    /**
+     * 删除原有缓存
+     */
+    @Bean
+    public void deleteCache() {
+        String key = USER_RECOMMEND_KEY + "*";
+        Set<String> keys = stringRedisTemplate.keys(key);
+        if (!(keys == null || keys.isEmpty())) {
+            stringRedisTemplate.delete(keys);
         }
     }
 
