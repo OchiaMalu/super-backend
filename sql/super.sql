@@ -35,11 +35,11 @@ create table if not exists blog_like
 (
     id          bigint auto_increment comment '主键'
         primary key,
-    blog_id     bigint                              not null comment '博文id',
-    user_id     bigint                              not null comment '用户id',
-    create_time timestamp default CURRENT_TIMESTAMP not null comment '创建时间',
-    update_time timestamp default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
-    is_delete   tinyint   default 0                 null comment '逻辑删除'
+    blog_id     bigint                             not null comment '博文id',
+    user_id     bigint                             not null comment '用户id',
+    create_time datetime default CURRENT_TIMESTAMP null comment '创建时间',
+    update_time datetime                           null on update CURRENT_TIMESTAMP comment '更新时间',
+    is_delete   tinyint  default 0                 null comment '逻辑删除'
 )
     charset = utf8
     row_format = COMPACT;
@@ -52,10 +52,10 @@ create table if not exists chat
     to_id       bigint                                  null comment '接收消息id',
     text        varchar(512) collate utf8mb4_unicode_ci null,
     chat_type   tinyint                                 not null comment '聊天类型 1-私聊 2-群聊',
-    create_time timestamp default CURRENT_TIMESTAMP     not null comment '创建时间',
-    update_time timestamp default CURRENT_TIMESTAMP     not null on update CURRENT_TIMESTAMP comment '更新时间',
+    create_time datetime default CURRENT_TIMESTAMP null comment '创建时间',
+    update_time datetime default CURRENT_TIMESTAMP null,
     team_id     bigint                                  null,
-    is_delete   tinyint   default 0                     null comment '逻辑删除'
+    is_delete   tinyint  default 0                 null
 )
     comment '聊天消息表' row_format = COMPACT;
 
@@ -84,18 +84,31 @@ create table if not exists config
     charset = utf8
     row_format = COMPACT;
 
+create table if not exists follow
+(
+    id             bigint auto_increment comment '主键'
+        primary key,
+    user_id        bigint                              not null comment '用户id',
+    follow_user_id bigint                              not null comment '关注的用户id',
+    create_time    timestamp default CURRENT_TIMESTAMP not null comment '创建时间',
+    update_time    timestamp default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    is_delete      tinyint   default 0                 null comment '逻辑删除'
+)
+    charset = utf8
+    row_format = COMPACT;
+
 create table if not exists friends
 (
     id          bigint auto_increment comment '好友申请id'
         primary key,
-    from_id     bigint                              not null comment '发送申请的用户id',
-    receive_id  bigint                              null comment '接收申请的用户id ',
-    is_read     tinyint   default 0                 not null comment '是否已读(0-未读 1-已读)',
-    status      tinyint   default 0                 not null comment '申请状态 默认0 （0-未通过 1-已同意 2-已过期 3-已撤销）',
-    create_time timestamp default CURRENT_TIMESTAMP not null comment '创建时间',
-    update_time timestamp default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
-    remark      varchar(214)                        null comment '好友申请备注信息',
-    is_delete   tinyint   default 0                 not null comment '逻辑删除'
+    from_id     bigint                             not null comment '发送申请的用户id',
+    receive_id  bigint                             null comment '接收申请的用户id ',
+    is_read     tinyint  default 0                 not null comment '是否已读(0-未读 1-已读)',
+    status      tinyint  default 0                 not null comment '申请状态 默认0 （0-未通过 1-已同意 2-已过期 3-已撤销）',
+    create_time datetime default CURRENT_TIMESTAMP null comment '创建时间',
+    update_time datetime default CURRENT_TIMESTAMP null,
+    is_delete   tinyint  default 0                 not null comment '是否删除',
+    remark      varchar(214)                       null comment '好友申请备注信息'
 )
     comment '好友申请管理表' row_format = COMPACT;
 
@@ -103,14 +116,14 @@ create table if not exists message
 (
     id          bigint auto_increment comment '主键'
         primary key,
-    type        tinyint                             null comment '类型-1 点赞',
-    from_id     bigint                              null comment '消息发送的用户id',
-    to_id       bigint                              null comment '消息接收的用户id',
-    data        varchar(255)                        null comment '消息内容',
-    is_read     tinyint   default 0                 null comment '已读-0 未读 ,1 已读',
-    create_time timestamp default CURRENT_TIMESTAMP not null comment '创建时间',
-    update_time timestamp default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
-    is_delete   tinyint   default 0                 null comment '逻辑删除'
+    type        tinyint                            null comment '类型-1 点赞',
+    from_id     bigint                             null comment '消息发送的用户id',
+    to_id       bigint                             null comment '消息接收的用户id',
+    data        varchar(255)                       null comment '消息内容',
+    is_read     tinyint  default 0                 null comment '已读-0 未读 ,1 已读',
+    create_time datetime default CURRENT_TIMESTAMP null comment '创建时间',
+    update_time datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP comment '更新时间',
+    is_delete   tinyint  default 0                 null comment '逻辑删除'
 )
     row_format = COMPACT;
 
