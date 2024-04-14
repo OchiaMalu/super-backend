@@ -179,4 +179,24 @@ public class BlogCommentsController {
         Page<BlogCommentsVO> blogCommentsVoPage = blogCommentsService.pageMyComments(loginUser.getId(), currentPage);
         return ResultUtils.success(blogCommentsVoPage);
     }
+
+    /**
+     * 获取评论我的评论
+     *
+     * @param request     请求
+     * @param currentPage 当前页码
+     * @return {@link BaseResponse}<{@link List}<{@link BlogCommentsVO}>>
+     */
+    @GetMapping("/list/commented")
+    @ApiOperation(value = "获取评论我的评论")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "request", value = "request请求")})
+    public BaseResponse<List<BlogCommentsVO>> listMyCommented(HttpServletRequest request, Long currentPage) {
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        List<BlogCommentsVO> blogCommentsVoPage = blogCommentsService.pageMyCommented(loginUser.getId(), currentPage);
+        return ResultUtils.success(blogCommentsVoPage);
+    }
 }

@@ -31,6 +31,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -315,7 +317,59 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
             return blogCommentsVO;
         }).filter(Objects::nonNull).collect(Collectors.toList());
         blogCommentsVoPage.setRecords(blogCommentsVOList);
+        Collections.sort(blogCommentsVOList);
         return blogCommentsVoPage;
+    }
+
+    @Override
+    public List<BlogCommentsVO> pageMyCommented(Long id, Long currentPage) {
+        LambdaQueryWrapper<Blog> blogLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        blogLambdaQueryWrapper.eq(Blog::getUserId, id);
+        List<Blog> blogList = blogService.list(blogLambdaQueryWrapper);
+        if (blogList.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<BlogCommentsVO> blogCommentsVOS = new ArrayList<>();
+        blogList.forEach((blog) -> {
+            Long blogId = blog.getId();
+            LambdaQueryWrapper<BlogComments> blogCommentsLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            blogCommentsLambdaQueryWrapper.eq(BlogComments::getBlogId, blogId);
+            List<BlogComments> blogCommentsList = this.list(blogCommentsLambdaQueryWrapper);
+            List<BlogCommentsVO> blogCommentsVOList = blogCommentsList.stream().map((item) -> {
+                BlogCommentsVO blogCommentsVO = new BlogCommentsVO();
+                BeanUtils.copyProperties(item, blogCommentsVO);
+                User user = userService.getById(item.getUserId());
+                UserVO userVO = new UserVO();
+                BeanUtils.copyProperties(user, userVO);
+                blogCommentsVO.setCommentUser(userVO);
+                Blog myBlog = blogService.getById(item.getBlogId());
+                if (myBlog == null) {
+                    return null;
+                }
+                BlogVO blogVO = new BlogVO();
+                BeanUtils.copyProperties(myBlog, blogVO);
+                String images = blogVO.getImages();
+                if (images == null) {
+                    blogVO.setCoverImage(null);
+                } else {
+                    String[] imgStr = images.split(",");
+                    blogVO.setCoverImage(qiniuUrl + imgStr[0]);
+                }
+                User author = userService.getById(id);
+                UserVO authorVO = new UserVO();
+                BeanUtils.copyProperties(author, authorVO);
+                blogVO.setAuthor(authorVO);
+                blogCommentsVO.setBlog(blogVO);
+                LambdaQueryWrapper<CommentLike> commentLikeLambdaQueryWrapper = new LambdaQueryWrapper<>();
+                commentLikeLambdaQueryWrapper.eq(CommentLike::getUserId, id).eq(CommentLike::getCommentId, item.getId());
+                long count = commentLikeService.count(commentLikeLambdaQueryWrapper);
+                blogCommentsVO.setIsLiked(count > 0);
+                return blogCommentsVO;
+            }).collect(Collectors.toList());
+            blogCommentsVOS.addAll(blogCommentsVOList);
+        });
+        Collections.sort(blogCommentsVOS);
+        return blogCommentsVOS;
     }
 }
 

@@ -76,4 +76,13 @@ public interface BlogCommentsService extends IService<BlogComments> {
      * @return {@link Page}<{@link BlogCommentsVO}>
      */
     Page<BlogCommentsVO> pageMyComments(Long id, Long currentPage);
+
+    /**
+     * 分页评论我的评论
+     *
+     * @param id          id
+     * @param currentPage 当前页码
+     * @return {@link Page}<{@link BlogCommentsVO}>
+     */
+    List<BlogCommentsVO> pageMyCommented(Long id, Long currentPage);
 }

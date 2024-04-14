@@ -17,7 +17,7 @@ import java.io.Serializable;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @ApiModel(value = "博文评论返回")
-public class BlogCommentsVO extends BlogComments implements Serializable {
+public class BlogCommentsVO extends BlogComments implements Serializable, Comparable<BlogCommentsVO> {
     /**
      * 串行版本uid
      */
@@ -37,4 +37,10 @@ public class BlogCommentsVO extends BlogComments implements Serializable {
      */
     @ApiModelProperty(value = "博客")
     private BlogVO blog;
+
+
+    @Override
+    public int compareTo(BlogCommentsVO p) {
+        return p.getCreateTime().compareTo(this.getCreateTime());
+    }
 }
