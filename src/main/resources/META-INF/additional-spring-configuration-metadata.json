@@ -51,6 +51,32 @@
           "description": "禁用"
         }
       ]
+    },
+    {
+      "name": "super.enable-auto-disbandment",
+      "values": [
+        {
+          "value": true,
+          "description": "启用"
+        },
+        {
+          "value": false,
+          "description": "禁用"
+        }
+      ]
+    },
+    {
+      "name": "super.enable-auto-user-cache",
+      "values": [
+        {
+          "value": true,
+          "description": "启用"
+        },
+        {
+          "value": false,
+          "description": "禁用"
+        }
+      ]
     }
   ]
 }

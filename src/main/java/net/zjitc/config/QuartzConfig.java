@@ -2,14 +2,16 @@ package net.zjitc.config;
 
 import net.zjitc.jobs.DisbandExpiredTeam;
 import net.zjitc.jobs.UserRecommendationCache;
+import net.zjitc.properties.SuperProperties;
 import org.quartz.CronScheduleBuilder;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import javax.annotation.Resource;
 
 /**
  * Quartz配置
@@ -20,11 +22,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class QuartzConfig {
 
-    /**
-     * 工作触发时间
-     */
-    @Value("${super.job}")
-    private String jobTriggerTime;
+    @Resource
+    private SuperProperties superProperties;
 
     /**
      * 解散团队到期工作细节
@@ -43,10 +42,14 @@ public class QuartzConfig {
      */
     @Bean
     public Trigger disbandExpireTeamTrigger() {
-        CronScheduleBuilder cronScheduleBuilder = CronScheduleBuilder.cronSchedule(jobTriggerTime);
-        return TriggerBuilder.newTrigger()
-                .forJob(disbandExpireTeamJobDetail())
-                .withSchedule(cronScheduleBuilder).build();
+        CronScheduleBuilder cronScheduleBuilder = CronScheduleBuilder.cronSchedule(superProperties.getJob());
+        if (superProperties.isEnableAutoDisbandment()) {
+            return TriggerBuilder.newTrigger()
+                    .forJob(disbandExpireTeamJobDetail())
+                    .withSchedule(cronScheduleBuilder).build();
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -66,9 +69,13 @@ public class QuartzConfig {
      */
     @Bean
     public Trigger userRecommendationCacheTrigger() {
-        CronScheduleBuilder cronScheduleBuilder = CronScheduleBuilder.cronSchedule(jobTriggerTime);
-        return TriggerBuilder.newTrigger()
-                .forJob(userRecommendationCacheJobDetail())
-                .withSchedule(cronScheduleBuilder).build();
+        CronScheduleBuilder cronScheduleBuilder = CronScheduleBuilder.cronSchedule(superProperties.getJob());
+        if (superProperties.isEnableAutoUserCache()) {
+            return TriggerBuilder.newTrigger()
+                    .forJob(userRecommendationCacheJobDetail())
+                    .withSchedule(cronScheduleBuilder).build();
+        } else {
+            return null;
+        }
     }
 }

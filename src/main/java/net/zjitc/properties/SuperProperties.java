@@ -41,4 +41,14 @@ public class SuperProperties {
      * 使用 Redis 缓存用户匹配信息
      */
     private boolean enableCache = true;
+
+    /**
+     * 启用自动解散到期队伍（定时任务）
+     */
+    private boolean enableAutoDisbandment = false;
+
+    /**
+     * 启用自动用户缓存（定时任务）
+     */
+    private boolean enableAutoUserCache = false;
 }

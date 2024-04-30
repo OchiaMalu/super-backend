@@ -53,5 +53,6 @@ knife4j:
           - net.zjitc
 super:
   img: /img/
-  job: "0 0 0 * * ? *"
   enable-bloom-filter: false
+  enable-cache: false
+  use-local-storage: true
