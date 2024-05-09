@@ -408,10 +408,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         Gson gson = new Gson();
         User user = gson.fromJson(userStr, User.class);
+        Long userId = user.getId();
+        User currentUser = this.getById(userId);
+        User safetyUser = this.getSafetyUser(currentUser);
         stringRedisTemplate.expire(LOGIN_USER_KEY + token, LOGIN_USER_TTL, TimeUnit.MINUTES);
         request.getSession().setAttribute(USER_LOGIN_STATE, user);
         request.getSession().setMaxInactiveInterval(MAXIMUM_LOGIN_IDLE_TIME);
-        return user;
+        return safetyUser;
     }
 
     /**
