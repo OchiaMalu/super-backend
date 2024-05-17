@@ -220,7 +220,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码非法");
         }
         // 账户不能包含特殊字符
-        String validPattern = "[^[a-zA-Z][a-zA-Z0-9_]{4,15}$]";
+        String validPattern = "^[a-zA-Z][a-zA-Z0-9_]{4,15}$";
         Matcher matcher = Pattern.compile(validPattern).matcher(userAccount);
         if (!matcher.find()) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号非法");
@@ -819,7 +819,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * @param account 账户
      */
     private void checkAccountValid(String account) {
-        String validPattern = "[^[a-zA-Z][a-zA-Z0-9_]{4,15}$]";
+        String validPattern = "^[a-zA-Z][a-zA-Z0-9_]{4,15}$";
         Matcher matcher = Pattern.compile(validPattern).matcher(account);
         if (!matcher.find()) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号非法");
