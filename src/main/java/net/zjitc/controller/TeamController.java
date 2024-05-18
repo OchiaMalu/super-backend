@@ -270,7 +270,8 @@ public class TeamController {
         }
         teamQuery.setUserId(loginUser.getId());
         Page<TeamVO> teamVOPage = teamService.listMyCreate(currentPage, loginUser.getId());
-        Page<TeamVO> finalPage = getTeamHasJoinNum(teamVOPage);
+        Page<TeamVO> teamVoPageWithAvatar = teamService.getJoinedUserAvatar(teamVOPage);
+        Page<TeamVO> finalPage = getTeamHasJoinNum(teamVoPageWithAvatar);
         return getUserJoinedList(loginUser, finalPage);
     }
 
@@ -307,7 +308,8 @@ public class TeamController {
         }
         teamQuery.setIdList(idList);
         Page<TeamVO> teamVOPage = teamService.listMyJoin(currentPage, teamQuery);
-        Page<TeamVO> finalPage = getTeamHasJoinNum(teamVOPage);
+        Page<TeamVO> teamVoPageWithAvatar = teamService.getJoinedUserAvatar(teamVOPage);
+        Page<TeamVO> finalPage = getTeamHasJoinNum(teamVoPageWithAvatar);
         return getUserJoinedList(loginUser, finalPage);
     }
 
