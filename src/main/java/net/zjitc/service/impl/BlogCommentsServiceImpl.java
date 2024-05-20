@@ -17,6 +17,7 @@ import net.zjitc.model.request.AddCommentRequest;
 import net.zjitc.model.vo.BlogCommentsVO;
 import net.zjitc.model.vo.BlogVO;
 import net.zjitc.model.vo.UserVO;
+import net.zjitc.properties.SuperProperties;
 import net.zjitc.service.BlogCommentsService;
 import net.zjitc.service.BlogService;
 import net.zjitc.service.CommentLikeService;
@@ -71,8 +72,18 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
     @Resource
     private RedissonClient redissonClient;
 
+    @Resource
+    private SuperProperties superProperties;
+
     @Value("${super.qiniu.url:null}")
     private String qiniuUrl;
+
+
+    @Value("${server.servlet.session.cookie.domain}")
+    private String host;
+
+    @Value("${server.port}")
+    private String port;
 
     @Override
     @Transactional
@@ -247,29 +258,39 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
 
             Long blogId = blogCommentsVO.getBlogId();
             Blog blog = blogService.getById(blogId);
-            BlogVO blogVO = new BlogVO();
-            BeanUtils.copyProperties(blog, blogVO);
-            String images = blogVO.getImages();
-            if (images == null) {
-                blogVO.setCoverImage(null);
+            return getBlogCommentsVO(id, item, blogCommentsVO, blog);
+        }).collect(Collectors.toList());
+    }
+
+    private BlogCommentsVO getBlogCommentsVO(Long id, BlogComments item, BlogCommentsVO blogCommentsVO, Blog blog) {
+        BlogVO blogVO = new BlogVO();
+        BeanUtils.copyProperties(blog, blogVO);
+        String images = blogVO.getImages();
+        if (images == null) {
+            blogVO.setCoverImage(null);
+        } else {
+            String[] imgStr = images.split(",");
+            String imgUrlTmp = imgStr[0];
+            if (superProperties.isUseLocalStorage()) {
+                String fileUrl = "http://" + host + ":" + port + "/api/common/image/" + imgUrlTmp;
+                blogVO.setCoverImage(fileUrl);
             } else {
-                String[] imgStr = images.split(",");
                 blogVO.setCoverImage(qiniuUrl + imgStr[0]);
             }
-            Long authorId = blogVO.getUserId();
-            User author = userService.getById(authorId);
-            UserVO authorVO = new UserVO();
-            BeanUtils.copyProperties(author, authorVO);
-            blogVO.setAuthor(authorVO);
+        }
+        Long authorId = blogVO.getUserId();
+        User author = userService.getById(authorId);
+        UserVO authorVO = new UserVO();
+        BeanUtils.copyProperties(author, authorVO);
+        blogVO.setAuthor(authorVO);
 
-            blogCommentsVO.setBlog(blogVO);
+        blogCommentsVO.setBlog(blogVO);
 
-            LambdaQueryWrapper<CommentLike> commentLikeLambdaQueryWrapper = new LambdaQueryWrapper<>();
-            commentLikeLambdaQueryWrapper.eq(CommentLike::getUserId, id).eq(CommentLike::getCommentId, item.getId());
-            long count = commentLikeService.count(commentLikeLambdaQueryWrapper);
-            blogCommentsVO.setIsLiked(count > 0);
-            return blogCommentsVO;
-        }).collect(Collectors.toList());
+        LambdaQueryWrapper<CommentLike> commentLikeLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        commentLikeLambdaQueryWrapper.eq(CommentLike::getUserId, id).eq(CommentLike::getCommentId, item.getId());
+        long count = commentLikeService.count(commentLikeLambdaQueryWrapper);
+        blogCommentsVO.setIsLiked(count > 0);
+        return blogCommentsVO;
     }
 
     @Override
@@ -295,26 +316,7 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
             if (blog == null) {
                 return null;
             }
-            BlogVO blogVO = new BlogVO();
-            BeanUtils.copyProperties(blog, blogVO);
-            String images = blogVO.getImages();
-            if (images == null) {
-                blogVO.setCoverImage(null);
-            } else {
-                String[] imgStr = images.split(",");
-                blogVO.setCoverImage(qiniuUrl + imgStr[0]);
-            }
-            Long authorId = blogVO.getUserId();
-            User author = userService.getById(authorId);
-            UserVO authorVO = new UserVO();
-            BeanUtils.copyProperties(author, authorVO);
-            blogVO.setAuthor(authorVO);
-            blogCommentsVO.setBlog(blogVO);
-            LambdaQueryWrapper<CommentLike> commentLikeLambdaQueryWrapper = new LambdaQueryWrapper<>();
-            commentLikeLambdaQueryWrapper.eq(CommentLike::getUserId, id).eq(CommentLike::getCommentId, item.getId());
-            long count = commentLikeService.count(commentLikeLambdaQueryWrapper);
-            blogCommentsVO.setIsLiked(count > 0);
-            return blogCommentsVO;
+            return getBlogCommentsVO(id, item, blogCommentsVO, blog);
         }).filter(Objects::nonNull).collect(Collectors.toList());
         blogCommentsVoPage.setRecords(blogCommentsVOList);
         Collections.sort(blogCommentsVOList);
@@ -353,7 +355,13 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
                     blogVO.setCoverImage(null);
                 } else {
                     String[] imgStr = images.split(",");
-                    blogVO.setCoverImage(qiniuUrl + imgStr[0]);
+                    String imgUrlTmp = imgStr[0];
+                    if (superProperties.isUseLocalStorage()) {
+                        String fileUrl = "http://" + host + ":" + port + "/api/common/image/" + imgUrlTmp;
+                        blogVO.setCoverImage(fileUrl);
+                    } else {
+                        blogVO.setCoverImage(qiniuUrl + imgStr[0]);
+                    }
                 }
                 User author = userService.getById(id);
                 UserVO authorVO = new UserVO();
