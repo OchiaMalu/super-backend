@@ -12,6 +12,7 @@ import net.zjitc.model.domain.Team;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.request.ChatRequest;
 import net.zjitc.model.vo.ChatMessageVO;
+import net.zjitc.model.vo.UserVO;
 import net.zjitc.model.vo.WebSocketVO;
 import net.zjitc.service.ChatService;
 import net.zjitc.service.TeamService;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -30,6 +32,7 @@ import java.util.stream.Collectors;
 import static net.zjitc.constants.ChatConstant.CACHE_CHAT_HALL;
 import static net.zjitc.constants.ChatConstant.CACHE_CHAT_PRIVATE;
 import static net.zjitc.constants.ChatConstant.CACHE_CHAT_TEAM;
+import static net.zjitc.constants.ChatConstant.PRIVATE_CHAT;
 import static net.zjitc.constants.RedisConstants.CACHE_TIME_OFFSET;
 import static net.zjitc.constants.RedisConstants.MAXIMUM_CACHE_RANDOM_TIME;
 import static net.zjitc.constants.RedisConstants.MINIMUM_CACHE_RANDOM_TIME;
@@ -253,6 +256,39 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         List<ChatMessageVO> chatMessageVOS = returnMessage(loginUser, null, chatLambdaQueryWrapper);
         saveCache(CACHE_CHAT_HALL, String.valueOf(loginUser.getId()), chatMessageVOS);
         return chatMessageVOS;
+    }
+
+
+    /**
+     * 获取私聊列表
+     *
+     * @param id id
+     * @return {@link List}<{@link UserVO}>
+     */
+    @Override
+    public List<UserVO> getPrivateList(Long userId) {
+        LambdaQueryWrapper<Chat> chatLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        chatLambdaQueryWrapper.eq(Chat::getFromId, userId).eq(Chat::getChatType, PRIVATE_CHAT);
+        List<Chat> mySend = this.list(chatLambdaQueryWrapper);
+        HashSet<Long> userIdSet = new HashSet<>();
+        mySend.forEach((chat) -> {
+            Long toId = chat.getToId();
+            userIdSet.add(toId);
+        });
+        chatLambdaQueryWrapper.clear();
+        chatLambdaQueryWrapper.eq(Chat::getToId, userId).eq(Chat::getChatType, PRIVATE_CHAT);
+        List<Chat> myReceive = this.list(chatLambdaQueryWrapper);
+        myReceive.forEach((chat) -> {
+            Long fromId = chat.getFromId();
+            userIdSet.add(fromId);
+        });
+        List<User> userList = userService.listByIds(userIdSet);
+        return userList.stream().map((user) -> {
+            UserVO userVO = new UserVO();
+            BeanUtils.copyProperties(user, userVO);
+            return userVO;
+        }).collect(Collectors.toList());
+
     }
 
     /**

@@ -11,6 +11,7 @@ import net.zjitc.exception.BusinessException;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.request.ChatRequest;
 import net.zjitc.model.vo.ChatMessageVO;
+import net.zjitc.model.vo.UserVO;
 import net.zjitc.service.ChatService;
 import net.zjitc.service.UserService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -120,5 +121,18 @@ public class ChatController {
         }
         List<ChatMessageVO> hallChat = chatService.getHallChat(HALL_CHAT, loginUser);
         return ResultUtils.success(hallChat);
+    }
+
+    @GetMapping("/private")
+    @ApiOperation(value = "获取私聊列表")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "request", value = "request请求")})
+    public BaseResponse<List<UserVO>> getPrivateChatList(HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        List<UserVO> userList = chatService.getPrivateList(loginUser.getId());
+        return ResultUtils.success(userList);
     }
 }
