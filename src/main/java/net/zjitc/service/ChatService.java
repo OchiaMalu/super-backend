@@ -5,7 +5,7 @@ import net.zjitc.model.domain.Chat;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.request.ChatRequest;
 import net.zjitc.model.vo.ChatMessageVO;
-import net.zjitc.model.vo.UserVO;
+import net.zjitc.model.vo.PrivateChatVO;
 
 import java.util.Date;
 import java.util.List;
@@ -86,5 +86,9 @@ public interface ChatService extends IService<Chat> {
      */
     List<ChatMessageVO> getHallChat(int chatType, User loginUser);
 
-    List<UserVO> getPrivateList(Long id);
+    List<PrivateChatVO> getPrivateList(Long id);
+
+    Integer getUnReadPrivateNum(Long userId);
+
+    Boolean readPrivateMessage(Long loginId, Long remoteId);
 }

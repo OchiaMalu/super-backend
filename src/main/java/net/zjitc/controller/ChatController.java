@@ -11,11 +11,12 @@ import net.zjitc.exception.BusinessException;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.request.ChatRequest;
 import net.zjitc.model.vo.ChatMessageVO;
-import net.zjitc.model.vo.UserVO;
+import net.zjitc.model.vo.PrivateChatVO;
 import net.zjitc.service.ChatService;
 import net.zjitc.service.UserService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -127,12 +128,41 @@ public class ChatController {
     @ApiOperation(value = "获取私聊列表")
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "request", value = "request请求")})
-    public BaseResponse<List<UserVO>> getPrivateChatList(HttpServletRequest request) {
+    public BaseResponse<List<PrivateChatVO>> getPrivateChatList(HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
-        List<UserVO> userList = chatService.getPrivateList(loginUser.getId());
+        List<PrivateChatVO> userList = chatService.getPrivateList(loginUser.getId());
         return ResultUtils.success(userList);
+    }
+
+    /**
+     * 获取私聊未读消息数量
+     *
+     * @param request 要求
+     * @return {@link BaseResponse}<{@link Integer}>
+     */
+    @GetMapping("/private/num")
+    @ApiOperation(value = "获取私聊未读消息数量")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "request", value = "request请求")})
+    public BaseResponse<Integer> getUnreadPrivateNum(HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        Integer unreadNum = chatService.getUnReadPrivateNum(loginUser.getId());
+        return ResultUtils.success(unreadNum);
+    }
+
+    @PutMapping("/private/read")
+    public BaseResponse<Boolean> readPrivateMessage(HttpServletRequest request, Long remoteId) {
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        Boolean flag = chatService.readPrivateMessage(loginUser.getId(), remoteId);
+        return ResultUtils.success(flag);
     }
 }

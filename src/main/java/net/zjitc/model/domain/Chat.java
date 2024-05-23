@@ -55,6 +55,12 @@ public class Chat implements Serializable {
     private Integer chatType;
 
     /**
+     * 是否已读 1-已读 2-未读
+     */
+    @ApiModelProperty(value = "是否已读")
+    private Integer isRead;
+
+    /**
      * 创建时间
      */
     @ApiModelProperty(value = "创建时间")

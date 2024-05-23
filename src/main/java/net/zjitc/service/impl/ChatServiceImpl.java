@@ -3,7 +3,9 @@ package net.zjitc.service.impl;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import javafx.util.Pair;
 import net.zjitc.common.ErrorCode;
 import net.zjitc.exception.BusinessException;
 import net.zjitc.mapper.ChatMapper;
@@ -12,6 +14,7 @@ import net.zjitc.model.domain.Team;
 import net.zjitc.model.domain.User;
 import net.zjitc.model.request.ChatRequest;
 import net.zjitc.model.vo.ChatMessageVO;
+import net.zjitc.model.vo.PrivateChatVO;
 import net.zjitc.model.vo.UserVO;
 import net.zjitc.model.vo.WebSocketVO;
 import net.zjitc.service.ChatService;
@@ -262,11 +265,11 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
     /**
      * 获取私聊列表
      *
-     * @param id id
+     * @param userId id
      * @return {@link List}<{@link UserVO}>
      */
     @Override
-    public List<UserVO> getPrivateList(Long userId) {
+    public List<PrivateChatVO> getPrivateList(Long userId) {
         LambdaQueryWrapper<Chat> chatLambdaQueryWrapper = new LambdaQueryWrapper<>();
         chatLambdaQueryWrapper.eq(Chat::getFromId, userId).eq(Chat::getChatType, PRIVATE_CHAT);
         List<Chat> mySend = this.list(chatLambdaQueryWrapper);
@@ -284,11 +287,93 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         });
         List<User> userList = userService.listByIds(userIdSet);
         return userList.stream().map((user) -> {
-            UserVO userVO = new UserVO();
-            BeanUtils.copyProperties(user, userVO);
-            return userVO;
-        }).collect(Collectors.toList());
+            PrivateChatVO privateChatVO = new PrivateChatVO();
+            privateChatVO.setUserId(user.getId());
+            privateChatVO.setUsername(user.getUsername());
+            privateChatVO.setAvatarUrl(user.getAvatarUrl());
+            Pair<String, Date> pair = getPrivateLastMessage(userId, user.getId());
+            privateChatVO.setLastMessage(pair.getKey());
+            privateChatVO.setLastMessageDate(pair.getValue());
+            privateChatVO.setUnReadNum(getUnreadNum(userId, user.getId()));
+            return privateChatVO;
+        }).sorted().collect(Collectors.toList());
+    }
 
+    /**
+     * 获取私聊未读消息数量
+     *
+     * @param userId id
+     * @return {@link Integer}
+     */
+    @Override
+    public Integer getUnReadPrivateNum(Long userId) {
+        LambdaQueryWrapper<Chat> chatLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        chatLambdaQueryWrapper.eq(Chat::getToId, userId).eq(Chat::getChatType, PRIVATE_CHAT)
+                .eq(Chat::getIsRead, 0);
+        return Math.toIntExact(this.count(chatLambdaQueryWrapper));
+    }
+
+    /**
+     * 阅读私聊消息
+     *
+     * @param loginId  登录id
+     * @param remoteId 遥远id
+     * @return {@link Boolean}
+     */
+    @Override
+    public Boolean readPrivateMessage(Long loginId, Long remoteId) {
+        LambdaUpdateWrapper<Chat> chatLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+        chatLambdaUpdateWrapper.eq(Chat::getFromId, remoteId).eq(Chat::getToId, loginId).eq(Chat::getChatType, PRIVATE_CHAT)
+                .set(Chat::getIsRead, 1);
+        return this.update(chatLambdaUpdateWrapper);
+    }
+
+    /**
+     * 获取未读消息数量
+     *
+     * @param loginId  登录id
+     * @param remoteId 遥远id
+     * @return {@link Integer}
+     */
+    private Integer getUnreadNum(Long loginId, Long remoteId) {
+        LambdaQueryWrapper<Chat> chatLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        chatLambdaQueryWrapper.eq(Chat::getFromId, remoteId).eq(Chat::getToId, loginId).eq(Chat::getChatType, PRIVATE_CHAT)
+                .eq(Chat::getIsRead, 0);
+        return Math.toIntExact(this.count(chatLambdaQueryWrapper));
+    }
+
+    /**
+     * 获取私聊最后一条消息信息
+     *
+     * @param loginId  登录id
+     * @param remoteId 遥远id
+     * @return {@link String}
+     */
+    private Pair<String, Date> getPrivateLastMessage(Long loginId, Long remoteId) {
+        LambdaQueryWrapper<Chat> chatLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        chatLambdaQueryWrapper.eq(Chat::getFromId, loginId).eq(Chat::getToId, remoteId).eq(Chat::getChatType, PRIVATE_CHAT)
+                .orderBy(true, false, Chat::getCreateTime);
+        List<Chat> chatList1 = this.list(chatLambdaQueryWrapper);
+
+        chatLambdaQueryWrapper.clear();
+
+        chatLambdaQueryWrapper.eq(Chat::getFromId, remoteId).eq(Chat::getToId, loginId).eq(Chat::getChatType, PRIVATE_CHAT)
+                .orderBy(true, false, Chat::getCreateTime);
+        List<Chat> chatList2 = this.list(chatLambdaQueryWrapper);
+        if (chatList1.isEmpty() && chatList2.isEmpty()) {
+            return new Pair<>("", null);
+        }
+        if (chatList1.isEmpty()) {
+            return new Pair<>(chatList2.get(0).getText(), chatList2.get(0).getCreateTime());
+        }
+        if (chatList2.isEmpty()) {
+            return new Pair<>(chatList1.get(0).getText(), chatList1.get(0).getCreateTime());
+        }
+        if (chatList1.get(0).getCreateTime().after(chatList2.get(0).getCreateTime())) {
+            return new Pair<>(chatList1.get(0).getText(), chatList1.get(0).getCreateTime());
+        } else {
+            return new Pair<>(chatList2.get(0).getText(), chatList2.get(0).getCreateTime());
+        }
     }
 
     /**

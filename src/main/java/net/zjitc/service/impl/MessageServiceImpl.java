@@ -16,6 +16,7 @@ import net.zjitc.model.vo.MessageVO;
 import net.zjitc.model.vo.UserVO;
 import net.zjitc.service.BlogCommentsService;
 import net.zjitc.service.BlogService;
+import net.zjitc.service.ChatService;
 import net.zjitc.service.MessageService;
 import net.zjitc.service.UserService;
 import org.springframework.beans.BeanUtils;
@@ -59,6 +60,9 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message>
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+
+    @Resource
+    private ChatService chatService;
 
     @Override
     public long getMessageNum(Long userId) {
@@ -160,6 +164,10 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message>
             String blogNum = stringRedisTemplate.opsForValue().get(blogNumKey);
             assert blogNum != null;
             return Long.parseLong(blogNum) > 0;
+        }
+        Integer unReadPrivateNum = chatService.getUnReadPrivateNum(userId);
+        if (unReadPrivateNum > 0) {
+            return true;
         }
         return false;
     }
