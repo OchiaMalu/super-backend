@@ -1,3 +1,5 @@
+create database if not exists super;
+use super;
 create table if not exists blog
 (
     id           bigint auto_increment comment '主键'
@@ -52,7 +54,7 @@ create table if not exists chat
     to_id       bigint                                  null comment '接收消息id',
     text        varchar(512) collate utf8mb4_unicode_ci null,
     chat_type   tinyint                                 not null comment '聊天类型 1-私聊 2-群聊',
-    is_read tinyint default 0 null comment '是否已读 1-已读 2-未读',
+    is_read     tinyint  default 0                 null comment '是否已读 1-已读 2-未读',
     create_time datetime default CURRENT_TIMESTAMP null comment '创建时间',
     update_time datetime default CURRENT_TIMESTAMP null,
     team_id     bigint                                  null,
