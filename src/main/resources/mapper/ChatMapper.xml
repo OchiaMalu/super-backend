@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="net.zjitc.mapper.ChatMapper">
+<mapper namespace="top.ochiamalu.mapper.ChatMapper">
 
-    <resultMap id="BaseResultMap" type="net.zjitc.model.domain.Chat">
+    <resultMap id="BaseResultMap" type="top.ochiamalu.model.domain.Chat">
         <id property="id" column="id" jdbcType="BIGINT"/>
         <result property="fromId" column="from_id" jdbcType="BIGINT"/>
         <result property="toid" column="toId" jdbcType="BIGINT"/>

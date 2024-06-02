@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="net.zjitc.mapper.BlogMapper">
+<mapper namespace="top.ochiamalu.mapper.BlogMapper">
 
-    <resultMap id="BaseResultMap" type="net.zjitc.model.domain.Blog">
+    <resultMap id="BaseResultMap" type="top.ochiamalu.model.domain.Blog">
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="userId" column="user_id" jdbcType="BIGINT"/>
             <result property="title" column="title" jdbcType="VARCHAR"/>

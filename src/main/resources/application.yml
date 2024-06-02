@@ -50,7 +50,7 @@ knife4j:
         group-name: super
         api-rule: package
         api-rule-resources:
-          - net.zjitc
+          - top.ochiamalu
 super:
   img: /img/
   enable-bloom-filter: false
