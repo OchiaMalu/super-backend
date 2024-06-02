@@ -52,8 +52,4 @@ public class SuperProperties {
      */
     private boolean enableAutoUserCache = false;
 
-    /**
-     * AI 密钥
-     */
-    private String aiKey = null;
 }

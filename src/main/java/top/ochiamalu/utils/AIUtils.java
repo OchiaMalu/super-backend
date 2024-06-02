@@ -7,6 +7,7 @@ import com.zhipu.oapi.service.v4.model.ChatMessage;
 import com.zhipu.oapi.service.v4.model.ChatMessageRole;
 import com.zhipu.oapi.service.v4.model.ModelApiResponse;
 import org.springframework.stereotype.Component;
+import top.ochiamalu.properties.AIProperties;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -23,6 +24,9 @@ import static top.ochiamalu.constants.AIConstants.MAX_TOKENS;
  */
 @Component
 public class AIUtils {
+
+    @Resource
+    private AIProperties aiProperties;
 
     private static ClientV4 client;
 
@@ -52,6 +56,8 @@ public class AIUtils {
 
     @PostConstruct
     public void init() {
-        client = tempClient;
+        if (Boolean.TRUE.equals(aiProperties.getEnable())) {
+            client = tempClient;
+        }
     }
 }

@@ -3,7 +3,7 @@ package top.ochiamalu.config;
 import com.zhipu.oapi.ClientV4;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import top.ochiamalu.properties.SuperProperties;
+import top.ochiamalu.properties.AIProperties;
 
 import javax.annotation.Resource;
 
@@ -17,10 +17,14 @@ import javax.annotation.Resource;
 public class AIConfig {
 
     @Resource
-    private SuperProperties superProperties;
+    private AIProperties aiProperties;
 
     @Bean
     public ClientV4 clientV4() {
-        return new ClientV4.Builder(superProperties.getAiKey()).build();
+        if (Boolean.TRUE.equals(aiProperties.getEnable())) {
+            return new ClientV4.Builder(aiProperties.getKey()).build();
+        } else {
+            return new ClientV4();
+        }
     }
 }
