@@ -51,4 +51,9 @@ public class SuperProperties {
      * 启用自动用户缓存（定时任务）
      */
     private boolean enableAutoUserCache = false;
+
+    /**
+     * AI 密钥
+     */
+    private String aiKey = null;
 }
