@@ -25,13 +25,15 @@ import static top.ochiamalu.constants.AIConstants.MAX_TOKENS;
 @Component
 public class AIUtils {
 
-    @Resource
-    private AIProperties aiProperties;
+    private static AIProperties aiProperties;
 
     private static ClientV4 client;
 
     @Resource
     private ClientV4 tempClient;
+
+    @Resource
+    private AIProperties tempProperties;
 
     /**
      * 获取AI消息
@@ -40,6 +42,9 @@ public class AIUtils {
      * @return {@link String }
      */
     public static String getAIMessage(String userMessage) {
+        if (Boolean.FALSE.equals(aiProperties.getEnable())) {
+            return "AI服务未启用";
+        }
         List<ChatMessage> messages = new ArrayList<>();
         ChatMessage chatMessage = new ChatMessage(ChatMessageRole.USER.value(), userMessage);
         messages.add(chatMessage);
@@ -56,8 +61,7 @@ public class AIUtils {
 
     @PostConstruct
     public void init() {
-        if (Boolean.TRUE.equals(aiProperties.getEnable())) {
-            client = tempClient;
-        }
+        aiProperties = tempProperties;
+        client = tempClient;
     }
 }
