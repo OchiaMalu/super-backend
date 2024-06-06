@@ -263,29 +263,13 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
     }
 
     private BlogCommentsVO getBlogCommentsVO(Long id, BlogComments item, BlogCommentsVO blogCommentsVO, Blog blog) {
-        BlogVO blogVO = new BlogVO();
-        BeanUtils.copyProperties(blog, blogVO);
-        String images = blogVO.getImages();
-        if (images == null) {
-            blogVO.setCoverImage(null);
-        } else {
-            String[] imgStr = images.split(",");
-            String imgUrlTmp = imgStr[0];
-            if (superProperties.isUseLocalStorage()) {
-                String fileUrl = "http://" + host + ":" + port + "/api/common/image/" + imgUrlTmp;
-                blogVO.setCoverImage(fileUrl);
-            } else {
-                blogVO.setCoverImage(qiniuUrl + imgStr[0]);
-            }
-        }
+        BlogVO blogVO = getBlogImgs(blog);
         Long authorId = blogVO.getUserId();
         User author = userService.getById(authorId);
         UserVO authorVO = new UserVO();
         BeanUtils.copyProperties(author, authorVO);
         blogVO.setAuthor(authorVO);
-
         blogCommentsVO.setBlog(blogVO);
-
         LambdaQueryWrapper<CommentLike> commentLikeLambdaQueryWrapper = new LambdaQueryWrapper<>();
         commentLikeLambdaQueryWrapper.eq(CommentLike::getUserId, id).eq(CommentLike::getCommentId, item.getId());
         long count = commentLikeService.count(commentLikeLambdaQueryWrapper);
@@ -348,28 +332,15 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
                 if (myBlog == null) {
                     return null;
                 }
-                BlogVO blogVO = new BlogVO();
-                BeanUtils.copyProperties(myBlog, blogVO);
-                String images = blogVO.getImages();
-                if (images == null) {
-                    blogVO.setCoverImage(null);
-                } else {
-                    String[] imgStr = images.split(",");
-                    String imgUrlTmp = imgStr[0];
-                    if (superProperties.isUseLocalStorage()) {
-                        String fileUrl = "http://" + host + ":" + port + "/api/common/image/" + imgUrlTmp;
-                        blogVO.setCoverImage(fileUrl);
-                    } else {
-                        blogVO.setCoverImage(qiniuUrl + imgStr[0]);
-                    }
-                }
+                BlogVO blogVO = getBlogImgs(myBlog);
                 User author = userService.getById(id);
                 UserVO authorVO = new UserVO();
                 BeanUtils.copyProperties(author, authorVO);
                 blogVO.setAuthor(authorVO);
                 blogCommentsVO.setBlog(blogVO);
                 LambdaQueryWrapper<CommentLike> commentLikeLambdaQueryWrapper = new LambdaQueryWrapper<>();
-                commentLikeLambdaQueryWrapper.eq(CommentLike::getUserId, id).eq(CommentLike::getCommentId, item.getId());
+                commentLikeLambdaQueryWrapper.eq(CommentLike::getUserId, id)
+                        .eq(CommentLike::getCommentId, item.getId());
                 long count = commentLikeService.count(commentLikeLambdaQueryWrapper);
                 blogCommentsVO.setIsLiked(count > 0);
                 return blogCommentsVO;
@@ -378,6 +349,25 @@ public class BlogCommentsServiceImpl extends ServiceImpl<BlogCommentsMapper, Blo
         });
         Collections.sort(blogCommentsVOS);
         return blogCommentsVOS;
+    }
+
+    private BlogVO getBlogImgs(Blog myBlog) {
+        BlogVO blogVO = new BlogVO();
+        BeanUtils.copyProperties(myBlog, blogVO);
+        String images = blogVO.getImages();
+        if (images == null) {
+            blogVO.setCoverImage(null);
+        } else {
+            String[] imgStr = images.split(",");
+            String imgUrlTmp = imgStr[0];
+            if (superProperties.isUseLocalStorage()) {
+                String fileUrl = "http://" + host + ":" + port + "/api/common/image/" + imgUrlTmp;
+                blogVO.setCoverImage(fileUrl);
+            } else {
+                blogVO.setCoverImage(qiniuUrl + imgStr[0]);
+            }
+        }
+        return blogVO;
     }
 }
 

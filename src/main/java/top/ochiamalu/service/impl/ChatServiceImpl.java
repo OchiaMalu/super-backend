@@ -327,7 +327,9 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
     @Override
     public Boolean readPrivateMessage(Long loginId, Long remoteId) {
         LambdaUpdateWrapper<Chat> chatLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
-        chatLambdaUpdateWrapper.eq(Chat::getFromId, remoteId).eq(Chat::getToId, loginId).eq(Chat::getChatType, PRIVATE_CHAT)
+        chatLambdaUpdateWrapper.eq(Chat::getFromId, remoteId)
+                .eq(Chat::getToId, loginId)
+                .eq(Chat::getChatType, PRIVATE_CHAT)
                 .set(Chat::getIsRead, 1);
         return this.update(chatLambdaUpdateWrapper);
     }
@@ -341,7 +343,9 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
      */
     private Integer getUnreadNum(Long loginId, Long remoteId) {
         LambdaQueryWrapper<Chat> chatLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        chatLambdaQueryWrapper.eq(Chat::getFromId, remoteId).eq(Chat::getToId, loginId).eq(Chat::getChatType, PRIVATE_CHAT)
+        chatLambdaQueryWrapper.eq(Chat::getFromId, remoteId)
+                .eq(Chat::getToId, loginId)
+                .eq(Chat::getChatType, PRIVATE_CHAT)
                 .eq(Chat::getIsRead, 0);
         return Math.toIntExact(this.count(chatLambdaQueryWrapper));
     }
@@ -355,13 +359,16 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
      */
     private Pair<String, Date> getPrivateLastMessage(Long loginId, Long remoteId) {
         LambdaQueryWrapper<Chat> chatLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        chatLambdaQueryWrapper.eq(Chat::getFromId, loginId).eq(Chat::getToId, remoteId).eq(Chat::getChatType, PRIVATE_CHAT)
+        chatLambdaQueryWrapper
+                .eq(Chat::getFromId, loginId)
+                .eq(Chat::getToId, remoteId)
+                .eq(Chat::getChatType, PRIVATE_CHAT)
                 .orderBy(true, false, Chat::getCreateTime);
         List<Chat> chatList1 = this.list(chatLambdaQueryWrapper);
-
         chatLambdaQueryWrapper.clear();
-
-        chatLambdaQueryWrapper.eq(Chat::getFromId, remoteId).eq(Chat::getToId, loginId).eq(Chat::getChatType, PRIVATE_CHAT)
+        chatLambdaQueryWrapper.eq(Chat::getFromId, remoteId)
+                .eq(Chat::getToId, loginId)
+                .eq(Chat::getChatType, PRIVATE_CHAT)
                 .orderBy(true, false, Chat::getCreateTime);
         List<Chat> chatList2 = this.list(chatLambdaQueryWrapper);
         if (chatList1.isEmpty() && chatList2.isEmpty()) {

@@ -166,10 +166,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message>
             return Long.parseLong(blogNum) > 0;
         }
         Integer unReadPrivateNum = chatService.getUnReadPrivateNum(userId);
-        if (unReadPrivateNum > 0) {
-            return true;
-        }
-        return false;
+        return unReadPrivateNum > 0;
     }
 
     @Override
