@@ -21,9 +21,11 @@ public final class ValidateCodeUtils {
      * @return {@link Integer}
      */
     public static Integer generateValidateCode() {
-        int code = new Random().nextInt(MAXIMUM_VERIFICATION_CODE_NUM); //生成随机数，最大为999999
+        //生成随机数，最大为999999
+        int code = new Random().nextInt(MAXIMUM_VERIFICATION_CODE_NUM);
         if (code < MINIMUM_VERIFICATION_CODE_NUM) {
-            code = code + MINIMUM_VERIFICATION_CODE_NUM; //保证随机数为6位数字
+            //保证随机数为6位数字
+            code = code + MINIMUM_VERIFICATION_CODE_NUM;
         }
         return code;
     }

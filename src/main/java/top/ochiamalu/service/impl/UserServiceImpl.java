@@ -710,16 +710,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (loginUser != null) {
             String key = USER_RECOMMEND_KEY + loginUser.getId() + ":" + currentPage;
             Page<UserVO> userVOPage;
-            if (StringUtils.isNotBlank(username)) { // 填写了用户名,模糊查询
+            if (StringUtils.isNotBlank(username)) {
+                // 填写了用户名,模糊查询
                 userVOPage = getUserPageByUsername(currentPage, username, loginUser);
             } else { // 没有填写用户名,正常匹配
                 if (superProperties.isEnableCache()) {
                     Boolean hasKey = stringRedisTemplate.hasKey(key);
-                    if (Boolean.TRUE.equals(hasKey)) { // 存在缓存
+                    if (Boolean.TRUE.equals(hasKey)) {
+                        // 存在缓存
                         String userVOPageStr = stringRedisTemplate.opsForValue().get(key);
                         userVOPage = gson.fromJson(userVOPageStr, new TypeToken<Page<UserVO>>() {
                         }.getType());
-                    } else { // 不存在缓存,匹配后加入缓存
+                    } else {
+                        // 不存在缓存,匹配后加入缓存
                         userVOPage = this.matchUser(currentPage, loginUser);
                         String userVOPageStr = gson.toJson(userVOPage);
                         stringRedisTemplate.opsForValue().set(key, userVOPageStr);
@@ -729,8 +732,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 }
             }
             return userVOPage;
-        } else { // 用户未登录
-            if (StringUtils.isNotBlank(username)) { // 禁止未登录用户模糊查询
+        } else {
+            // 用户未登录
+            if (StringUtils.isNotBlank(username)) {
+                // 禁止未登录用户模糊查询
                 throw new BusinessException(ErrorCode.NOT_LOGIN);
             }
             long userNum = this.count();
