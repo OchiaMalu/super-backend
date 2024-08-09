@@ -35,13 +35,13 @@ public final class SystemConstants {
      */
     public static final int MAXIMUM_LOGIN_IDLE_TIME = 900;
     /**
-     * 最大验证码
+     * 四位验证码
      */
-    public static final int MAXIMUM_VERIFICATION_CODE_NUM = 999999;
+    public static final int FOUR_DIGIT_VERIFICATION_CODE = 4;
     /**
-     * 最小验证码
+     * 六位验证码
      */
-    public static final int MINIMUM_VERIFICATION_CODE_NUM = 100000;
+    public static final int SIX_DIGIT_VERIFICATION_CODE = 4;
     /**
      * 跨域允许时间
      */

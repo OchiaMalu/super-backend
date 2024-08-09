@@ -55,7 +55,9 @@ import static top.ochiamalu.constants.RedisConstants.USER_UPDATE_EMAIL_KEY;
 import static top.ochiamalu.constants.RedisConstants.USER_UPDATE_EMAIL_TTL;
 import static top.ochiamalu.constants.RedisConstants.USER_UPDATE_PHONE_KEY;
 import static top.ochiamalu.constants.RedisConstants.USER_UPDATE_PHONE_TTL;
+import static top.ochiamalu.constants.SystemConstants.FOUR_DIGIT_VERIFICATION_CODE;
 import static top.ochiamalu.constants.SystemConstants.PAGE_SIZE;
+import static top.ochiamalu.constants.SystemConstants.SIX_DIGIT_VERIFICATION_CODE;
 import static top.ochiamalu.constants.UserConstants.ADMIN_ROLE;
 
 
@@ -106,7 +108,7 @@ public class UserController {
         if (StringUtils.isBlank(phone)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        Integer code = ValidateCodeUtils.generateValidateCode();
+        Integer code = ValidateCodeUtils.generateValidateCode(SIX_DIGIT_VERIFICATION_CODE);
         String key = REGISTER_CODE_KEY + phone;
         String phoneCode = stringRedisTemplate.opsForValue().get(key);
         if (phoneCode != null) {
@@ -137,7 +139,7 @@ public class UserController {
         if (StringUtils.isBlank(phone)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        Integer code = ValidateCodeUtils.generateValidateCode();
+        Integer code = ValidateCodeUtils.generateValidateCode(SIX_DIGIT_VERIFICATION_CODE);
         String key = USER_UPDATE_PHONE_KEY + phone;
         stringRedisTemplate.opsForValue().set(key, String.valueOf(code), USER_UPDATE_PHONE_TTL, TimeUnit.MINUTES);
         MessageUtils.sendMessage(phone, String.valueOf(code));
@@ -166,7 +168,7 @@ public class UserController {
         if (StringUtils.isBlank(email)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        Integer code = ValidateCodeUtils.generateValidateCode();
+        Integer code = ValidateCodeUtils.generateValidateCode(SIX_DIGIT_VERIFICATION_CODE);
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
         mimeMessageHelper.setFrom(new InternetAddress("SUPER <" + userFrom + ">"));
@@ -297,7 +299,7 @@ public class UserController {
      * @return {@link BaseResponse}<{@link String}>
      */
     @GetMapping("/forget")
-    @ApiOperation(value = "通过手机号查询用户")
+    @ApiOperation(value = "忘记密码")
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "phone", value = "手机号")})
     public BaseResponse<String> getUserByPhone(String phone) {
@@ -311,7 +313,7 @@ public class UserController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "该手机号未绑定账号");
         } else {
             String key = USER_FORGET_PASSWORD_KEY + phone;
-            Integer code = ValidateCodeUtils.generateValidateCode();
+            Integer code = ValidateCodeUtils.generateValidateCode(FOUR_DIGIT_VERIFICATION_CODE);
             MessageUtils.sendMessage(phone, String.valueOf(code));
             stringRedisTemplate.opsForValue().set(key,
                     String.valueOf(code),
