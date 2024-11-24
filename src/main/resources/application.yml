@@ -56,3 +56,5 @@ super:
   enable-bloom-filter: false
   enable-cache: false
   use-local-storage: true
+  ai:
+    enable: false
