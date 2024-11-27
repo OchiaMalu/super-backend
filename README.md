@@ -172,3 +172,8 @@ https://gitee.com/ochiamaluo/super-frontend/tree/master/super-admin
 4. **commit** 后 **push** 到自己的库
 5. 发起**PR**（ **pull request**） 请求，提交到 **dev** 分支
 6. 等待作者合并
+
+## 联系我
+
+![contact us](doc/images/customer-service.jpg)
+
