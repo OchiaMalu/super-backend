@@ -1,5 +1,5 @@
 <p align="center">
-<img src="doc/images/main.png" alt="image-20230623213937364" style="zoom:50%;" align="center" />
+<img src="doc/images/main.png" alt="image-20230623213937364" width="500" align="center" />
 </p>
 <p align=center>
    SUPER速配-用户匹配系统
@@ -175,5 +175,5 @@ https://gitee.com/ochiamaluo/super-frontend/tree/master/super-admin
 
 ## 联系我
 
-![contact us](doc/images/customer-service.jpg)
+<img src="doc/images/customer-service.jpg" width="200">
 
