@@ -93,6 +93,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private FollowService followService;
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+    private Gson gson = new Gson();
 
 
     /**
@@ -433,84 +434,77 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     /**
-     * 火柴用户
-     *
-     * @param currentPage 当前页码
-     * @param loginUser   登录用户
-     * @return {@link Page}<{@link UserVO}>
+     * 根据算法排列用户
+     */
+    public List<Pair<User, Double>> getArrangedUser(String tags, Long id) {
+        if (StringUtils.isBlank(tags)) {
+            return new ArrayList<>();
+        }
+
+        // 获取所有用户
+        LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        userLambdaQueryWrapper.select(User::getId, User::getTags);
+        List<User> userList = this.list(userLambdaQueryWrapper);
+        
+        // 解析当前用户标签
+        List<String> tagList = gson.fromJson(tags, new TypeToken<List<String>>() {}.getType());
+        
+        // 计算相似度并排序
+        List<Pair<User, Double>> similarityList = new ArrayList<>();
+        for (User user : userList) {
+            if (user.getId().equals(id) || StringUtils.isBlank(user.getTags())) {
+                continue;
+            }
+            
+            List<String> userTagList = gson.fromJson(user.getTags(), new TypeToken<List<String>>() {}.getType());
+            double similarity = AlgorithmUtil.calculateSimilarity(tagList, userTagList);
+            similarityList.add(new Pair<>(user, similarity));
+        }
+        
+        // 按相似度降序排序
+        return similarityList.stream()
+                .sorted((a, b) -> Double.compare(b.getValue(), a.getValue()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 匹配用户
      */
     @Override
     public Page<UserVO> matchUser(long currentPage, User loginUser) {
         String tags = loginUser.getTags();
-        if (tags == null) {
+        if (StringUtils.isBlank(tags)) {
             return this.userPage(currentPage);
         }
-        // 获取根据算法排列后的用户列表
-        List<Pair<User, Long>> arrangedUser = getArrangedUser(tags, loginUser.getId());
-        // 截取currentPage所需的List
-        ArrayList<Pair<User, Long>> finalUserPairList = new ArrayList<>();
-        int begin = (int) ((currentPage - 1) * PAGE_SIZE);
-        int end = (int) (((currentPage - 1) * PAGE_SIZE) + PAGE_SIZE) - 1;
-        // 手动整理最后一页
-        if (arrangedUser.size() < end) {
-            //剩余数量
-            int temp = arrangedUser.size() - begin;
-            if (temp <= 0) {
-                return new Page<>();
-            }
-            for (int i = begin; i <= begin + temp - 1; i++) {
-                finalUserPairList.add(arrangedUser.get(i));
-            }
-        } else {
-            for (int i = begin; i < end; i++) {
-                finalUserPairList.add(arrangedUser.get(i));
-            }
+
+        // 获取排序后的用户列表
+        List<Pair<User, Double>> arrangedUsers = getArrangedUser(tags, loginUser.getId());
+        if (arrangedUsers.isEmpty()) {
+            return new Page<>();
         }
-        // 获取排列后的UserId
-        List<Long> userIdList = finalUserPairList.stream().map(pair -> pair.getKey().getId())
+
+        // 分页处理
+        int start = (int) ((currentPage - 1) * PAGE_SIZE);
+        if (start >= arrangedUsers.size()) {
+            return new Page<>();
+        }
+        
+        int end = (int) Math.min(start + PAGE_SIZE, arrangedUsers.size());
+        List<Pair<User, Double>> pageUsers = arrangedUsers.subList(start, end);
+        
+        // 转换为UserVO
+        List<UserVO> userVOList = pageUsers.stream()
+                .map(pair -> getUserById(pair.getKey().getId(), loginUser.getId()))
                 .collect(Collectors.toList());
-        List<UserVO> userVOList = getUserListByIdList(userIdList, loginUser.getId());
+
+        // 构建分页对象
         Page<UserVO> userVoPage = new Page<>();
         userVoPage.setRecords(userVOList);
         userVoPage.setCurrent(currentPage);
-        userVoPage.setSize(userVOList.size());
-        userVoPage.setTotal(userVOList.size());
+        userVoPage.setSize(PAGE_SIZE);
+        userVoPage.setTotal(arrangedUsers.size());
+        
         return userVoPage;
-    }
-
-    /**
-     * 根据算法排列用户
-     *
-     * @param tags 标签
-     * @param id   id
-     * @return {@link List}<{@link Pair}<{@link User}, {@link Long}>>
-     */
-    public List<Pair<User, Long>> getArrangedUser(String tags, Long id) {
-        LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        userLambdaQueryWrapper.select(User::getId, User::getTags);
-        List<User> userList = this.list(userLambdaQueryWrapper);
-        Gson gson = new Gson();
-        List<String> tagList = gson.fromJson(tags, new TypeToken<List<String>>() {
-        }.getType());
-        // 用户列表的下标 => 相似度
-        List<Pair<User, Long>> list = new ArrayList<>();
-        // 依次计算所有用户和当前用户的相似度
-        for (User user : userList) {
-            String userTags = user.getTags();
-            // 无标签或者为当前用户自己
-            if (StringUtils.isBlank(userTags) || Objects.equals(user.getId(), id)) {
-                continue;
-            }
-            List<String> userTagList = gson.fromJson(userTags, new TypeToken<List<String>>() {
-            }.getType());
-            // 计算分数
-            long distance = AlgorithmUtil.minDistance(tagList, userTagList);
-            list.add(new Pair<>(user, distance));
-        }
-        // 按编辑距离由小到大排序
-        return list.stream()
-                .sorted((a, b) -> (int) (a.getValue() - b.getValue()))
-                .collect(Collectors.toList());
     }
 
     /**
