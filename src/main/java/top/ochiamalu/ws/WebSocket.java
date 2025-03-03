@@ -278,17 +278,18 @@ public class WebSocket {
         Long teamId = messageRequest.getTeamId();
         String text = messageRequest.getText();
         Integer chatType = messageRequest.getChatType();
+        String messageType = messageRequest.getMessageType();
         User fromUser = userService.getById(userId);
         Team team = teamService.getById(teamId);
         if (chatType == PRIVATE_CHAT) {
             // 私聊
-            privateChat(fromUser, toId, text, chatType);
+            privateChat(fromUser, toId, text, chatType, messageType);
         } else if (chatType == TEAM_CHAT) {
             // 队伍内聊天
-            teamChat(fromUser, text, team, chatType);
+            teamChat(fromUser, text, team, chatType, messageType);
         } else {
             // 群聊
-            hallChat(fromUser, text, chatType);
+            hallChat(fromUser, text, chatType, messageType);
         }
     }
 
@@ -300,7 +301,7 @@ public class WebSocket {
      * @param team     团队
      * @param chatType 聊天类型
      */
-    private void teamChat(User user, String text, Team team, Integer chatType) {
+    private void teamChat(User user, String text, Team team, Integer chatType, String messageType) {
         ChatMessageVO chatMessageVo = new ChatMessageVO();
         WebSocketVO fromWebSocketVO = new WebSocketVO();
         BeanUtils.copyProperties(user, fromWebSocketVO);
@@ -308,6 +309,7 @@ public class WebSocket {
         chatMessageVo.setText(text);
         chatMessageVo.setTeamId(team.getId());
         chatMessageVo.setChatType(chatType);
+        chatMessageVo.setMessageType(messageType);
         chatMessageVo.setCreateTime(DateUtil.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
         if (Objects.equals(user.getId(), team.getUserId()) || user.getRole() == ADMIN_ROLE) {
             chatMessageVo.setIsAdmin(true);
@@ -319,7 +321,7 @@ public class WebSocket {
         String toJson = new Gson().toJson(chatMessageVo);
         try {
             broadcast(String.valueOf(team.getId()), toJson);
-            saveChat(user.getId(), null, text, team.getId(), chatType);
+            saveChat(user.getId(), null, text, team.getId(), chatType, messageType);
             chatService.deleteKey(CACHE_CHAT_TEAM, String.valueOf(team.getId()));
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -333,13 +335,14 @@ public class WebSocket {
      * @param text     文本
      * @param chatType 聊天类型
      */
-    private void hallChat(User user, String text, Integer chatType) {
+    private void hallChat(User user, String text, Integer chatType, String messageType) {
         ChatMessageVO chatMessageVo = new ChatMessageVO();
         WebSocketVO fromWebSocketVO = new WebSocketVO();
         BeanUtils.copyProperties(user, fromWebSocketVO);
         chatMessageVo.setFromUser(fromWebSocketVO);
         chatMessageVo.setText(text);
         chatMessageVo.setChatType(chatType);
+        chatMessageVo.setMessageType(messageType);
         chatMessageVo.setCreateTime(DateUtil.format(new Date(), "yyyy年MM月dd日 HH:mm:ss"));
         if (user.getRole() == ADMIN_ROLE) {
             chatMessageVo.setIsAdmin(true);
@@ -350,7 +353,7 @@ public class WebSocket {
         }
         String toJson = new Gson().toJson(chatMessageVo);
         sendAllMessage(toJson);
-        saveChat(user.getId(), null, text, null, chatType);
+        saveChat(user.getId(), null, text, null, chatType, messageType);
         chatService.deleteKey(CACHE_CHAT_HALL, String.valueOf(user.getId()));
     }
 
@@ -362,16 +365,17 @@ public class WebSocket {
      * @param text     文本
      * @param chatType 聊天类型
      */
-    private void privateChat(User user, Long toId, String text, Integer chatType) {
+    private void privateChat(User user, Long toId, String text, Integer chatType, String messageType) {
         ChatMessageVO chatMessageVo = chatService
-                .chatResult(user.getId(), toId, text, chatType, DateUtil.date(System.currentTimeMillis()));
+                .chatResult(user.getId(), toId, text, chatType, messageType, DateUtil.date(System.currentTimeMillis()));
+        chatMessageVo.setMessageType(messageType);
         User loginUser = (User) this.httpSession.getAttribute(USER_LOGIN_STATE);
         if (Objects.equals(loginUser.getId(), user.getId())) {
             chatMessageVo.setIsMy(true);
         }
         String toJson = new Gson().toJson(chatMessageVo);
         sendOneMessage(toId.toString(), toJson);
-        saveChat(user.getId(), toId, text, null, chatType);
+        saveChat(user.getId(), toId, text, null, chatType, messageType);
         chatService.deleteKey(CACHE_CHAT_PRIVATE, user.getId() + "" + toId);
         chatService.deleteKey(CACHE_CHAT_PRIVATE, toId + "" + user.getId());
     }
@@ -385,7 +389,7 @@ public class WebSocket {
      * @param teamId   团队id
      * @param chatType 聊天类型
      */
-    private void saveChat(Long userId, Long toId, String text, Long teamId, Integer chatType) {
+    private void saveChat(Long userId, Long toId, String text, Long teamId, Integer chatType, String messageType) {
 //        if (chatType == PRIVATE_CHAT) {
 //            User user = userService.getById(userId);
 //            Set<Long> userIds = stringJsonListToLongSet(user.getFriendIds());
@@ -398,6 +402,7 @@ public class WebSocket {
         chat.setFromId(userId);
         chat.setText(String.valueOf(text));
         chat.setChatType(chatType);
+        chat.setMessageType(messageType);
         chat.setCreateTime(new Date());
         if (toId != null && toId > 0) {
             chat.setToId(toId);

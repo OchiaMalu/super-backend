@@ -76,7 +76,7 @@ public class FileController {
      * @return {@link BaseResponse}<{@link String}>
      */
     @PostMapping("/upload")
-    @ApiOperation(value = "文件上传")
+    @ApiOperation(value = "头像上传")
     @ApiImplicitParams(
             {@ApiImplicitParam(name = "file", value = "文件"),
                     @ApiImplicitParam(name = "request", value = "request请求")})
@@ -109,6 +109,30 @@ public class FileController {
             if (!success) {
                 throw new BusinessException(ErrorCode.SYSTEM_ERROR, "头像上传失败");
             }
+            return ResultUtils.success(fileUrl);
+        }
+    }
+
+    @PostMapping("/upload/file")
+    @ApiOperation(value = "文件上传")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "file", value = "文件"),
+                    @ApiImplicitParam(name = "request", value = "request请求")})
+    public BaseResponse<String> uploadFile(MultipartFile file, HttpServletRequest request) {
+        if (file == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请上传文件");
+        }
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN, "请登录");
+        }
+        if (superProperties.isUseLocalStorage()) {
+            String fileName = FileUtils.uploadFile2Local(file);
+            String fileUrl = "http://" + host + ":" + port + "/api/common/image/" + fileName;
+            return ResultUtils.success(fileUrl);
+        } else {
+            String filename = FileUtils.uploadFile2Cloud(file);
+            String fileUrl = qiniuUrl + filename;
             return ResultUtils.success(fileUrl);
         }
     }

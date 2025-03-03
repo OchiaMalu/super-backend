@@ -57,7 +57,7 @@ public interface ChatService extends IService<Chat> {
      * @param createTime 创建时间
      * @return {@link ChatMessageVO}
      */
-    ChatMessageVO chatResult(Long userId, Long toId, String text, Integer chatType, Date createTime);
+    ChatMessageVO chatResult(Long userId, Long toId, String text, Integer chatType, String messageType, Date createTime);
 
     /**
      * 删除密钥

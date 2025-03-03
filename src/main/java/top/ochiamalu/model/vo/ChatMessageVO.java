@@ -45,6 +45,11 @@ public class ChatMessageVO implements Serializable {
     @ApiModelProperty(value = "是否是我的消息")
     private Boolean isMy = false;
     /**
+     * 消息类型
+     */
+    @ApiModelProperty(value = "消息类型")
+    private String messageType;
+    /**
      * 聊天类型
      */
     @ApiModelProperty(value = "聊天类型")

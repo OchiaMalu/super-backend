@@ -91,7 +91,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         List<Chat> list = this.list(chatLambdaQueryWrapper);
         List<ChatMessageVO> chatMessageVOList = list.stream().map(chat -> {
             ChatMessageVO chatMessageVo = chatResult(loginUser.getId(),
-                    toId, chat.getText(), chatType,
+                    toId, chat.getText(), chatType, chat.getMessageType(),
                     chat.getCreateTime());
             if (chat.getFromId().equals(loginUser.getId())) {
                 chatMessageVo.setIsMy(true);
@@ -163,13 +163,14 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
      * @param text   文本
      * @return {@link ChatMessageVO}
      */
-    private ChatMessageVO chatResult(Long userId, String text) {
+    private ChatMessageVO chatResult(Long userId, String text, String messageType) {
         ChatMessageVO chatMessageVo = new ChatMessageVO();
         User fromUser = userService.getById(userId);
         WebSocketVO fromWebSocketVo = new WebSocketVO();
         BeanUtils.copyProperties(fromUser, fromWebSocketVo);
         chatMessageVo.setFromUser(fromWebSocketVo);
         chatMessageVo.setText(text);
+        chatMessageVo.setMessageType(messageType);
         return chatMessageVo;
     }
 
@@ -184,7 +185,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
      * @return {@link ChatMessageVO}
      */
     @Override
-    public ChatMessageVO chatResult(Long userId, Long toId, String text, Integer chatType, Date createTime) {
+    public ChatMessageVO chatResult(Long userId, Long toId, String text, Integer chatType, String messageType, Date createTime) {
         ChatMessageVO chatMessageVo = new ChatMessageVO();
         User fromUser = userService.getById(userId);
         User toUser = userService.getById(toId);
@@ -195,6 +196,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
         chatMessageVo.setFromUser(fromWebSocketVo);
         chatMessageVo.setToUser(toWebSocketVo);
         chatMessageVo.setChatType(chatType);
+        chatMessageVo.setMessageType(messageType);
         chatMessageVo.setText(text);
         chatMessageVo.setCreateTime(DateUtil.format(createTime, "yyyy-MM-dd HH:mm:ss"));
         return chatMessageVo;
@@ -418,7 +420,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
                                               LambdaQueryWrapper<Chat> chatLambdaQueryWrapper) {
         List<Chat> chatList = this.list(chatLambdaQueryWrapper);
         return chatList.stream().map(chat -> {
-            ChatMessageVO chatMessageVo = chatResult(chat.getFromId(), chat.getText());
+            ChatMessageVO chatMessageVo = chatResult(chat.getFromId(), chat.getText(), chat.getMessageType());
             boolean isCaptain = userId != null && userId.equals(chat.getFromId());
             if (userService.getById(chat.getFromId()).getRole() == ADMIN_ROLE || isCaptain) {
                 chatMessageVo.setIsAdmin(true);
