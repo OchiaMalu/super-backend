@@ -54,6 +54,7 @@ create table if not exists chat
     to_id       bigint                                  null comment '接收消息id',
     text        varchar(512) collate utf8mb4_unicode_ci null,
     chat_type   tinyint                                 not null comment '聊天类型 1-私聊 2-群聊',
+    message_type varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '消息类型',
     is_read     tinyint  default 0                 null comment '是否已读 1-已读 2-未读',
     create_time datetime default CURRENT_TIMESTAMP null comment '创建时间',
     update_time datetime default CURRENT_TIMESTAMP null,

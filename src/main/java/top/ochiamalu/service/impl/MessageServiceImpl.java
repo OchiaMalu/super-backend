@@ -212,7 +212,13 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message>
             }
             if (item.getType() == MessageTypeEnum.BLOG_LIKE.getValue()) {
                 BlogVO blogVO = blogService.getBlogById(Long.parseLong(item.getData()), userId);
-                messageVO.setBlog(blogVO);
+                if (blogVO == null) {
+                    BlogVO vo = new BlogVO();
+                    vo.setTitle("该博文已被删除");
+                    messageVO.setBlog(vo);
+                } else {
+                    messageVO.setBlog(blogVO);
+                }
             }
             return messageVO;
         }).collect(Collectors.toList());

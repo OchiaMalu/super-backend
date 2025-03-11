@@ -267,7 +267,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
     public BlogVO getBlogById(long blogId, Long userId) {
         Blog blog = this.getById(blogId);
         if (blog == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "无法找到该博文");
+            return null;
         }
         BlogVO blogVO = new BlogVO();
         BeanUtils.copyProperties(blog, blogVO);

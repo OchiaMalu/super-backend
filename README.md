@@ -37,7 +37,7 @@ https://gitee.com/ochiamaluo/super-frontend/tree/master/super-admin
 
 ## 在线体验
 
-演示地址: http://ochiamalu.top
+演示地址: http://ochiamalu.fun
 
 账号可以自行注册，一切聊天、评论需遵守中华人民共和国有关法律规定。
 
@@ -94,7 +94,7 @@ https://gitee.com/ochiamaluo/super-frontend/tree/master/super-admin
 
 ## 项目文档
 
-文档地址： http://doc.ochiamalu.top/
+文档地址： http://doc.ochiamalu.fun
 
 ## 项目地址
 
