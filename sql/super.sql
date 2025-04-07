@@ -4,15 +4,15 @@ create table if not exists blog
 (
     id           bigint auto_increment comment '主键'
         primary key,
-    user_id      bigint                                    not null comment '用户id',
-    title        varchar(255) collate utf8mb4_unicode_ci   not null comment '标题',
-    images       varchar(2048)                             null comment '图片，最多9张，多张以","隔开',
-    content      varchar(2048) collate utf8mb4_unicode_ci  not null comment '文章',
-    liked_num    int(8) unsigned default 0                 null comment '点赞数量',
-    comments_num int(8) unsigned default 0                 null comment '评论数量',
-    create_time  timestamp       default CURRENT_TIMESTAMP not null comment '创建时间',
-    update_time  timestamp       default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
-    is_delete    tinyint         default 0                 null comment '逻辑删除'
+    user_id      bigint                                   not null comment '用户id',
+    title        varchar(255) collate utf8mb4_unicode_ci  not null comment '标题',
+    images       varchar(2048)                            null comment '图片，最多9张，多张以","隔开',
+    content      varchar(2048) collate utf8mb4_unicode_ci not null comment '文章',
+    liked_num    int unsigned default '0'                 null comment '点赞数量',
+    comments_num int unsigned default '0'                 null comment '评论数量',
+    create_time  timestamp    default CURRENT_TIMESTAMP   not null comment '创建时间',
+    update_time  timestamp    default CURRENT_TIMESTAMP   not null on update CURRENT_TIMESTAMP comment '更新时间',
+    is_delete    tinyint      default 0                   null comment '逻辑删除'
 )
     row_format = COMPACT;
 
@@ -20,16 +20,16 @@ create table if not exists blog_comments
 (
     id          bigint auto_increment comment '主键'
         primary key,
-    user_id     bigint                                    not null comment '用户id',
-    blog_id     bigint                                    not null comment '博文id',
-    parent_id   bigint unsigned                           null comment '关联的1级评论id，如果是一级评论，则值为0',
-    answer_id   bigint unsigned                           null comment '回复的评论id',
-    content     varchar(255)                              not null comment '回复的内容',
-    liked_num   int(8) unsigned default 0                 null comment '点赞数',
-    status      tinyint(1) unsigned                       null comment '状态，0：正常，1：被举报，2：禁止查看',
-    create_time timestamp       default CURRENT_TIMESTAMP not null comment '创建时间',
-    update_time timestamp       default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
-    is_delete   tinyint         default 0                 null comment '逻辑删除'
+    user_id     bigint                                 not null comment '用户id',
+    blog_id     bigint                                 not null comment '博文id',
+    parent_id   bigint unsigned                        null comment '关联的1级评论id，如果是一级评论，则值为0',
+    answer_id   bigint unsigned                        null comment '回复的评论id',
+    content     varchar(255)                           not null comment '回复的内容',
+    liked_num   int unsigned default '0'               null comment '点赞数',
+    status      tinyint unsigned                       null comment '状态，0：正常，1：被举报，2：禁止查看',
+    create_time timestamp    default CURRENT_TIMESTAMP not null comment '创建时间',
+    update_time timestamp    default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    is_delete   tinyint      default 0                 null comment '逻辑删除'
 )
     row_format = COMPACT;
 
@@ -43,23 +43,23 @@ create table if not exists blog_like
     update_time datetime                           null on update CURRENT_TIMESTAMP comment '更新时间',
     is_delete   tinyint  default 0                 null comment '逻辑删除'
 )
-    charset = utf8
+    charset = utf8mb3
     row_format = COMPACT;
 
 create table if not exists chat
 (
-    id          bigint auto_increment comment '聊天记录id'
+    id           bigint auto_increment comment '聊天记录id'
         primary key,
-    from_id     bigint                                  not null comment '发送消息id',
-    to_id       bigint                                  null comment '接收消息id',
-    text        varchar(512) collate utf8mb4_unicode_ci null,
-    chat_type   tinyint                                 not null comment '聊天类型 1-私聊 2-群聊',
-    message_type varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '消息类型',
-    is_read     tinyint  default 0                 null comment '是否已读 1-已读 2-未读',
-    create_time datetime default CURRENT_TIMESTAMP null comment '创建时间',
-    update_time datetime default CURRENT_TIMESTAMP null,
-    team_id     bigint                                  null,
-    is_delete   tinyint  default 0                 null
+    from_id      bigint                                  not null comment '发送消息id',
+    to_id        bigint                                  null comment '接收消息id',
+    text         varchar(512) collate utf8mb4_unicode_ci null,
+    chat_type    tinyint                                 not null comment '聊天类型 1-私聊 2-群聊',
+    message_type varchar(255)                            null comment '消息类型',
+    is_read      tinyint  default 0                      null comment '是否已读 1-已读 2-未读',
+    create_time  datetime default CURRENT_TIMESTAMP      null comment '创建时间',
+    update_time  datetime default CURRENT_TIMESTAMP      null,
+    team_id      bigint                                  null,
+    is_delete    tinyint  default 0                      null
 )
     comment '聊天消息表' row_format = COMPACT;
 
@@ -85,8 +85,19 @@ create table if not exists config
     update_time timestamp default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
     is_delete   tinyint   default 0                 null comment '逻辑删除'
 )
-    charset = utf8
+    charset = utf8mb3
     row_format = COMPACT;
+
+create table if not exists emoticon
+(
+    id          bigint auto_increment comment 'id'
+        primary key,
+    user_id     bigint                              not null comment '用户id',
+    url         varchar(255)                        not null comment 'emoji url',
+    create_time timestamp default CURRENT_TIMESTAMP not null comment '创建时间',
+    update_time timestamp default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    is_delete   tinyint   default 0                 not null comment '是否删除'
+);
 
 create table if not exists follow
 (
@@ -98,7 +109,7 @@ create table if not exists follow
     update_time    timestamp default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
     is_delete      tinyint   default 0                 null comment '逻辑删除'
 )
-    charset = utf8
+    charset = utf8mb3
     row_format = COMPACT;
 
 create table if not exists friends
@@ -135,13 +146,13 @@ create table if not exists sign
 (
     id        bigint auto_increment comment '主键'
         primary key,
-    user_id   bigint              not null comment '用户id',
-    year      year                not null comment '签到的年',
-    month     tinyint(2)          not null comment '签到的月',
-    date      date                not null comment '签到的日期',
-    is_backup tinyint(1) unsigned null comment '是否补签'
+    user_id   bigint           not null comment '用户id',
+    year      year             not null comment '签到的年',
+    month     tinyint          not null comment '签到的月',
+    date      date             not null comment '签到的日期',
+    is_backup tinyint unsigned null comment '是否补签'
 )
-    charset = utf8
+    charset = utf8mb3
     row_format = COMPACT;
 
 create table if not exists team
@@ -182,7 +193,7 @@ create table if not exists user
     update_time  datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP comment '更新时间',
     is_delete    tinyint  default 0                 not null comment '是否删除'
 )
-    charset = utf8
+    charset = utf8mb3
     row_format = DYNAMIC;
 
 create table if not exists user_team
@@ -196,6 +207,6 @@ create table if not exists user_team
     update_time datetime default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     is_delete   tinyint  default 0                 not null comment '是否删除'
 )
-    comment '用户队伍关系' charset = utf8
+    comment '用户队伍关系' charset = utf8mb3
                            row_format = COMPACT;
 
