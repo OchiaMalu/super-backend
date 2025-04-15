@@ -5,19 +5,16 @@
 <mapper namespace="top.ochiamalu.mapper.TagMapper">
 
     <resultMap id="BaseResultMap" type="top.ochiamalu.model.domain.Tag">
-        <id property="id" column="id" jdbcType="BIGINT"/>
-        <result property="tagName" column="tag_name" jdbcType="VARCHAR"/>
-        <result property="userId" column="user_id" jdbcType="BIGINT"/>
-        <result property="parentId" column="parent_id" jdbcType="BIGINT"/>
-        <result property="isParent" column="is_parent" jdbcType="TINYINT"/>
-        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
-        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
-        <result property="isDelete" column="is_delete" jdbcType="TINYINT"/>
+        <id property="id" column="id"/>
+        <result property="text" column="text"/>
+        <result property="children" column="children"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="isDelete" column="is_delete"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,tag_name,user_id,
-        parent_id,is_parent,create_time,
-        update_time,is_delete
+        id
+        ,text,children,create_time,update_time,is_delete
     </sql>
 </mapper>
