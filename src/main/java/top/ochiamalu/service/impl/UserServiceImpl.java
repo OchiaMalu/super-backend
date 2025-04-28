@@ -37,7 +37,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -72,16 +71,16 @@ import static top.ochiamalu.constants.UserConstants.USER_LOGIN_STATE;
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
     private static final String[] AVATAR_URLS = {
-            "http://niu.ochiamalu.top/12d4949b4009d089eaf071aef0f1f40.jpg",
-            "http://niu.ochiamalu.top/1bff61de34bdc7bf40c6278b2848fbcf.jpg",
-            "http://niu.ochiamalu.top/22fe8428428c93a565e181782e97654.jpg",
-            "http://niu.ochiamalu.top/75e31415779979ae40c4c0238aa4c34.jpg",
-            "http://niu.ochiamalu.top/905731909dfdafd0b53b3c4117438d3.jpg",
-            "http://niu.ochiamalu.top/a84b1306e46061c0d664e6067417e5b.jpg",
-            "http://niu.ochiamalu.top/b93d640cc856cb7035a851029aec190.jpg",
-            "http://niu.ochiamalu.top/c11ae3862b3ca45b0a6cdff1e1bf841.jpg",
-            "http://niu.ochiamalu.top/cccfb0995f5d103414bd8a8bd742c34.jpg",
-            "http://niu.ochiamalu.top/f870176b1a628623fa7fe9918b862d7.jpg"
+            "http://niu.ochiamalu.fun/12d4949b4009d089eaf071aef0f1f40.jpg",
+            "http://niu.ochiamalu.fun/1bff61de34bdc7bf40c6278b2848fbcf.jpg",
+            "http://niu.ochiamalu.fun/22fe8428428c93a565e181782e97654.jpg",
+            "http://niu.ochiamalu.fun/75e31415779979ae40c4c0238aa4c34.jpg",
+            "http://niu.ochiamalu.fun/905731909dfdafd0b53b3c4117438d3.jpg",
+            "http://niu.ochiamalu.fun/a84b1306e46061c0d664e6067417e5b.jpg",
+            "http://niu.ochiamalu.fun/b93d640cc856cb7035a851029aec190.jpg",
+            "http://niu.ochiamalu.fun/c11ae3862b3ca45b0a6cdff1e1bf841.jpg",
+            "http://niu.ochiamalu.fun/cccfb0995f5d103414bd8a8bd742c34.jpg",
+            "http://niu.ochiamalu.fun/f870176b1a628623fa7fe9918b862d7.jpg"
     };
     /**
      * 盐值，混淆密码
@@ -177,13 +176,25 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     @Override
     public String userLogin(String userAccount, String userPassword, HttpServletRequest request) {
-        // 1. 校验
-        validateUserRequest(userAccount, userPassword);
-        User userInDatabase = getUserInDatabase(userAccount, userPassword);
+        String phoneValidate = "^(1[3-9]\\d{9})$";
+        Matcher matcher = Pattern.compile(phoneValidate).matcher(userAccount);
+        User userInDatabase;
+        if (matcher.matches()) {
+            userInDatabase = phoneLogin(userAccount, userPassword);
+        } else {
+            validateUserRequest(userAccount, userPassword);
+            userInDatabase = getUserInDatabase(userAccount, userPassword);
+        }
         // 3. 用户脱敏
         User safetyUser = getSafetyUser(userInDatabase);
         // 4. 记录用户的登录态
         return setUserLoginState(request, safetyUser);
+    }
+
+    private User phoneLogin(String phone, String userPassword) {
+        return lambdaQuery().eq(User::getPhone, phone)
+                .eq(User::getPassword, DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes()))
+                .one();
     }
 
     /**
@@ -445,22 +456,24 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         LambdaQueryWrapper<User> userLambdaQueryWrapper = new LambdaQueryWrapper<>();
         userLambdaQueryWrapper.select(User::getId, User::getTags);
         List<User> userList = this.list(userLambdaQueryWrapper);
-        
+
         // 解析当前用户标签
-        List<String> tagList = gson.fromJson(tags, new TypeToken<List<String>>() {}.getType());
-        
+        List<String> tagList = gson.fromJson(tags, new TypeToken<List<String>>() {
+        }.getType());
+
         // 计算相似度并排序
         List<Pair<User, Double>> similarityList = new ArrayList<>();
         for (User user : userList) {
             if (user.getId().equals(id) || StringUtils.isBlank(user.getTags())) {
                 continue;
             }
-            
-            List<String> userTagList = gson.fromJson(user.getTags(), new TypeToken<List<String>>() {}.getType());
+
+            List<String> userTagList = gson.fromJson(user.getTags(), new TypeToken<List<String>>() {
+            }.getType());
             double similarity = AlgorithmUtil.calculateSimilarity(tagList, userTagList);
             similarityList.add(new Pair<>(user, similarity));
         }
-        
+
         // 按相似度降序排序
         return similarityList.stream()
                 .sorted((a, b) -> Double.compare(b.getValue(), a.getValue()))
@@ -488,10 +501,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (start >= arrangedUsers.size()) {
             return new Page<>();
         }
-        
+
         int end = (int) Math.min(start + PAGE_SIZE, arrangedUsers.size());
         List<Pair<User, Double>> pageUsers = arrangedUsers.subList(start, end);
-        
+
         // 转换为UserVO
         List<UserVO> userVOList = pageUsers.stream()
                 .map(pair -> getUserById(pair.getKey().getId(), loginUser.getId()))
@@ -503,7 +516,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         userVoPage.setCurrent(currentPage);
         userVoPage.setSize(PAGE_SIZE);
         userVoPage.setTotal(arrangedUsers.size());
-        
+
         return userVoPage;
     }
 

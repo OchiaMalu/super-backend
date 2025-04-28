@@ -166,6 +166,9 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat>
     private ChatMessageVO chatResult(Long userId, String text, String messageType) {
         ChatMessageVO chatMessageVo = new ChatMessageVO();
         User fromUser = userService.getById(userId);
+        if (fromUser == null) {
+            return null;
+        }
         WebSocketVO fromWebSocketVo = new WebSocketVO();
         BeanUtils.copyProperties(fromUser, fromWebSocketVo);
         chatMessageVo.setFromUser(fromWebSocketVo);
