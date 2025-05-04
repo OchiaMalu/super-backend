@@ -269,7 +269,35 @@ public class TeamController {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
         teamQuery.setUserId(loginUser.getId());
-        Page<TeamVO> teamVOPage = teamService.listMyCreate(currentPage, loginUser.getId());
+        Page<TeamVO> teamVOPage = teamService.listUserCreate(currentPage, teamQuery.getSearchText(), loginUser.getId());
+        Page<TeamVO> teamVoPageWithAvatar = teamService.getJoinedUserAvatar(teamVOPage);
+        Page<TeamVO> finalPage = getTeamHasJoinNum(teamVoPageWithAvatar);
+        return getUserJoinedList(loginUser, finalPage);
+    }
+
+    /**
+     * 我创建团队名单
+     *
+     * @param currentPage 当前页面
+     * @param teamQuery   团队查询
+     * @param request     请求
+     * @return {@link BaseResponse}<{@link Page}<{@link TeamVO}>>
+     */
+    @GetMapping("/list/user/create")
+    @ApiOperation(value = "获取我创建的队伍")
+    @ApiImplicitParams({@ApiImplicitParam(name = "teamQuery", value = "获取队伍请求参数"),
+            @ApiImplicitParam(name = "request", value = "request请求")})
+    public BaseResponse<Page<TeamVO>> listUserCreateTeams(long currentPage,
+                                                          TeamQueryRequest teamQuery,
+                                                          HttpServletRequest request) {
+        if (teamQuery.getUserId() == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        Page<TeamVO> teamVOPage = teamService.listUserCreate(currentPage, teamQuery.getSearchText(), teamQuery.getUserId());
         Page<TeamVO> teamVoPageWithAvatar = teamService.getJoinedUserAvatar(teamVOPage);
         Page<TeamVO> finalPage = getTeamHasJoinNum(teamVoPageWithAvatar);
         return getUserJoinedList(loginUser, finalPage);
@@ -307,7 +335,7 @@ public class TeamController {
             return ResultUtils.success(new Page<>());
         }
         teamQuery.setIdList(idList);
-        Page<TeamVO> teamVOPage = teamService.listMyJoin(currentPage, teamQuery);
+        Page<TeamVO> teamVOPage = teamService.listMyJoin(currentPage, teamQuery.getSearchText(), teamQuery);
         Page<TeamVO> teamVoPageWithAvatar = teamService.getJoinedUserAvatar(teamVOPage);
         Page<TeamVO> finalPage = getTeamHasJoinNum(teamVoPageWithAvatar);
         return getUserJoinedList(loginUser, finalPage);

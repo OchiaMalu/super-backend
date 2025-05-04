@@ -55,7 +55,7 @@ public class BlogController {
      * 博客列表页面
      *
      * @param currentPage 当前页面
-     * @param title 题目
+     * @param title       题目
      * @param request     请求
      * @return {@link BaseResponse}<{@link Page}<{@link BlogVO}>>
      */
@@ -114,7 +114,32 @@ public class BlogController {
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
-        Page<BlogVO> blogPage = blogService.listMyBlogs(currentPage, loginUser.getId());
+        Page<BlogVO> blogPage = blogService.listUserBlogs(currentPage, loginUser.getId());
+        return ResultUtils.success(blogPage);
+    }
+
+    /**
+     * 获取用户写的博文
+     *
+     * @param currentPage 当前页面
+     * @param request     请求
+     * @return {@link BaseResponse}<{@link Page}<{@link BlogVO}>>
+     */
+    @GetMapping("/list/user/blog")
+    @ApiOperation(value = "获取用户写的博文")
+    @ApiImplicitParams(
+            {@ApiImplicitParam(name = "currentPage", value = "当前页"),
+                    @ApiImplicitParam(name = "userId", value = "用户id"),
+                    @ApiImplicitParam(name = "request", value = "request请求")})
+    public BaseResponse<Page<BlogVO>> listUserBlogs(long currentPage, Long userId, HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
+        }
+        if (userId == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        Page<BlogVO> blogPage = blogService.listUserBlogs(currentPage, userId);
         return ResultUtils.success(blogPage);
     }
 

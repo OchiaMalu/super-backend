@@ -133,26 +133,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
         return blog.getId();
     }
 
-    @Override
-    public Page<BlogVO> listMyBlogs(long currentPage, Long id) {
-        if (currentPage <= 0) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        LambdaQueryWrapper<Blog> blogLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        blogLambdaQueryWrapper.eq(Blog::getUserId, id);
-        Page<Blog> blogPage = this.page(new Page<>(currentPage, PAGE_SIZE), blogLambdaQueryWrapper);
-        Page<BlogVO> blogVoPage = new Page<>();
-        BeanUtils.copyProperties(blogPage, blogVoPage);
-        List<BlogVO> blogVOList = blogPage.getRecords().stream().map((blog) -> {
-            BlogVO blogVO = new BlogVO();
-            BeanUtils.copyProperties(blog, blogVO);
-            return blogVO;
-        }).collect(Collectors.toList());
-        List<BlogVO> blogWithCoverImg = getCoverImg(blogVOList);
-        blogVoPage.setRecords(blogWithCoverImg);
-        return blogVoPage;
-    }
-
     /**
      * 点赞博文
      *
@@ -366,6 +346,26 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
         blog.setTitle(blogUpdateRequest.getTitle());
         blog.setContent(blogUpdateRequest.getContent());
         this.updateById(blog);
+    }
+
+    @Override
+    public Page<BlogVO> listUserBlogs(long currentPage, Long userId) {
+        if (currentPage <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        LambdaQueryWrapper<Blog> blogLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        blogLambdaQueryWrapper.eq(Blog::getUserId, userId);
+        Page<Blog> blogPage = this.page(new Page<>(currentPage, PAGE_SIZE), blogLambdaQueryWrapper);
+        Page<BlogVO> blogVoPage = new Page<>();
+        BeanUtils.copyProperties(blogPage, blogVoPage);
+        List<BlogVO> blogVOList = blogPage.getRecords().stream().map((blog) -> {
+            BlogVO blogVO = new BlogVO();
+            BeanUtils.copyProperties(blog, blogVO);
+            return blogVO;
+        }).collect(Collectors.toList());
+        List<BlogVO> blogWithCoverImg = getCoverImg(blogVOList);
+        blogVoPage.setRecords(blogWithCoverImg);
+        return blogVoPage;
     }
 
     /**

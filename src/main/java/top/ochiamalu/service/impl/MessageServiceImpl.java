@@ -137,7 +137,9 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message>
         for (ZSetOperations.TypedTuple<String> tuple : typedTuples) {
             long blogId = Long.parseLong(Objects.requireNonNull(tuple.getValue()));
             BlogVO blogVO = blogService.getBlogById(blogId, userId);
-            blogVOList.add(blogVO);
+            if (blogVO != null) {
+                blogVOList.add(blogVO);
+            }
         }
         String likeNumKey = MESSAGE_BLOG_NUM_KEY + userId;
         Boolean hasKey = stringRedisTemplate.hasKey(likeNumKey);

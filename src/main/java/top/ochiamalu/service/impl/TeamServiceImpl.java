@@ -470,9 +470,10 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
      * @return {@link Page}<{@link TeamVO}>
      */
     @Override
-    public Page<TeamVO> listMyJoin(long currentPage, TeamQueryRequest teamQuery) {
+    public Page<TeamVO> listMyJoin(long currentPage, String searchText, TeamQueryRequest teamQuery) {
         List<Long> idList = teamQuery.getIdList();
         LambdaQueryWrapper<Team> teamLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        teamLambdaQueryWrapper.like(StringUtils.isNotBlank(searchText), Team::getName, searchText);
         teamLambdaQueryWrapper.in(Team::getId, idList);
         return listTeamByCondition(currentPage, teamLambdaQueryWrapper);
     }
@@ -631,20 +632,6 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
     }
 
     @Override
-    public Page<TeamVO> listMyCreate(long currentPage, Long userId) {
-        LambdaQueryWrapper<Team> teamLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        teamLambdaQueryWrapper.eq(Team::getUserId, userId);
-        Page<Team> teamPage = this.page(new Page<>(currentPage, PAGE_SIZE), teamLambdaQueryWrapper);
-        List<TeamVO> teamVOList = teamPage.getRecords()
-                .stream().map((team) -> this.getTeam(team.getId(), userId))
-                .collect(Collectors.toList());
-        Page<TeamVO> teamVOPage = new Page<>();
-        BeanUtils.copyProperties(teamPage, teamVOPage);
-        teamVOPage.setRecords(teamVOList);
-        return teamVOPage;
-    }
-
-    @Override
     public Page<TeamVO> getJoinedUserAvatar(Page<TeamVO> teamVoPage) {
         teamVoPage.getRecords().forEach((item) -> {
             Long teamId = item.getId();
@@ -662,6 +649,20 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         return teamVoPage;
     }
 
+    @Override
+    public Page<TeamVO> listUserCreate(long currentPage, String searchText, Long userId) {
+        LambdaQueryWrapper<Team> teamLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        teamLambdaQueryWrapper.eq(Team::getUserId, userId);
+        teamLambdaQueryWrapper.like(StringUtils.isNoneBlank(searchText), Team::getName, searchText);
+        Page<Team> teamPage = this.page(new Page<>(currentPage, PAGE_SIZE), teamLambdaQueryWrapper);
+        List<TeamVO> teamVOList = teamPage.getRecords()
+                .stream().map((team) -> this.getTeam(team.getId(), userId))
+                .collect(Collectors.toList());
+        Page<TeamVO> teamVOPage = new Page<>();
+        BeanUtils.copyProperties(teamPage, teamVOPage);
+        teamVOPage.setRecords(teamVOList);
+        return teamVOPage;
+    }
 
     /**
      * 根据 id 获取队伍信息

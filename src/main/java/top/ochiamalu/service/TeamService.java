@@ -100,7 +100,7 @@ public interface TeamService extends IService<Team> {
      * @param teamQuery   团队查询
      * @return {@link Page}<{@link TeamVO}>
      */
-    Page<TeamVO> listMyJoin(long currentPage, TeamQueryRequest teamQuery);
+    Page<TeamVO> listMyJoin(long currentPage, String searchText, TeamQueryRequest teamQuery);
 
     /**
      * 获取团队成员
@@ -139,15 +139,6 @@ public interface TeamService extends IService<Team> {
     void kickOut(Long teamId, Long userId, Long loginUserId, boolean admin);
 
     /**
-     * 列出我创建
-     *
-     * @param currentPage 当前页码
-     * @param userId      用户id
-     * @return {@link Page}<{@link TeamVO}>
-     */
-    Page<TeamVO> listMyCreate(long currentPage, Long userId);
-
-    /**
      * 获取已加入队员头像
      *
      * @param teamVoPage 团队vo分页
@@ -155,4 +146,12 @@ public interface TeamService extends IService<Team> {
      */
     Page<TeamVO> getJoinedUserAvatar(Page<TeamVO> teamVoPage);
 
+    /**
+     * 列表用户创建
+     *
+     * @param currentPage 当前页面
+     * @param userId      用户id
+     * @return {@link Page }<{@link TeamVO }>
+     */
+    Page<TeamVO> listUserCreate(long currentPage, String searchText, Long userId);
 }

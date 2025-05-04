@@ -25,15 +25,6 @@ public interface BlogService extends IService<Blog> {
     Long addBlog(BlogAddRequest blogAddRequest, User loginUser);
 
     /**
-     * 列出我博客
-     *
-     * @param currentPage 当前页码
-     * @param id          id
-     * @return {@link Page}<{@link BlogVO}>
-     */
-    Page<BlogVO> listMyBlogs(long currentPage, Long id);
-
-    /**
      * 点赞博客
      *
      * @param blogId 博客id
@@ -77,4 +68,13 @@ public interface BlogService extends IService<Blog> {
      * @param isAdmin           是否为管理员
      */
     void updateBlog(BlogUpdateRequest blogUpdateRequest, Long userId, boolean isAdmin);
+
+    /**
+     * 列出用户博客
+     *
+     * @param currentPage 当前页面
+     * @param userId      用户id
+     * @return {@link Page }<{@link BlogVO }>
+     */
+    Page<BlogVO> listUserBlogs(long currentPage, Long userId);
 }

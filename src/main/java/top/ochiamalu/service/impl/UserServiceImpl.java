@@ -86,13 +86,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      * 盐值，混淆密码
      */
     private static final String SALT = "ochiamalu";
+
     @Resource
     private UserMapper userMapper;
+
     @Resource
     private FollowService followService;
+
     @Resource
     private StringRedisTemplate stringRedisTemplate;
-    private Gson gson = new Gson();
+
+    private final Gson gson = new Gson();
 
 
     /**
@@ -192,9 +196,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     private User phoneLogin(String phone, String userPassword) {
-        return lambdaQuery().eq(User::getPhone, phone)
-                .eq(User::getPassword, DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes()))
+        User userInDatabase = lambdaQuery().eq(User::getPhone, phone)
                 .one();
+        if (userInDatabase == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户不存在");
+        }
+        if (!userInDatabase.getPassword().equals(DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes()))) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码错误");
+        }
+        if (!userInDatabase.getStatus().equals(0)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "该用户已被封禁");
+        }
+        return userInDatabase;
     }
 
     /**
