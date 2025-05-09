@@ -33,6 +33,11 @@ public class SuperProperties {
     private boolean useShortMessagingService = false;
 
     /**
+     * 使用号码认证服务
+     */
+    private boolean usePhoneNumberVerificationService = false;
+
+    /**
      * 使用图片本地存储
      */
     private boolean useLocalStorage = true;

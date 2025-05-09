@@ -34,8 +34,10 @@ import top.ochiamalu.model.request.UserLoginRequest;
 import top.ochiamalu.model.request.UserRegisterRequest;
 import top.ochiamalu.model.request.UserUpdateRequest;
 import top.ochiamalu.model.vo.UserVO;
+import top.ochiamalu.properties.SuperProperties;
 import top.ochiamalu.service.UserService;
 import top.ochiamalu.utils.MessageUtils;
+import top.ochiamalu.utils.SMSUtils;
 import top.ochiamalu.utils.ValidateCodeUtils;
 
 import javax.annotation.Resource;
@@ -91,6 +93,9 @@ public class UserController {
     @Resource
     private JavaMailSender javaMailSender;
 
+    @Resource
+    private SuperProperties superProperties;
+
     @Value("${spring.mail.username}")
     private String userFrom;
 
@@ -108,10 +113,15 @@ public class UserController {
         if (StringUtils.isBlank(phone)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        Integer code = ValidateCodeUtils.generateValidateCode(SIX_DIGIT_VERIFICATION_CODE);
+        String code;
+        if (superProperties.isUsePhoneNumberVerificationService()) {
+            code = SMSUtils.sendSmsVerifyCode(phone, SIX_DIGIT_VERIFICATION_CODE);
+        } else {
+            code = ValidateCodeUtils.generateValidateCode(SIX_DIGIT_VERIFICATION_CODE);
+            MessageUtils.sendMessage(phone, code);
+        }
         String key = REGISTER_CODE_KEY + phone;
-        stringRedisTemplate.opsForValue().set(key, String.valueOf(code), REGISTER_CODE_TTL, TimeUnit.MINUTES);
-        MessageUtils.sendMessage(phone, String.valueOf(code));
+        stringRedisTemplate.opsForValue().set(key, code, REGISTER_CODE_TTL, TimeUnit.MINUTES);
         return ResultUtils.success("短信发送成功");
     }
 
@@ -135,10 +145,15 @@ public class UserController {
         if (StringUtils.isBlank(phone)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        Integer code = ValidateCodeUtils.generateValidateCode(SIX_DIGIT_VERIFICATION_CODE);
+        String code;
+        if (superProperties.isUsePhoneNumberVerificationService()) {
+            code = SMSUtils.sendSmsVerifyCode(phone, SIX_DIGIT_VERIFICATION_CODE);
+        } else {
+            code = ValidateCodeUtils.generateValidateCode(SIX_DIGIT_VERIFICATION_CODE);
+            MessageUtils.sendMessage(phone, code);
+        }
         String key = USER_UPDATE_PHONE_KEY + phone;
-        stringRedisTemplate.opsForValue().set(key, String.valueOf(code), USER_UPDATE_PHONE_TTL, TimeUnit.MINUTES);
-        MessageUtils.sendMessage(phone, String.valueOf(code));
+        stringRedisTemplate.opsForValue().set(key, code, USER_UPDATE_PHONE_TTL, TimeUnit.MINUTES);
         return ResultUtils.success("短信发送成功");
     }
 
@@ -164,7 +179,7 @@ public class UserController {
         if (StringUtils.isBlank(email)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        Integer code = ValidateCodeUtils.generateValidateCode(SIX_DIGIT_VERIFICATION_CODE);
+        String code = ValidateCodeUtils.generateValidateCode(SIX_DIGIT_VERIFICATION_CODE);
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
         mimeMessageHelper.setFrom(new InternetAddress("SUPER <" + userFrom + ">"));
@@ -176,8 +191,8 @@ public class UserController {
                 + loginUser.getUserAccount() + "。请勿将此验证码转发给或提供给任何人。");
         javaMailSender.send(mimeMessage);
         String key = USER_UPDATE_EMAIL_KEY + email;
-        stringRedisTemplate.opsForValue().set(key, String.valueOf(code), USER_UPDATE_EMAIL_TTL, TimeUnit.MINUTES);
-        log.info(String.valueOf(code));
+        stringRedisTemplate.opsForValue().set(key, code, USER_UPDATE_EMAIL_TTL, TimeUnit.MINUTES);
+        log.info(code);
         return ResultUtils.success("ok");
     }
 
@@ -308,9 +323,14 @@ public class UserController {
         if (user == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "该手机号未绑定账号");
         } else {
+            String code;
+            if (superProperties.isUsePhoneNumberVerificationService()) {
+                code = SMSUtils.sendSmsVerifyCode(phone, (long) FOUR_DIGIT_VERIFICATION_CODE);
+            } else {
+                code = ValidateCodeUtils.generateValidateCode(FOUR_DIGIT_VERIFICATION_CODE);
+                MessageUtils.sendMessage(phone, code);
+            }
             String key = USER_FORGET_PASSWORD_KEY + phone;
-            Integer code = ValidateCodeUtils.generateValidateCode(FOUR_DIGIT_VERIFICATION_CODE);
-            MessageUtils.sendMessage(phone, String.valueOf(code));
             stringRedisTemplate.opsForValue().set(key,
                     String.valueOf(code),
                     USER_FORGET_PASSWORD_TTL,

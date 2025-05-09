@@ -27,6 +27,19 @@
       ]
     },
     {
+      "name": "super.use-phone-number-verification-service",
+      "values": [
+        {
+          "value": true,
+          "description": "启用"
+        },
+        {
+          "value": false,
+          "description": "禁用"
+        }
+      ]
+    },
+    {
       "name": "super.use-local-storage",
       "values": [
         {

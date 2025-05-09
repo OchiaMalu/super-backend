@@ -15,13 +15,13 @@ public final class ValidateCodeUtils {
     /**
      * 生成验证代码
      *
-     * @return {@link Integer}
+     * @return {@link String}
      */
-    public static Integer generateValidateCode(int digits) {
+    public static String generateValidateCode(long digits) {
         int min = (int) Math.pow(10, digits - 1);
         int max = (int) Math.pow(10, digits) - 1;
 
         Random random = new Random();
-        return random.nextInt(max - min + 1) + min;
+        return String.valueOf(random.nextInt(max - min + 1) + min);
     }
 }

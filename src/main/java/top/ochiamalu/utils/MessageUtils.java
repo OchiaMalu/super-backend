@@ -32,7 +32,7 @@ public class MessageUtils {
         if (superProperties.isUseShortMessagingService()) {
             SMSUtils.sendMessage(phoneNum, code);
         } else {
-            log.info("验证码: " + code);
+            log.info("验证码: {}", code);
         }
     }
 

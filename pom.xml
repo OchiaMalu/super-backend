@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>top.ochiamalu</groupId>
     <artifactId>super-backend</artifactId>
-    <version>4.1.0</version>
+    <version>4.2.0</version>
 
     <name>super-backend</name>
     <description>super-backend</description>
@@ -44,6 +44,11 @@
             <groupId>com.aliyun</groupId>
             <artifactId>aliyun-java-sdk-dysmsapi</artifactId>
             <version>2.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.aliyun</groupId>
+            <artifactId>alibabacloud-dypnsapi20170525</artifactId>
+            <version>1.0.8</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

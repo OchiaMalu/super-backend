@@ -37,11 +37,11 @@ public final class SystemConstants {
     /**
      * 四位验证码
      */
-    public static final int FOUR_DIGIT_VERIFICATION_CODE = 4;
+    public static final long FOUR_DIGIT_VERIFICATION_CODE = 4L;
     /**
      * 六位验证码
      */
-    public static final int SIX_DIGIT_VERIFICATION_CODE = 4;
+    public static final long SIX_DIGIT_VERIFICATION_CODE = 6L;
     /**
      * 跨域允许时间
      */
