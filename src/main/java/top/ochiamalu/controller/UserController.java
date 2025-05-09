@@ -110,10 +110,6 @@ public class UserController {
         }
         Integer code = ValidateCodeUtils.generateValidateCode(SIX_DIGIT_VERIFICATION_CODE);
         String key = REGISTER_CODE_KEY + phone;
-        String phoneCode = stringRedisTemplate.opsForValue().get(key);
-        if (phoneCode != null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请稍后再试");
-        }
         stringRedisTemplate.opsForValue().set(key, String.valueOf(code), REGISTER_CODE_TTL, TimeUnit.MINUTES);
         MessageUtils.sendMessage(phone, String.valueOf(code));
         return ResultUtils.success("短信发送成功");
